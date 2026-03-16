@@ -1,0 +1,26 @@
+{
+  "name": "Menaxhimi i Ndërtimit",
+  "short_name": "Ndërtimi",
+  "description": "Aplikacion i menaxhimit të kompanisë së ndërtimit",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#1d4ed8",
+  "orientation": "portrait",
+  "lang": "sq",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "categories": ["business", "productivity"]
+}
