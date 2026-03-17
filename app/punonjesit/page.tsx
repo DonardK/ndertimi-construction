@@ -8,21 +8,37 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
 import toast from "react-hot-toast";
-import { Plus, Pencil, Trash2, Users, Phone, X, UserCircle } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Users,
+  X,
+  UserCircle,
+  CreditCard,
+  Banknote,
+  Euro,
+} from "lucide-react";
 
 interface FormData {
   emri: string;
   mbiemri: string;
-  telefoni: string;
+  paymentMethod: "Cash" | "Bankë";
+  cmimiOre: string;
 }
 
 interface FormErrors {
   emri?: string;
   mbiemri?: string;
-  telefoni?: string;
+  cmimiOre?: string;
 }
 
-const emptyForm: FormData = { emri: "", mbiemri: "", telefoni: "" };
+const emptyForm: FormData = {
+  emri: "",
+  mbiemri: "",
+  paymentMethod: "Cash",
+  cmimiOre: "",
+};
 
 export default function PunonjesitPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -35,7 +51,7 @@ export default function PunonjesitPage() {
 
   const loadEmployees = async () => {
     try {
-      const data = await db.employees.orderBy("emri").toArray();
+      const data = await db.employees.getAll();
       setEmployees(data);
     } catch {
       toast.error(t.errors.loadError);
@@ -52,7 +68,12 @@ export default function PunonjesitPage() {
     const newErrors: FormErrors = {};
     if (!form.emri.trim()) newErrors.emri = t.errors.requiredField;
     if (!form.mbiemri.trim()) newErrors.mbiemri = t.errors.requiredField;
-    if (!form.telefoni.trim()) newErrors.telefoni = t.errors.requiredField;
+    const rate = parseFloat(form.cmimiOre);
+    if (!form.cmimiOre.trim()) {
+      newErrors.cmimiOre = t.errors.requiredField;
+    } else if (isNaN(rate) || rate < 0) {
+      newErrors.cmimiOre = t.errors.invalidNumber;
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -62,22 +83,20 @@ export default function PunonjesitPage() {
     if (!validate()) return;
 
     try {
-      const now = new Date().toISOString();
       if (editId !== null) {
         await db.employees.update(editId, {
           emri: form.emri.trim(),
           mbiemri: form.mbiemri.trim(),
-          telefoni: form.telefoni.trim(),
-          syncStatus: "local",
+          paymentMethod: form.paymentMethod,
+          cmimiOre: parseFloat(form.cmimiOre),
         });
         toast.success(t.success.updated);
       } else {
         await db.employees.add({
           emri: form.emri.trim(),
           mbiemri: form.mbiemri.trim(),
-          telefoni: form.telefoni.trim(),
-          createdAt: now,
-          syncStatus: "local",
+          paymentMethod: form.paymentMethod,
+          cmimiOre: parseFloat(form.cmimiOre),
         });
         toast.success(t.success.saved);
       }
@@ -92,7 +111,12 @@ export default function PunonjesitPage() {
   };
 
   const handleEdit = (emp: Employee) => {
-    setForm({ emri: emp.emri, mbiemri: emp.mbiemri, telefoni: emp.telefoni });
+    setForm({
+      emri: emp.emri,
+      mbiemri: emp.mbiemri,
+      paymentMethod: emp.paymentMethod,
+      cmimiOre: String(emp.cmimiOre),
+    });
     setEditId(emp.id!);
     setErrors({});
     setShowForm(true);
@@ -117,10 +141,13 @@ export default function PunonjesitPage() {
     setShowForm(true);
   };
 
-  const handleChange = (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
-    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
-  };
+  const handleChange =
+    (field: keyof Pick<FormData, "emri" | "mbiemri" | "cmimiOre">) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setForm((prev) => ({ ...prev, [field]: e.target.value }));
+      if (errors[field as keyof FormErrors])
+        setErrors((prev) => ({ ...prev, [field]: undefined }));
+    };
 
   return (
     <div className="px-4 pt-6">
@@ -173,10 +200,26 @@ export default function PunonjesitPage() {
                 <p className="text-lg font-bold text-gray-900 truncate">
                   {emp.emri} {emp.mbiemri}
                 </p>
-                <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5">
-                  <Phone className="w-3.5 h-3.5" />
-                  {emp.telefoni}
-                </p>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <span
+                    className={`flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full ${
+                      emp.paymentMethod === "Bankë"
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-green-100 text-green-700"
+                    }`}
+                  >
+                    {emp.paymentMethod === "Bankë" ? (
+                      <CreditCard className="w-3 h-3" />
+                    ) : (
+                      <Banknote className="w-3 h-3" />
+                    )}
+                    {emp.paymentMethod}
+                  </span>
+                  <span className="flex items-center gap-1 text-xs font-semibold text-gray-600 bg-gray-100 px-2.5 py-0.5 rounded-full">
+                    <Euro className="w-3 h-3" />
+                    {emp.cmimiOre.toFixed(2)}/orë
+                  </span>
+                </div>
               </div>
               <div className="flex gap-2 shrink-0">
                 <button
@@ -239,15 +282,50 @@ export default function PunonjesitPage() {
                 />
               </FormField>
 
-              <FormField label={t.employees.telefoni} error={errors.telefoni} required>
-                <Input
-                  type="tel"
-                  value={form.telefoni}
-                  onChange={handleChange("telefoni")}
-                  placeholder={t.employees.telefoniPlaceholder}
-                  error={!!errors.telefoni}
-                  inputMode="tel"
-                />
+              <FormField label={t.employees.paymentMethod} required>
+                <div className="flex gap-3">
+                  {(["Cash", "Bankë"] as const).map((method) => (
+                    <button
+                      key={method}
+                      type="button"
+                      onClick={() => setForm((prev) => ({ ...prev, paymentMethod: method }))}
+                      className={`flex-1 h-14 rounded-xl border-2 font-bold text-lg flex items-center justify-center gap-2 transition-colors
+                        ${
+                          form.paymentMethod === method
+                            ? method === "Cash"
+                              ? "border-green-500 bg-green-500 text-white"
+                              : "border-blue-500 bg-blue-500 text-white"
+                            : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                        }`}
+                    >
+                      {method === "Cash" ? (
+                        <Banknote className="w-5 h-5" />
+                      ) : (
+                        <CreditCard className="w-5 h-5" />
+                      )}
+                      {method}
+                    </button>
+                  ))}
+                </div>
+              </FormField>
+
+              <FormField label={t.employees.cmimiOre} error={errors.cmimiOre} required>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-lg">
+                    €
+                  </span>
+                  <Input
+                    type="number"
+                    value={form.cmimiOre}
+                    onChange={handleChange("cmimiOre")}
+                    placeholder={t.employees.cmimiOrePlaceholder}
+                    error={!!errors.cmimiOre}
+                    min="0"
+                    step="0.01"
+                    inputMode="decimal"
+                    className="pl-8"
+                  />
+                </div>
               </FormField>
 
               <div className="flex gap-3 mt-2">

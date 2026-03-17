@@ -18,14 +18,13 @@ import {
   X,
   User,
   AlertCircle,
+  Info,
 } from "lucide-react";
-import { format } from "date-fns";
 import Link from "next/link";
 
 interface FormData {
   employeeId: string;
   date: string;
-  paymentMethod: "Bankë" | "Cash";
   hoursWorked: string;
 }
 
@@ -40,7 +39,6 @@ const today = new Date().toISOString().split("T")[0];
 const emptyForm: FormData = {
   employeeId: "",
   date: today,
-  paymentMethod: "Cash",
   hoursWorked: "",
 };
 
@@ -57,8 +55,8 @@ export default function PjesemarrjaPage() {
   const loadData = async () => {
     try {
       const [atts, emps] = await Promise.all([
-        db.attendance.orderBy("date").reverse().toArray(),
-        db.employees.orderBy("emri").toArray(),
+        db.attendance.getAll(),
+        db.employees.getAll(),
       ]);
       setRecords(atts);
       setEmployees(emps);
@@ -72,6 +70,10 @@ export default function PjesemarrjaPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  const selectedEmployee = employees.find(
+    (e) => e.id === parseInt(form.employeeId)
+  );
 
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
@@ -100,10 +102,8 @@ export default function PjesemarrjaPage() {
         emri: emp.emri,
         mbiemri: emp.mbiemri,
         date: form.date,
-        paymentMethod: form.paymentMethod,
+        paymentMethod: emp.paymentMethod,
         hoursWorked: parseFloat(form.hoursWorked),
-        createdAt: new Date().toISOString(),
-        syncStatus: "local",
       });
       toast.success(t.success.saved);
       setShowForm(false);
@@ -175,7 +175,10 @@ export default function PjesemarrjaPage() {
           <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
             <Clock className="w-4 h-4 text-blue-600" />
             <span className="text-sm font-semibold text-gray-700">
-              {t.attendance.totalHours}: <span className="text-blue-600">{totalHours} {t.dashboard.hours}</span>
+              {t.attendance.totalHours}:{" "}
+              <span className="text-blue-600">
+                {totalHours} {t.dashboard.hours}
+              </span>
             </span>
           </div>
         )}
@@ -221,48 +224,57 @@ export default function PjesemarrjaPage() {
         />
       ) : (
         <ul className="flex flex-col gap-3">
-          {filteredRecords.map((rec) => (
-            <li
-              key={rec.id}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-4"
-            >
-              <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                <User className="w-7 h-7 text-green-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-base font-bold text-gray-900 truncate">
-                  {rec.emri} {rec.mbiemri}
-                </p>
-                <div className="flex items-center gap-3 mt-1 flex-wrap">
-                  <span className="flex items-center gap-1 text-sm text-gray-600">
-                    <Clock className="w-3.5 h-3.5 text-blue-500" />
-                    {rec.hoursWorked} {t.dashboard.hours}
-                  </span>
-                  <span
-                    className={`flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full ${
-                      rec.paymentMethod === "Bankë"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-green-100 text-green-700"
-                    }`}
-                  >
-                    {rec.paymentMethod === "Bankë" ? (
-                      <CreditCard className="w-3 h-3" />
-                    ) : (
-                      <Banknote className="w-3 h-3" />
-                    )}
-                    {rec.paymentMethod}
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={() => setDeleteId(rec.id!)}
-                className="w-11 h-11 rounded-xl bg-red-50 hover:bg-red-100 active:bg-red-200 text-red-600 flex items-center justify-center shrink-0 transition-colors"
-                aria-label={t.common.delete}
+          {filteredRecords.map((rec) => {
+            const emp = employees.find((e) => e.id === rec.employeeId);
+            const earned = emp ? (rec.hoursWorked * emp.cmimiOre).toFixed(2) : null;
+            return (
+              <li
+                key={rec.id}
+                className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-4"
               >
-                <Trash2 className="w-5 h-5" />
-              </button>
-            </li>
-          ))}
+                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                  <User className="w-7 h-7 text-green-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-base font-bold text-gray-900 truncate">
+                    {rec.emri} {rec.mbiemri}
+                  </p>
+                  <div className="flex items-center gap-3 mt-1 flex-wrap">
+                    <span className="flex items-center gap-1 text-sm text-gray-600">
+                      <Clock className="w-3.5 h-3.5 text-blue-500" />
+                      {rec.hoursWorked} {t.dashboard.hours}
+                    </span>
+                    <span
+                      className={`flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full ${
+                        rec.paymentMethod === "Bankë"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-green-100 text-green-700"
+                      }`}
+                    >
+                      {rec.paymentMethod === "Bankë" ? (
+                        <CreditCard className="w-3 h-3" />
+                      ) : (
+                        <Banknote className="w-3 h-3" />
+                      )}
+                      {rec.paymentMethod}
+                    </span>
+                    {earned && (
+                      <span className="text-xs font-semibold text-gray-500">
+                        €{earned}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setDeleteId(rec.id!)}
+                  className="w-11 h-11 rounded-xl bg-red-50 hover:bg-red-100 active:bg-red-200 text-red-600 flex items-center justify-center shrink-0 transition-colors"
+                  aria-label={t.common.delete}
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </li>
+            );
+          })}
         </ul>
       )}
 
@@ -287,7 +299,11 @@ export default function PjesemarrjaPage() {
             </div>
 
             <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
-              <FormField label={t.attendance.selectEmployee} error={errors.employeeId} required>
+              <FormField
+                label={t.attendance.selectEmployee}
+                error={errors.employeeId}
+                required
+              >
                 <Select
                   value={form.employeeId}
                   onChange={handleChange("employeeId")}
@@ -302,6 +318,52 @@ export default function PjesemarrjaPage() {
                 </Select>
               </FormField>
 
+              {/* Auto payment method indicator */}
+              {selectedEmployee && (
+                <div
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 ${
+                    selectedEmployee.paymentMethod === "Bankë"
+                      ? "bg-blue-50 border-blue-200"
+                      : "bg-green-50 border-green-200"
+                  }`}
+                >
+                  <Info
+                    className={`w-4 h-4 shrink-0 ${
+                      selectedEmployee.paymentMethod === "Bankë"
+                        ? "text-blue-600"
+                        : "text-green-600"
+                    }`}
+                  />
+                  <div className="flex-1 text-sm">
+                    <span className="font-semibold text-gray-700">
+                      {t.attendance.autoPayment}:{" "}
+                    </span>
+                    <span
+                      className={`font-bold ${
+                        selectedEmployee.paymentMethod === "Bankë"
+                          ? "text-blue-700"
+                          : "text-green-700"
+                      }`}
+                    >
+                      {selectedEmployee.paymentMethod === "Bankë" ? (
+                        <span className="inline-flex items-center gap-1">
+                          <CreditCard className="w-3.5 h-3.5" />
+                          Bankë
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1">
+                          <Banknote className="w-3.5 h-3.5" />
+                          Cash
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-gray-500 ml-2">
+                      · €{selectedEmployee.cmimiOre.toFixed(2)}/orë
+                    </span>
+                  </div>
+                </div>
+              )}
+
               <FormField label={t.attendance.date} error={errors.date} required>
                 <Input
                   type="date"
@@ -311,33 +373,11 @@ export default function PjesemarrjaPage() {
                 />
               </FormField>
 
-              <FormField label={t.attendance.paymentMethod} required>
-                <div className="flex gap-3">
-                  {(["Cash", "Bankë"] as const).map((method) => (
-                    <button
-                      key={method}
-                      type="button"
-                      onClick={() => setForm((prev) => ({ ...prev, paymentMethod: method }))}
-                      className={`flex-1 h-14 rounded-xl border-2 font-bold text-lg flex items-center justify-center gap-2 transition-colors
-                        ${form.paymentMethod === method
-                          ? method === "Cash"
-                            ? "border-green-500 bg-green-500 text-white"
-                            : "border-blue-500 bg-blue-500 text-white"
-                          : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-                        }`}
-                    >
-                      {method === "Cash" ? (
-                        <Banknote className="w-5 h-5" />
-                      ) : (
-                        <CreditCard className="w-5 h-5" />
-                      )}
-                      {method}
-                    </button>
-                  ))}
-                </div>
-              </FormField>
-
-              <FormField label={t.attendance.hoursWorked} error={errors.hoursWorked} required>
+              <FormField
+                label={t.attendance.hoursWorked}
+                error={errors.hoursWorked}
+                required
+              >
                 <Input
                   type="number"
                   value={form.hoursWorked}
@@ -350,6 +390,19 @@ export default function PjesemarrjaPage() {
                   inputMode="decimal"
                 />
               </FormField>
+
+              {/* Earnings preview */}
+              {selectedEmployee && form.hoursWorked && parseFloat(form.hoursWorked) > 0 && (
+                <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 flex items-center justify-between">
+                  <span>Pagesa e llogaritur:</span>
+                  <span className="text-blue-700 font-extrabold text-base">
+                    €
+                    {(
+                      parseFloat(form.hoursWorked) * selectedEmployee.cmimiOre
+                    ).toFixed(2)}
+                  </span>
+                </div>
+              )}
 
               <div className="flex gap-3 mt-2">
                 <button

@@ -26,7 +26,16 @@ import {
   Calendar,
   AlertCircle,
 } from "lucide-react";
-import { startOfMonth, endOfMonth, subMonths, startOfYear, endOfYear, format, isWithinInterval, parseISO } from "date-fns";
+import {
+  startOfMonth,
+  endOfMonth,
+  subMonths,
+  startOfYear,
+  endOfYear,
+  format,
+  isWithinInterval,
+  parseISO,
+} from "date-fns";
 
 type DatePreset = "thisMonth" | "last3Months" | "last6Months" | "thisYear" | "custom";
 
@@ -35,7 +44,15 @@ interface DateRange {
   to: string;
 }
 
-const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#f97316"];
+const COLORS = [
+  "#3b82f6",
+  "#10b981",
+  "#f59e0b",
+  "#ef4444",
+  "#8b5cf6",
+  "#06b6d4",
+  "#f97316",
+];
 
 function getPresetRange(preset: DatePreset): DateRange {
   const now = new Date();
@@ -91,11 +108,15 @@ function StatCard({
 }) {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-4">
-      <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center shrink-0`}>
+      <div
+        className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center shrink-0`}
+      >
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{label}</p>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+          {label}
+        </p>
         <p className="text-xl font-extrabold text-gray-900 truncate">{value}</p>
         {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
       </div>
@@ -115,7 +136,11 @@ function CustomTooltip({ active, payload, label, unit }: CustomTooltipProps) {
     return (
       <div className="bg-gray-900 text-white px-3 py-2 rounded-xl text-sm font-semibold shadow-lg">
         <p className="text-gray-300 text-xs mb-0.5">{label}</p>
-        <p>{payload[0].value.toLocaleString("sq-AL")} {unit}</p>
+        <p>
+          {unit === "€"
+            ? `€${payload[0].value.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : `${payload[0].value.toLocaleString("sq-AL")} ${unit}`}
+        </p>
       </div>
     );
   }
@@ -130,9 +155,15 @@ export default function DashboardPage() {
   const [customTo, setCustomTo] = useState(dateRange.to);
   const [loading, setLoading] = useState(true);
 
-  const [dieselByVehicle, setDieselByVehicle] = useState<{ name: string; total: number }[]>([]);
-  const [hoursByEmployee, setHoursByEmployee] = useState<{ name: string; hours: number }[]>([]);
-  const [paymentSplit, setPaymentSplit] = useState<{ name: string; value: number }[]>([]);
+  const [dieselByVehicle, setDieselByVehicle] = useState<
+    { name: string; total: number }[]
+  >([]);
+  const [hoursByEmployee, setHoursByEmployee] = useState<
+    { name: string; hours: number }[]
+  >([]);
+  const [paymentSplit, setPaymentSplit] = useState<
+    { name: string; value: number }[]
+  >([]);
   const [totalDiesel, setTotalDiesel] = useState(0);
   const [totalHours, setTotalHours] = useState(0);
   const [totalCash, setTotalCash] = useState(0);
@@ -154,8 +185,8 @@ export default function DashboardPage() {
     setLoading(true);
     try {
       const [dieselRecs, attRecs] = await Promise.all([
-        db.diesel.toArray(),
-        db.attendance.toArray(),
+        db.diesel.getAll(),
+        db.attendance.getAll(),
       ]);
 
       const filteredDiesel = dieselRecs.filter((r) => isInRange(r.date));
@@ -167,7 +198,10 @@ export default function DashboardPage() {
         dvMap[r.emriMjetit] = (dvMap[r.emriMjetit] || 0) + r.totalPrice;
       });
       setDieselByVehicle(
-        Object.entries(dvMap).map(([name, total]) => ({ name, total: Math.round(total) }))
+        Object.entries(dvMap).map(([name, total]) => ({
+          name,
+          total: Math.round(total * 100) / 100,
+        }))
       );
       setTotalDiesel(filteredDiesel.reduce((s, r) => s + r.totalPrice, 0));
 
@@ -182,15 +216,21 @@ export default function DashboardPage() {
       );
       setTotalHours(filteredAtt.reduce((s, r) => s + r.hoursWorked, 0));
 
-      // Payment split
-      const cash = filteredAtt.filter((r) => r.paymentMethod === "Cash").reduce((s, r) => s + r.hoursWorked, 0);
-      const bank = filteredAtt.filter((r) => r.paymentMethod === "Bankë").reduce((s, r) => s + r.hoursWorked, 0);
+      // Payment split (by hours)
+      const cash = filteredAtt
+        .filter((r) => r.paymentMethod === "Cash")
+        .reduce((s, r) => s + r.hoursWorked, 0);
+      const bank = filteredAtt
+        .filter((r) => r.paymentMethod === "Bankë")
+        .reduce((s, r) => s + r.hoursWorked, 0);
       setTotalCash(cash);
       setTotalBank(bank);
-      setPaymentSplit([
-        { name: t.attendance.cash, value: cash },
-        { name: t.attendance.bank, value: bank },
-      ].filter((d) => d.value > 0));
+      setPaymentSplit(
+        [
+          { name: t.attendance.cash, value: cash },
+          { name: t.attendance.bank, value: bank },
+        ].filter((d) => d.value > 0)
+      );
     } catch {
       // silently handle
     } finally {
@@ -223,9 +263,12 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900">{t.dashboard.title}</h1>
+          <h1 className="text-2xl font-extrabold text-gray-900">
+            {t.dashboard.title}
+          </h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            {format(parseISO(dateRange.from), "dd/MM/yyyy")} — {format(parseISO(dateRange.to), "dd/MM/yyyy")}
+            {format(parseISO(dateRange.from), "dd/MM/yyyy")} —{" "}
+            {format(parseISO(dateRange.to), "dd/MM/yyyy")}
           </p>
         </div>
         <div className="relative">
@@ -240,18 +283,31 @@ export default function DashboardPage() {
 
           {showDateMenu && (
             <div className="absolute right-0 top-12 bg-white rounded-2xl shadow-2xl border border-gray-100 z-30 w-64 overflow-hidden">
-              {(["thisMonth", "last3Months", "last6Months", "thisYear"] as DatePreset[]).map((p) => (
+              {(
+                [
+                  "thisMonth",
+                  "last3Months",
+                  "last6Months",
+                  "thisYear",
+                ] as DatePreset[]
+              ).map((p) => (
                 <button
                   key={p}
                   onClick={() => applyPreset(p)}
                   className={`w-full text-left px-4 py-3 text-sm font-semibold transition-colors
-                    ${preset === p ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"}`}
+                    ${
+                      preset === p
+                        ? "bg-blue-50 text-blue-600"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
                 >
                   {presetLabels[p]}
                 </button>
               ))}
               <div className="border-t border-gray-100 p-3">
-                <p className="text-xs font-bold text-gray-500 mb-2 uppercase">{t.dashboard.custom}</p>
+                <p className="text-xs font-bold text-gray-500 mb-2 uppercase">
+                  {t.dashboard.custom}
+                </p>
                 <div className="flex flex-col gap-2">
                   <input
                     type="date"
@@ -266,7 +322,10 @@ export default function DashboardPage() {
                     className="w-full h-10 px-3 rounded-xl border-2 border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-blue-500"
                   />
                   <button
-                    onClick={() => { setPreset("custom"); applyCustom(); }}
+                    onClick={() => {
+                      setPreset("custom");
+                      applyCustom();
+                    }}
                     className="w-full h-10 bg-blue-600 text-white rounded-xl font-bold text-sm"
                   >
                     {t.dashboard.applyFilter}
@@ -280,7 +339,10 @@ export default function DashboardPage() {
 
       {/* Click outside to close menu */}
       {showDateMenu && (
-        <div className="fixed inset-0 z-20" onClick={() => setShowDateMenu(false)} />
+        <div
+          className="fixed inset-0 z-20"
+          onClick={() => setShowDateMenu(false)}
+        />
       )}
 
       {loading ? (
@@ -297,7 +359,7 @@ export default function DashboardPage() {
             <StatCard
               icon={<Fuel className="w-6 h-6 text-orange-600" />}
               label={t.dashboard.totalDieselCost}
-              value={`${Math.round(totalDiesel).toLocaleString("sq-AL")} L`}
+              value={`€${totalDiesel.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               color="bg-orange-100"
             />
             <StatCard
@@ -333,7 +395,10 @@ export default function DashboardPage() {
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={dieselByVehicle} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                <BarChart
+                  data={dieselByVehicle}
+                  margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                   <XAxis
                     dataKey="name"
@@ -341,11 +406,21 @@ export default function DashboardPage() {
                     tickLine={false}
                     axisLine={false}
                   />
-                  <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} tickLine={false} axisLine={false} />
-                  <Tooltip content={<CustomTooltip unit="Lekë" />} cursor={{ fill: "#f8fafc" }} />
+                  <YAxis
+                    tick={{ fontSize: 10, fill: "#94a3b8" }}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <Tooltip
+                    content={<CustomTooltip unit="€" />}
+                    cursor={{ fill: "#f8fafc" }}
+                  />
                   <Bar dataKey="total" radius={[8, 8, 0, 0]}>
                     {dieselByVehicle.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
                     ))}
                   </Bar>
                 </BarChart>
@@ -366,7 +441,10 @@ export default function DashboardPage() {
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={hoursByEmployee} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                <BarChart
+                  data={hoursByEmployee}
+                  margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                   <XAxis
                     dataKey="name"
@@ -374,11 +452,21 @@ export default function DashboardPage() {
                     tickLine={false}
                     axisLine={false}
                   />
-                  <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} tickLine={false} axisLine={false} />
-                  <Tooltip content={<CustomTooltip unit="orë" />} cursor={{ fill: "#f8fafc" }} />
+                  <YAxis
+                    tick={{ fontSize: 10, fill: "#94a3b8" }}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <Tooltip
+                    content={<CustomTooltip unit="orë" />}
+                    cursor={{ fill: "#f8fafc" }}
+                  />
                   <Bar dataKey="hours" radius={[8, 8, 0, 0]}>
                     {hoursByEmployee.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[(index + 2) % COLORS.length]} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[(index + 2) % COLORS.length]}
+                      />
                     ))}
                   </Bar>
                 </BarChart>
@@ -427,7 +515,13 @@ export default function DashboardPage() {
                   />
                   <Legend
                     formatter={(value) => (
-                      <span style={{ fontSize: 13, fontWeight: 700, color: "#374151" }}>
+                      <span
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: "#374151",
+                        }}
+                      >
                         {value}
                       </span>
                     )}

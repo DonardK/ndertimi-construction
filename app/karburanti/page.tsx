@@ -19,7 +19,7 @@ import {
   Loader2,
   Truck,
   Droplets,
-  BadgeDollarSign,
+  Euro,
   Image as ImageIcon,
   Sparkles,
   FileText,
@@ -67,8 +67,8 @@ export default function KarburantiPage() {
   const loadData = async () => {
     try {
       const [dieselRecs, vehs] = await Promise.all([
-        db.diesel.orderBy("date").reverse().toArray(),
-        db.vehicles.orderBy("emriMjetit").toArray(),
+        db.diesel.getAll(),
+        db.vehicles.getAll(),
       ]);
       setRecords(dieselRecs);
       setVehicles(vehs);
@@ -118,8 +118,6 @@ export default function KarburantiPage() {
         liters: parseFloat(form.liters),
         totalPrice: parseFloat(form.totalPrice),
         photoBase64: form.photoBase64,
-        createdAt: new Date().toISOString(),
-        syncStatus: "local",
       });
       toast.success(t.success.saved);
       setShowForm(false);
@@ -182,7 +180,6 @@ export default function KarburantiPage() {
       toast.error("Ju lutem zgjidhni një skedar imazhi.");
       return;
     }
-
     try {
       const compressed = await compressImage(file);
       setPhotoPreview(compressed);
@@ -196,27 +193,22 @@ export default function KarburantiPage() {
   const runOcr = async (imageBase64: string) => {
     setOcrLoading(true);
     const loadingToast = toast.loading(t.diesel.aiExtracting);
-
     try {
       const res = await fetch("/api/ocr", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ imageBase64 }),
       });
-
       const data = await res.json();
       toast.dismiss(loadingToast);
-
       if (!res.ok || data.error) {
         toast.error(data.error || t.diesel.aiError);
         return;
       }
-
       const updates: Partial<FormData> = {};
       if (data.date) updates.date = data.date;
       if (data.liters != null) updates.liters = String(data.liters);
       if (data.totalPrice != null) updates.totalPrice = String(data.totalPrice);
-
       setForm((prev) => ({ ...prev, ...updates }));
       setErrors({});
       toast.success(t.diesel.aiSuccess);
@@ -243,6 +235,9 @@ export default function KarburantiPage() {
     if (fileInputRef.current) fileInputRef.current.value = "";
     if (cameraInputRef.current) cameraInputRef.current.value = "";
   };
+
+  // suppress unused import warning
+  void ImageIcon;
 
   return (
     <div className="px-4 pt-6">
@@ -344,8 +339,11 @@ export default function KarburantiPage() {
                       {rec.liters} L
                     </span>
                     <span className="flex items-center gap-1 text-sm text-gray-700 font-semibold">
-                      <BadgeDollarSign className="w-3.5 h-3.5 text-green-600" />
-                      {rec.totalPrice.toLocaleString("sq-AL")} Lekë
+                      <Euro className="w-3.5 h-3.5 text-green-600" />
+                      {rec.totalPrice.toLocaleString("de-DE", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </span>
                   </div>
                 </div>
@@ -404,7 +402,9 @@ export default function KarburantiPage() {
                     {ocrLoading && (
                       <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-2">
                         <Loader2 className="w-8 h-8 text-white animate-spin" />
-                        <span className="text-white font-semibold text-sm">{t.diesel.aiExtracting}</span>
+                        <span className="text-white font-semibold text-sm">
+                          {t.diesel.aiExtracting}
+                        </span>
                       </div>
                     )}
                     {!ocrLoading && (
@@ -468,7 +468,11 @@ export default function KarburantiPage() {
               </div>
 
               <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
-                <FormField label={t.diesel.selectVehicle} error={errors.vehicleId} required>
+                <FormField
+                  label={t.diesel.selectVehicle}
+                  error={errors.vehicleId}
+                  required
+                >
                   <Select
                     value={form.vehicleId}
                     onChange={handleChange("vehicleId")}
@@ -508,18 +512,28 @@ export default function KarburantiPage() {
                   />
                 </FormField>
 
-                <FormField label={t.diesel.totalPrice} error={errors.totalPrice} required>
-                  <Input
-                    type="number"
-                    value={form.totalPrice}
-                    onChange={handleChange("totalPrice")}
-                    placeholder={t.diesel.pricePlaceholder}
-                    error={!!errors.totalPrice}
-                    min="0"
-                    step="0.01"
-                    inputMode="decimal"
-                    disabled={ocrLoading}
-                  />
+                <FormField
+                  label={t.diesel.totalPrice}
+                  error={errors.totalPrice}
+                  required
+                >
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-lg">
+                      €
+                    </span>
+                    <Input
+                      type="number"
+                      value={form.totalPrice}
+                      onChange={handleChange("totalPrice")}
+                      placeholder={t.diesel.pricePlaceholder}
+                      error={!!errors.totalPrice}
+                      min="0"
+                      step="0.01"
+                      inputMode="decimal"
+                      disabled={ocrLoading}
+                      className="pl-8"
+                    />
+                  </div>
                 </FormField>
 
                 <div className="flex gap-3 mt-2">

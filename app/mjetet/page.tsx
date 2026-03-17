@@ -33,7 +33,7 @@ export default function MjetetPage() {
 
   const loadVehicles = async () => {
     try {
-      const data = await db.vehicles.orderBy("emriMjetit").toArray();
+      const data = await db.vehicles.getAll();
       setVehicles(data);
     } catch {
       toast.error(t.errors.loadError);
@@ -59,20 +59,16 @@ export default function MjetetPage() {
     if (!validate()) return;
 
     try {
-      const now = new Date().toISOString();
       if (editId !== null) {
         await db.vehicles.update(editId, {
           emriMjetit: form.emriMjetit.trim(),
           targa: form.targa.trim().toUpperCase(),
-          syncStatus: "local",
         });
         toast.success(t.success.updated);
       } else {
         await db.vehicles.add({
           emriMjetit: form.emriMjetit.trim(),
           targa: form.targa.trim().toUpperCase(),
-          createdAt: now,
-          syncStatus: "local",
         });
         toast.success(t.success.saved);
       }
@@ -215,7 +211,11 @@ export default function MjetetPage() {
             </div>
 
             <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
-              <FormField label={t.vehicles.emriMjetit} error={errors.emriMjetit} required>
+              <FormField
+                label={t.vehicles.emriMjetit}
+                error={errors.emriMjetit}
+                required
+              >
                 <Input
                   value={form.emriMjetit}
                   onChange={handleChange("emriMjetit")}
