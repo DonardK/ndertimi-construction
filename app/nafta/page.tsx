@@ -20,7 +20,6 @@ import {
   Truck,
   Droplets,
   Euro,
-  Image as ImageIcon,
   Sparkles,
   FileText,
 } from "lucide-react";
@@ -31,7 +30,7 @@ interface FormData {
   vehicleId: string;
   date: string;
   liters: string;
-  totalPrice: string;
+  cmimiLiter: string;
   photoBase64?: string;
 }
 
@@ -39,7 +38,7 @@ interface FormErrors {
   vehicleId?: string;
   date?: string;
   liters?: string;
-  totalPrice?: string;
+  cmimiLiter?: string;
 }
 
 const today = new Date().toISOString().split("T")[0];
@@ -47,11 +46,11 @@ const emptyForm: FormData = {
   vehicleId: "",
   date: today,
   liters: "",
-  totalPrice: "",
+  cmimiLiter: "",
   photoBase64: undefined,
 };
 
-export default function KarburantiPage() {
+export default function NaftaPage() {
   const [records, setRecords] = useState<DieselEntry[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,6 +62,12 @@ export default function KarburantiPage() {
   const [photoPreview, setPhotoPreview] = useState<string | undefined>();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  // Calculated total shown as preview
+  const calculatedTotal =
+    parseFloat(form.liters) > 0 && parseFloat(form.cmimiLiter) > 0
+      ? parseFloat(form.liters) * parseFloat(form.cmimiLiter)
+      : null;
 
   const loadData = async () => {
     try {
@@ -93,11 +98,11 @@ export default function KarburantiPage() {
     } else if (isNaN(liters) || liters <= 0) {
       newErrors.liters = t.errors.invalidNumber;
     }
-    const price = parseFloat(form.totalPrice);
-    if (!form.totalPrice.trim()) {
-      newErrors.totalPrice = t.errors.requiredField;
-    } else if (isNaN(price) || price <= 0) {
-      newErrors.totalPrice = t.errors.invalidNumber;
+    const rate = parseFloat(form.cmimiLiter);
+    if (!form.cmimiLiter.trim()) {
+      newErrors.cmimiLiter = t.errors.requiredField;
+    } else if (isNaN(rate) || rate <= 0) {
+      newErrors.cmimiLiter = t.errors.invalidNumber;
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -111,12 +116,16 @@ export default function KarburantiPage() {
       const vehicle = vehicles.find((v) => v.id === parseInt(form.vehicleId));
       if (!vehicle) return;
 
+      const liters = parseFloat(form.liters);
+      const cmimiLiter = parseFloat(form.cmimiLiter);
+      const totalPrice = liters * cmimiLiter;
+
       await db.diesel.add({
         vehicleId: vehicle.id!,
         emriMjetit: vehicle.emriMjetit,
         date: form.date,
-        liters: parseFloat(form.liters),
-        totalPrice: parseFloat(form.totalPrice),
+        liters,
+        totalPrice,
         photoBase64: form.photoBase64,
       });
       toast.success(t.success.saved);
@@ -164,8 +173,7 @@ export default function KarburantiPage() {
           canvas.height = height;
           const ctx = canvas.getContext("2d")!;
           ctx.drawImage(img, 0, 0, width, height);
-          const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
-          resolve(dataUrl);
+          resolve(canvas.toDataURL("image/jpeg", 0.85));
         };
         img.onerror = reject;
         img.src = e.target?.result as string;
@@ -208,7 +216,14 @@ export default function KarburantiPage() {
       const updates: Partial<FormData> = {};
       if (data.date) updates.date = data.date;
       if (data.liters != null) updates.liters = String(data.liters);
-      if (data.totalPrice != null) updates.totalPrice = String(data.totalPrice);
+      // If OCR returns a unit price, use it; otherwise derive from totalPrice if available
+      if (data.cmimiLiter != null) {
+        updates.cmimiLiter = String(data.cmimiLiter);
+      } else if (data.totalPrice != null && data.liters != null && data.liters > 0) {
+        updates.cmimiLiter = String(
+          (Math.round((data.totalPrice / data.liters) * 100) / 100).toFixed(4)
+        );
+      }
       setForm((prev) => ({ ...prev, ...updates }));
       setErrors({});
       toast.success(t.diesel.aiSuccess);
@@ -235,9 +250,6 @@ export default function KarburantiPage() {
     if (fileInputRef.current) fileInputRef.current.value = "";
     if (cameraInputRef.current) cameraInputRef.current.value = "";
   };
-
-  // suppress unused import warning
-  void ImageIcon;
 
   return (
     <div className="px-4 pt-6">
@@ -302,61 +314,74 @@ export default function KarburantiPage() {
         />
       ) : (
         <ul className="flex flex-col gap-3">
-          {records.map((rec) => (
-            <li
-              key={rec.id}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
-            >
-              {rec.photoBase64 && (
-                <div className="h-28 overflow-hidden bg-gray-100 relative">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={rec.photoBase64}
-                    alt="Fatura"
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
-                    <FileText className="w-3 h-3" />
-                    Fatura
+          {records.map((rec) => {
+            const perLiter =
+              rec.liters > 0
+                ? (rec.totalPrice / rec.liters).toFixed(2)
+                : null;
+            return (
+              <li
+                key={rec.id}
+                className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+              >
+                {rec.photoBase64 && (
+                  <div className="h-28 overflow-hidden bg-gray-100 relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={rec.photoBase64}
+                      alt="Fatura"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <FileText className="w-3 h-3" />
+                      Fatura
+                    </div>
                   </div>
-                </div>
-              )}
-              <div className="p-4 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
-                  <Fuel className="w-7 h-7 text-orange-600" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-base font-bold text-gray-900 truncate flex items-center gap-1.5">
-                    <Truck className="w-4 h-4 text-gray-500" />
-                    {rec.emriMjetit}
-                  </p>
-                  <p className="text-sm text-gray-500 mt-0.5">
-                    {rec.date ? format(new Date(rec.date), "dd/MM/yyyy") : rec.date}
-                  </p>
-                  <div className="flex items-center gap-3 mt-1 flex-wrap">
-                    <span className="flex items-center gap-1 text-sm text-gray-700 font-semibold">
-                      <Droplets className="w-3.5 h-3.5 text-blue-500" />
-                      {rec.liters} L
-                    </span>
-                    <span className="flex items-center gap-1 text-sm text-gray-700 font-semibold">
-                      <Euro className="w-3.5 h-3.5 text-green-600" />
-                      {rec.totalPrice.toLocaleString("de-DE", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </span>
+                )}
+                <div className="p-4 flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
+                    <Fuel className="w-7 h-7 text-orange-600" />
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-base font-bold text-gray-900 truncate flex items-center gap-1.5">
+                      <Truck className="w-4 h-4 text-gray-500" />
+                      {rec.emriMjetit}
+                    </p>
+                    <p className="text-sm text-gray-500 mt-0.5">
+                      {rec.date
+                        ? format(new Date(rec.date), "dd/MM/yyyy")
+                        : rec.date}
+                    </p>
+                    <div className="flex items-center gap-3 mt-1 flex-wrap">
+                      <span className="flex items-center gap-1 text-sm text-gray-700 font-semibold">
+                        <Droplets className="w-3.5 h-3.5 text-blue-500" />
+                        {rec.liters} L
+                      </span>
+                      {perLiter && (
+                        <span className="text-xs text-gray-500 font-medium">
+                          €{perLiter}/L
+                        </span>
+                      )}
+                      <span className="flex items-center gap-1 text-sm text-gray-700 font-semibold">
+                        <Euro className="w-3.5 h-3.5 text-green-600" />
+                        {rec.totalPrice.toLocaleString("de-DE", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setDeleteId(rec.id!)}
+                    className="w-11 h-11 rounded-xl bg-red-50 hover:bg-red-100 active:bg-red-200 text-red-600 flex items-center justify-center shrink-0 transition-colors"
+                    aria-label={t.common.delete}
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
                 </div>
-                <button
-                  onClick={() => setDeleteId(rec.id!)}
-                  className="w-11 h-11 rounded-xl bg-red-50 hover:bg-red-100 active:bg-red-200 text-red-600 flex items-center justify-center shrink-0 transition-colors"
-                  aria-label={t.common.delete}
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
-              </div>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       )}
 
@@ -513,28 +538,45 @@ export default function KarburantiPage() {
                 </FormField>
 
                 <FormField
-                  label={t.diesel.totalPrice}
-                  error={errors.totalPrice}
+                  label={t.diesel.cmimiLiter}
+                  error={errors.cmimiLiter}
                   required
                 >
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-lg">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-lg pointer-events-none">
                       €
                     </span>
                     <Input
                       type="number"
-                      value={form.totalPrice}
-                      onChange={handleChange("totalPrice")}
-                      placeholder={t.diesel.pricePlaceholder}
-                      error={!!errors.totalPrice}
+                      value={form.cmimiLiter}
+                      onChange={handleChange("cmimiLiter")}
+                      placeholder={t.diesel.cmimiLiterPlaceholder}
+                      error={!!errors.cmimiLiter}
                       min="0"
-                      step="0.01"
+                      step="0.001"
                       inputMode="decimal"
                       disabled={ocrLoading}
                       className="pl-8"
                     />
                   </div>
                 </FormField>
+
+                {/* Calculated total preview */}
+                {calculatedTotal !== null && (
+                  <div className="bg-orange-50 border-2 border-orange-200 rounded-xl px-4 py-3 flex items-center justify-between">
+                    <span className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <Fuel className="w-4 h-4 text-orange-500" />
+                      {t.diesel.totalPrice}
+                    </span>
+                    <span className="text-xl font-extrabold text-orange-700">
+                      €
+                      {calculatedTotal.toLocaleString("de-DE", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
+                )}
 
                 <div className="flex gap-3 mt-2">
                   <button

@@ -10,7 +10,7 @@ const navItems = [
   { href: "/punonjesit", label: t.nav.employees, icon: Users },
   { href: "/pjesemarrja", label: t.nav.attendance, icon: CalendarCheck },
   { href: "/mjetet", label: t.nav.vehicles, icon: Truck },
-  { href: "/karburanti", label: t.nav.diesel, icon: Fuel },
+  { href: "/nafta", label: t.nav.diesel, icon: Fuel },
 ];
 
 export default function BottomNav() {
