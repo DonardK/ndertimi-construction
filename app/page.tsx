@@ -166,8 +166,8 @@ export default function DashboardPage() {
   >([]);
   const [totalDiesel, setTotalDiesel] = useState(0);
   const [totalHours, setTotalHours] = useState(0);
-  const [totalCash, setTotalCash] = useState(0);
-  const [totalBank, setTotalBank] = useState(0);
+  const [totalCashEur, setTotalCashEur] = useState(0);
+  const [totalBankEur, setTotalBankEur] = useState(0);
 
   const isInRange = (dateStr: string) => {
     try {
@@ -184,13 +184,20 @@ export default function DashboardPage() {
   const loadStats = async () => {
     setLoading(true);
     try {
-      const [dieselRecs, attRecs] = await Promise.all([
+      const [dieselRecs, attRecs, employees] = await Promise.all([
         db.diesel.getAll(),
         db.attendance.getAll(),
+        db.employees.getAll(),
       ]);
 
       const filteredDiesel = dieselRecs.filter((r) => isInRange(r.date));
       const filteredAtt = attRecs.filter((r) => isInRange(r.date));
+
+      // Build employee rate lookup map
+      const rateMap: Record<number, number> = {};
+      employees.forEach((e) => {
+        if (e.id !== undefined) rateMap[e.id] = e.cmimiOre;
+      });
 
       // Diesel by vehicle
       const dvMap: Record<string, number> = {};
@@ -216,19 +223,24 @@ export default function DashboardPage() {
       );
       setTotalHours(filteredAtt.reduce((s, r) => s + r.hoursWorked, 0));
 
-      // Payment split (by hours)
-      const cash = filteredAtt
-        .filter((r) => r.paymentMethod === "Cash")
-        .reduce((s, r) => s + r.hoursWorked, 0);
-      const bank = filteredAtt
-        .filter((r) => r.paymentMethod === "Bankë")
-        .reduce((s, r) => s + r.hoursWorked, 0);
-      setTotalCash(cash);
-      setTotalBank(bank);
+      // Payment split — amounts in EUR (hours × rate)
+      const calcEur = (records: typeof filteredAtt) =>
+        records.reduce((s, r) => {
+          const rate = rateMap[r.employeeId] ?? 0;
+          return s + r.hoursWorked * rate;
+        }, 0);
+
+      const cashAtt = filteredAtt.filter((r) => r.paymentMethod === "Cash");
+      const bankAtt = filteredAtt.filter((r) => r.paymentMethod === "Bankë");
+      const cashEur = calcEur(cashAtt);
+      const bankEur = calcEur(bankAtt);
+
+      setTotalCashEur(cashEur);
+      setTotalBankEur(bankEur);
       setPaymentSplit(
         [
-          { name: t.attendance.cash, value: cash },
-          { name: t.attendance.bank, value: bank },
+          { name: t.attendance.cash, value: Math.round(cashEur * 100) / 100 },
+          { name: t.attendance.bank, value: Math.round(bankEur * 100) / 100 },
         ].filter((d) => d.value > 0)
       );
     } catch {
@@ -371,13 +383,13 @@ export default function DashboardPage() {
             <StatCard
               icon={<Banknote className="w-6 h-6 text-green-600" />}
               label={t.dashboard.totalCash}
-              value={`${totalCash} orë`}
+              value={`€${totalCashEur.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               color="bg-green-100"
             />
             <StatCard
               icon={<CreditCard className="w-6 h-6 text-purple-600" />}
               label={t.dashboard.totalBank}
-              value={`${totalBank} orë`}
+              value={`€${totalBankEur.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               color="bg-purple-100"
             />
           </div>
@@ -505,7 +517,10 @@ export default function DashboardPage() {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value) => [`${value} orë`, ""]}
+                    formatter={(value) => [
+                      `€${Number(value).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                      "",
+                    ]}
                     contentStyle={{
                       borderRadius: "12px",
                       fontWeight: 600,
