@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { getClient } from "./supabase";
 
 export interface Employee {
   id?: number;
@@ -95,7 +95,7 @@ function mapDiesel(row: any): DieselEntry {
 export const db = {
   employees: {
     async getAll(): Promise<Employee[]> {
-      const { data, error } = await supabase
+      const { data, error } = await getClient()
         .from("employees")
         .select("*")
         .order("emri");
@@ -104,7 +104,7 @@ export const db = {
     },
 
     async add(emp: Omit<Employee, "id" | "createdAt">): Promise<void> {
-      const { error } = await supabase.from("employees").insert({
+      const { error } = await getClient().from("employees").insert({
         emri: emp.emri,
         mbiemri: emp.mbiemri,
         payment_method: emp.paymentMethod,
@@ -119,19 +119,19 @@ export const db = {
       if (emp.mbiemri !== undefined) updates.mbiemri = emp.mbiemri;
       if (emp.paymentMethod !== undefined) updates.payment_method = emp.paymentMethod;
       if (emp.cmimiOre !== undefined) updates.cmimi_ore = emp.cmimiOre;
-      const { error } = await supabase.from("employees").update(updates).eq("id", id);
+      const { error } = await getClient().from("employees").update(updates).eq("id", id);
       if (error) throw error;
     },
 
     async delete(id: number): Promise<void> {
-      const { error } = await supabase.from("employees").delete().eq("id", id);
+      const { error } = await getClient().from("employees").delete().eq("id", id);
       if (error) throw error;
     },
   },
 
   attendance: {
     async getAll(): Promise<Attendance[]> {
-      const { data, error } = await supabase
+      const { data, error } = await getClient()
         .from("attendance")
         .select("*")
         .order("date", { ascending: false });
@@ -140,7 +140,7 @@ export const db = {
     },
 
     async add(att: Omit<Attendance, "id" | "createdAt">): Promise<void> {
-      const { error } = await supabase.from("attendance").insert({
+      const { error } = await getClient().from("attendance").insert({
         employee_id: att.employeeId,
         emri: att.emri,
         mbiemri: att.mbiemri,
@@ -152,14 +152,14 @@ export const db = {
     },
 
     async delete(id: number): Promise<void> {
-      const { error } = await supabase.from("attendance").delete().eq("id", id);
+      const { error } = await getClient().from("attendance").delete().eq("id", id);
       if (error) throw error;
     },
   },
 
   vehicles: {
     async getAll(): Promise<Vehicle[]> {
-      const { data, error } = await supabase
+      const { data, error } = await getClient()
         .from("vehicles")
         .select("*")
         .order("emri_mjetit");
@@ -168,7 +168,7 @@ export const db = {
     },
 
     async add(v: Omit<Vehicle, "id" | "createdAt">): Promise<void> {
-      const { error } = await supabase.from("vehicles").insert({
+      const { error } = await getClient().from("vehicles").insert({
         emri_mjetit: v.emriMjetit,
         targa: v.targa,
       });
@@ -179,19 +179,19 @@ export const db = {
       const updates: Record<string, unknown> = {};
       if (v.emriMjetit !== undefined) updates.emri_mjetit = v.emriMjetit;
       if (v.targa !== undefined) updates.targa = v.targa;
-      const { error } = await supabase.from("vehicles").update(updates).eq("id", id);
+      const { error } = await getClient().from("vehicles").update(updates).eq("id", id);
       if (error) throw error;
     },
 
     async delete(id: number): Promise<void> {
-      const { error } = await supabase.from("vehicles").delete().eq("id", id);
+      const { error } = await getClient().from("vehicles").delete().eq("id", id);
       if (error) throw error;
     },
   },
 
   diesel: {
     async getAll(): Promise<DieselEntry[]> {
-      const { data, error } = await supabase
+      const { data, error } = await getClient()
         .from("diesel")
         .select("*")
         .order("date", { ascending: false });
@@ -200,7 +200,7 @@ export const db = {
     },
 
     async add(d: Omit<DieselEntry, "id" | "createdAt">): Promise<void> {
-      const { error } = await supabase.from("diesel").insert({
+      const { error } = await getClient().from("diesel").insert({
         vehicle_id: d.vehicleId,
         emri_mjetit: d.emriMjetit,
         date: d.date,
@@ -212,7 +212,7 @@ export const db = {
     },
 
     async delete(id: number): Promise<void> {
-      const { error } = await supabase.from("diesel").delete().eq("id", id);
+      const { error } = await getClient().from("diesel").delete().eq("id", id);
       if (error) throw error;
     },
   },
