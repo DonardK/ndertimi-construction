@@ -63,10 +63,12 @@ export default function NaftaPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
+  const parseNum = (val: string) => parseFloat(val.replace(",", "."));
+
   // Calculated total shown as preview
   const calculatedTotal =
-    parseFloat(form.liters) > 0 && parseFloat(form.cmimiLiter) > 0
-      ? parseFloat(form.liters) * parseFloat(form.cmimiLiter)
+    parseNum(form.liters) > 0 && parseNum(form.cmimiLiter) > 0
+      ? parseNum(form.liters) * parseNum(form.cmimiLiter)
       : null;
 
   const loadData = async () => {
@@ -92,13 +94,13 @@ export default function NaftaPage() {
     const newErrors: FormErrors = {};
     if (!form.vehicleId) newErrors.vehicleId = t.errors.requiredField;
     if (!form.date) newErrors.date = t.errors.requiredField;
-    const liters = parseFloat(form.liters);
+    const liters = parseNum(form.liters);
     if (!form.liters.trim()) {
       newErrors.liters = t.errors.requiredField;
     } else if (isNaN(liters) || liters <= 0) {
       newErrors.liters = t.errors.invalidNumber;
     }
-    const rate = parseFloat(form.cmimiLiter);
+    const rate = parseNum(form.cmimiLiter);
     if (!form.cmimiLiter.trim()) {
       newErrors.cmimiLiter = t.errors.requiredField;
     } else if (isNaN(rate) || rate <= 0) {
@@ -116,8 +118,8 @@ export default function NaftaPage() {
       const vehicle = vehicles.find((v) => v.id === parseInt(form.vehicleId));
       if (!vehicle) return;
 
-      const liters = parseFloat(form.liters);
-      const cmimiLiter = parseFloat(form.cmimiLiter);
+      const liters = parseNum(form.liters);
+      const cmimiLiter = parseNum(form.cmimiLiter);
       const totalPrice = liters * cmimiLiter;
 
       await db.diesel.add({

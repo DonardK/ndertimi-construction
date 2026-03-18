@@ -75,11 +75,13 @@ export default function PjesemarrjaPage() {
     (e) => e.id === parseInt(form.employeeId)
   );
 
+  const parseNum = (val: string) => parseFloat(val.replace(",", "."));
+
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
     if (!form.employeeId) newErrors.employeeId = t.errors.requiredField;
     if (!form.date) newErrors.date = t.errors.requiredField;
-    const hours = parseFloat(form.hoursWorked);
+    const hours = parseNum(form.hoursWorked);
     if (!form.hoursWorked.trim()) {
       newErrors.hoursWorked = t.errors.requiredField;
     } else if (isNaN(hours) || hours <= 0 || hours > 24) {
@@ -103,7 +105,7 @@ export default function PjesemarrjaPage() {
         mbiemri: emp.mbiemri,
         date: form.date,
         paymentMethod: emp.paymentMethod,
-        hoursWorked: parseFloat(form.hoursWorked),
+        hoursWorked: parseNum(form.hoursWorked),
       });
       toast.success(t.success.saved);
       setShowForm(false);
@@ -392,13 +394,13 @@ export default function PjesemarrjaPage() {
               </FormField>
 
               {/* Earnings preview */}
-              {selectedEmployee && form.hoursWorked && parseFloat(form.hoursWorked) > 0 && (
+              {selectedEmployee && form.hoursWorked && parseNum(form.hoursWorked) > 0 && (
                 <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 flex items-center justify-between">
                   <span>Pagesa e llogaritur:</span>
                   <span className="text-blue-700 font-extrabold text-base">
                     €
                     {(
-                      parseFloat(form.hoursWorked) * selectedEmployee.cmimiOre
+                      parseNum(form.hoursWorked) * selectedEmployee.cmimiOre
                     ).toFixed(2)}
                   </span>
                 </div>

@@ -64,11 +64,13 @@ export default function PunonjesitPage() {
     loadEmployees();
   }, []);
 
+  const parseNum = (val: string) => parseFloat(val.replace(",", "."));
+
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
     if (!form.emri.trim()) newErrors.emri = t.errors.requiredField;
     if (!form.mbiemri.trim()) newErrors.mbiemri = t.errors.requiredField;
-    const rate = parseFloat(form.cmimiOre);
+    const rate = parseNum(form.cmimiOre);
     if (!form.cmimiOre.trim()) {
       newErrors.cmimiOre = t.errors.requiredField;
     } else if (isNaN(rate) || rate < 0) {
@@ -88,7 +90,7 @@ export default function PunonjesitPage() {
           emri: form.emri.trim(),
           mbiemri: form.mbiemri.trim(),
           paymentMethod: form.paymentMethod,
-          cmimiOre: parseFloat(form.cmimiOre),
+          cmimiOre: parseNum(form.cmimiOre),
         });
         toast.success(t.success.updated);
       } else {
@@ -96,7 +98,7 @@ export default function PunonjesitPage() {
           emri: form.emri.trim(),
           mbiemri: form.mbiemri.trim(),
           paymentMethod: form.paymentMethod,
-          cmimiOre: parseFloat(form.cmimiOre),
+          cmimiOre: parseNum(form.cmimiOre),
         });
         toast.success(t.success.saved);
       }
