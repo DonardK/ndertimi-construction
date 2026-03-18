@@ -146,7 +146,9 @@ export default function PunonjesitPage() {
   const handleChange =
     (field: keyof Pick<FormData, "emri" | "mbiemri" | "cmimiOre">) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      setForm((prev) => ({ ...prev, [field]: e.target.value }));
+      let value = e.target.value;
+      if (field === "cmimiOre") value = value.replace(",", ".");
+      setForm((prev) => ({ ...prev, [field]: value }));
       if (errors[field as keyof FormErrors])
         setErrors((prev) => ({ ...prev, [field]: undefined }));
     };
@@ -317,14 +319,12 @@ export default function PunonjesitPage() {
                     €
                   </span>
                   <Input
-                    type="number"
+                    type="text"
+                    inputMode="decimal"
                     value={form.cmimiOre}
                     onChange={handleChange("cmimiOre")}
                     placeholder={t.employees.cmimiOrePlaceholder}
                     error={!!errors.cmimiOre}
-                    min="0"
-                    step="0.01"
-                    inputMode="decimal"
                     className="pl-8"
                   />
                 </div>

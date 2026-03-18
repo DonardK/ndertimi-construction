@@ -237,10 +237,13 @@ export default function NaftaPage() {
     }
   };
 
+  const numericFields: (keyof FormData)[] = ["liters", "cmimiLiter"];
+
   const handleChange =
     (field: keyof FormData) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      const value = e.target.value;
+      let value = e.target.value;
+      if (numericFields.includes(field)) value = value.replace(",", ".");
       setForm((prev) => ({ ...prev, [field]: value }));
       if (errors[field as keyof FormErrors])
         setErrors((prev) => ({ ...prev, [field]: undefined }));
@@ -527,14 +530,12 @@ export default function NaftaPage() {
 
                 <FormField label={t.diesel.liters} error={errors.liters} required>
                   <Input
-                    type="number"
+                    type="text"
+                    inputMode="decimal"
                     value={form.liters}
                     onChange={handleChange("liters")}
                     placeholder={t.diesel.litersPlaceholder}
                     error={!!errors.liters}
-                    min="0"
-                    step="0.01"
-                    inputMode="decimal"
                     disabled={ocrLoading}
                   />
                 </FormField>
@@ -549,14 +550,12 @@ export default function NaftaPage() {
                       €
                     </span>
                     <Input
-                      type="number"
+                      type="text"
+                      inputMode="decimal"
                       value={form.cmimiLiter}
                       onChange={handleChange("cmimiLiter")}
                       placeholder={t.diesel.cmimiLiterPlaceholder}
                       error={!!errors.cmimiLiter}
-                      min="0"
-                      step="0.001"
-                      inputMode="decimal"
                       disabled={ocrLoading}
                       className="pl-8"
                     />

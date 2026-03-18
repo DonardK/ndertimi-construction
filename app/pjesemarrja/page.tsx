@@ -135,7 +135,8 @@ export default function PjesemarrjaPage() {
   const handleChange =
     (field: keyof FormData) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      const value = e.target.value;
+      let value = e.target.value;
+      if (field === "hoursWorked") value = value.replace(",", ".");
       setForm((prev) => ({ ...prev, [field]: value }));
       if (errors[field as keyof FormErrors])
         setErrors((prev) => ({ ...prev, [field]: undefined }));
@@ -381,15 +382,12 @@ export default function PjesemarrjaPage() {
                 required
               >
                 <Input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   value={form.hoursWorked}
                   onChange={handleChange("hoursWorked")}
                   placeholder={t.attendance.hoursPlaceholder}
                   error={!!errors.hoursWorked}
-                  min="0"
-                  max="24"
-                  step="0.5"
-                  inputMode="decimal"
                 />
               </FormField>
 
