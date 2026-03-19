@@ -71,6 +71,17 @@ export const t = {
     noEmployees: "Nuk ka punonjës. Shtoni punonjësin e parë!",
     deleteConfirm: "A doni ta fshini këtë punonjës?",
     totalEmployees: "Punonjës gjithsej",
+    payments: "Pagesat",
+    paymentsTitle: "Pagesat e Bëra",
+    addPayment: "Shto Pagesë",
+    paymentAmount: "Shuma (€)",
+    paymentAmountPlaceholder: "p.sh. 150.00",
+    paymentDate: "Data",
+    pershkrim: "Përshkrim",
+    pershkrimPlaceholder: "p.sh. Avans, Urgjencë...",
+    noPayments: "Nuk ka pagesa të regjistruara.",
+    deletePaymentConfirm: "A doni ta fshini këtë pagesë?",
+    totalPaid: "Paguar gjithsej",
   },
 
   attendance: {
@@ -168,6 +179,9 @@ export const t = {
     totalPay: "Totali (€)",
     paymentType: "Pagesa",
     grandTotal: "Totali i Përgjithshëm",
+    earned: "Fituar",
+    paid: "Paguar",
+    netOwed: "Mbetur",
     // Vehicles table
     vehiclesTable: "Mjetet — Nafta",
     vehicle: "Mjeti",
@@ -175,14 +189,17 @@ export const t = {
     avgPricePerLiter: "Avg €/L",
     totalCost: "Totali (€)",
     // Bulk attendance
-    addMultiple: "Shto Shumë",
-    bulkTitle: "Shto Orë — Shumë Punonjës",
+    addMultiple: "Shto Hyrje",
+    bulkTitle: "Shto Hyrje — Punonjësit",
     bulkDate: "Data",
     bulkSelectAll: "Zgjidh të gjithë",
     bulkDeselectAll: "Hiq të gjithë",
     bulkSave: "Ruaj të gjithë",
     bulkNoEmployees: "Asnjë punonjës i zgjedhur",
     bulkHoursLabel: "Orë",
+    sameHours: "Orë njësoj për të gjithë",
+    sameHoursPlaceholder: "p.sh. 8",
+    applyToAll: "Apliko",
   },
 } as const;
 

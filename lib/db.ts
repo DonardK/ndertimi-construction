@@ -27,6 +27,17 @@ export interface Vehicle {
   createdAt?: string;
 }
 
+export interface WorkerPayment {
+  id?: number;
+  employeeId: number;
+  emri: string;
+  mbiemri: string;
+  amount: number;
+  pershkrim: string;
+  date: string;
+  createdAt?: string;
+}
+
 export interface DieselEntry {
   id?: number;
   vehicleId: number;
@@ -72,6 +83,20 @@ function mapVehicle(row: any): Vehicle {
     id: row.id,
     emriMjetit: row.emri_mjetit,
     targa: row.targa,
+    createdAt: row.created_at,
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapPayment(row: any): WorkerPayment {
+  return {
+    id: row.id,
+    employeeId: row.employee_id,
+    emri: row.emri,
+    mbiemri: row.mbiemri,
+    amount: Number(row.amount),
+    pershkrim: row.pershkrim,
+    date: row.date,
     createdAt: row.created_at,
   };
 }
@@ -213,6 +238,44 @@ export const db = {
 
     async delete(id: number): Promise<void> {
       const { error } = await getClient().from("diesel").delete().eq("id", id);
+      if (error) throw error;
+    },
+  },
+
+  workerPayments: {
+    async getAll(): Promise<WorkerPayment[]> {
+      const { data, error } = await getClient()
+        .from("worker_payments")
+        .select("*")
+        .order("date", { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map(mapPayment);
+    },
+
+    async getByEmployee(employeeId: number): Promise<WorkerPayment[]> {
+      const { data, error } = await getClient()
+        .from("worker_payments")
+        .select("*")
+        .eq("employee_id", employeeId)
+        .order("date", { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map(mapPayment);
+    },
+
+    async add(p: Omit<WorkerPayment, "id" | "createdAt">): Promise<void> {
+      const { error } = await getClient().from("worker_payments").insert({
+        employee_id: p.employeeId,
+        emri: p.emri,
+        mbiemri: p.mbiemri,
+        amount: p.amount,
+        pershkrim: p.pershkrim,
+        date: p.date,
+      });
+      if (error) throw error;
+    },
+
+    async delete(id: number): Promise<void> {
+      const { error } = await getClient().from("worker_payments").delete().eq("id", id);
       if (error) throw error;
     },
   },

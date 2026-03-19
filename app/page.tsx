@@ -46,6 +46,8 @@ interface WorkerRow {
   hours: number;
   rate: number;
   total: number;
+  paid: number;
+  net: number;
   paymentMethod: "Cash" | "Bankë";
 }
 
@@ -171,10 +173,11 @@ export default function DashboardPage() {
   const loadStats = useCallback(async () => {
     setLoading(true);
     try {
-      const [dieselRecs, attRecs, emps] = await Promise.all([
+      const [dieselRecs, attRecs, emps, allPayments] = await Promise.all([
         db.diesel.getAll(),
         db.attendance.getAll(),
         db.employees.getAll(),
+        db.workerPayments.getAll(),
       ]);
       setEmployees(emps);
 
@@ -192,6 +195,14 @@ export default function DashboardPage() {
           };
       });
 
+      // Payments lookup: sum per employee in the period
+      const paidMap: Record<number, number> = {};
+      allPayments
+        .filter((p) => isInRange(p.date))
+        .forEach((p) => {
+          paidMap[p.employeeId] = (paidMap[p.employeeId] || 0) + p.amount;
+        });
+
       // --- Workers table ---
       const wMap: Record<number, { hours: number }> = {};
       filteredAtt.forEach((r) => {
@@ -202,12 +213,16 @@ export default function DashboardPage() {
         .map(([idStr, { hours }]) => {
           const id = parseInt(idStr);
           const info = rateMap[id];
+          const total = hours * (info?.rate ?? 0);
+          const paid = paidMap[id] ?? 0;
           return {
             id,
             name: info?.name ?? `ID ${id}`,
             hours,
             rate: info?.rate ?? 0,
-            total: hours * (info?.rate ?? 0),
+            total,
+            paid,
+            net: total - paid,
             paymentMethod: info?.method ?? "Cash",
           };
         })
@@ -292,6 +307,8 @@ export default function DashboardPage() {
         r.hours.toString(),
         `€${r.rate.toFixed(2)}`,
         `€${r.total.toFixed(2)}`,
+        r.paid > 0 ? `€${r.paid.toFixed(2)}` : "—",
+        `€${r.net.toFixed(2)}`,
       ]);
 
     let finalY = 30;
@@ -301,7 +318,7 @@ export default function DashboardPage() {
       doc.text("Cash", 14, finalY + 6);
       autoTable(doc, {
         startY: finalY + 10,
-        head: [["Punonjësi", "Orë", "€/orë", "Totali"]],
+        head: [["Punonjësi", "Orë", "€/orë", "Fituar", "Paguar", "Mbetur"]],
         body: makeRows(cashWorkers),
         foot: [
           [
@@ -309,6 +326,8 @@ export default function DashboardPage() {
             cashWorkers.reduce((s, r) => s + r.hours, 0).toString(),
             "",
             `€${cashWorkers.reduce((s, r) => s + r.total, 0).toFixed(2)}`,
+            `€${cashWorkers.reduce((s, r) => s + r.paid, 0).toFixed(2)}`,
+            `€${cashWorkers.reduce((s, r) => s + r.net, 0).toFixed(2)}`,
           ],
         ],
         theme: "striped",
@@ -324,7 +343,7 @@ export default function DashboardPage() {
       doc.text("Bankë", 14, finalY + 6);
       autoTable(doc, {
         startY: finalY + 10,
-        head: [["Punonjësi", "Orë", "€/orë", "Totali"]],
+        head: [["Punonjësi", "Orë", "€/orë", "Fituar", "Paguar", "Mbetur"]],
         body: makeRows(bankWorkers),
         foot: [
           [
@@ -332,6 +351,8 @@ export default function DashboardPage() {
             bankWorkers.reduce((s, r) => s + r.hours, 0).toString(),
             "",
             `€${bankWorkers.reduce((s, r) => s + r.total, 0).toFixed(2)}`,
+            `€${bankWorkers.reduce((s, r) => s + r.paid, 0).toFixed(2)}`,
+            `€${bankWorkers.reduce((s, r) => s + r.net, 0).toFixed(2)}`,
           ],
         ],
         theme: "striped",
@@ -345,7 +366,11 @@ export default function DashboardPage() {
     autoTable(doc, {
       startY: finalY + 4,
       body: [
-        ["TOTALI I PËRGJITHSHËM", `${totalHours} orë`, "", eur(totalCashEur + totalBankEur)],
+        [
+          "FITUAR GJITHSEJ", `${totalHours} orë`, "", eur(totalCashEur + totalBankEur),
+          eur(workerRows.reduce((s, r) => s + r.paid, 0)),
+          eur(workerRows.reduce((s, r) => s + r.net, 0)),
+        ],
       ],
       theme: "plain",
       bodyStyles: { fontStyle: "bold", fontSize: 12, fillColor: [243, 244, 246] },
@@ -538,13 +563,16 @@ export default function DashboardPage() {
                         <Banknote className="w-3.5 h-3.5" /> Cash
                       </span>
                     </div>
+                    <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
                           <th className="text-left px-4 py-2 font-semibold">Punonjësi</th>
                           <th className="text-right px-3 py-2 font-semibold">Orë</th>
                           <th className="text-right px-3 py-2 font-semibold">€/orë</th>
-                          <th className="text-right px-4 py-2 font-semibold">Totali</th>
+                          <th className="text-right px-3 py-2 font-semibold">Fituar</th>
+                          <th className="text-right px-3 py-2 font-semibold text-emerald-700">Paguar</th>
+                          <th className="text-right px-4 py-2 font-semibold text-orange-700">Mbetur</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -555,7 +583,9 @@ export default function DashboardPage() {
                               <td className="px-4 py-3 font-semibold text-gray-900">{r.name}</td>
                               <td className="px-3 py-3 text-right text-gray-700">{r.hours}</td>
                               <td className="px-3 py-3 text-right text-gray-500">€{r.rate.toFixed(2)}</td>
-                              <td className="px-4 py-3 text-right font-bold text-gray-900">{eur(r.total)}</td>
+                              <td className="px-3 py-3 text-right font-bold text-gray-900">{eur(r.total)}</td>
+                              <td className="px-3 py-3 text-right font-bold text-emerald-700">{r.paid > 0 ? eur(r.paid) : <span className="text-gray-300">—</span>}</td>
+                              <td className="px-4 py-3 text-right font-bold text-orange-700">{eur(r.net)}</td>
                             </tr>
                           ))}
                       </tbody>
@@ -566,12 +596,19 @@ export default function DashboardPage() {
                             {workerRows.filter((r) => r.paymentMethod === "Cash").reduce((s, r) => s + r.hours, 0)} orë
                           </td>
                           <td />
-                          <td className="px-4 py-2 text-right font-extrabold text-green-800">
+                          <td className="px-3 py-2 text-right font-extrabold text-green-800">
                             {eur(totalCashEur)}
+                          </td>
+                          <td className="px-3 py-2 text-right font-extrabold text-emerald-800">
+                            {eur(workerRows.filter((r) => r.paymentMethod === "Cash").reduce((s, r) => s + r.paid, 0))}
+                          </td>
+                          <td className="px-4 py-2 text-right font-extrabold text-orange-800">
+                            {eur(workerRows.filter((r) => r.paymentMethod === "Cash").reduce((s, r) => s + r.net, 0))}
                           </td>
                         </tr>
                       </tfoot>
                     </table>
+                    </div>
                   </div>
                 )}
 
@@ -583,13 +620,16 @@ export default function DashboardPage() {
                         <CreditCard className="w-3.5 h-3.5" /> Bankë
                       </span>
                     </div>
+                    <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
                           <th className="text-left px-4 py-2 font-semibold">Punonjësi</th>
                           <th className="text-right px-3 py-2 font-semibold">Orë</th>
                           <th className="text-right px-3 py-2 font-semibold">€/orë</th>
-                          <th className="text-right px-4 py-2 font-semibold">Totali</th>
+                          <th className="text-right px-3 py-2 font-semibold">Fituar</th>
+                          <th className="text-right px-3 py-2 font-semibold text-emerald-700">Paguar</th>
+                          <th className="text-right px-4 py-2 font-semibold text-orange-700">Mbetur</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -600,7 +640,9 @@ export default function DashboardPage() {
                               <td className="px-4 py-3 font-semibold text-gray-900">{r.name}</td>
                               <td className="px-3 py-3 text-right text-gray-700">{r.hours}</td>
                               <td className="px-3 py-3 text-right text-gray-500">€{r.rate.toFixed(2)}</td>
-                              <td className="px-4 py-3 text-right font-bold text-gray-900">{eur(r.total)}</td>
+                              <td className="px-3 py-3 text-right font-bold text-gray-900">{eur(r.total)}</td>
+                              <td className="px-3 py-3 text-right font-bold text-emerald-700">{r.paid > 0 ? eur(r.paid) : <span className="text-gray-300">—</span>}</td>
+                              <td className="px-4 py-3 text-right font-bold text-orange-700">{eur(r.net)}</td>
                             </tr>
                           ))}
                       </tbody>
@@ -611,23 +653,36 @@ export default function DashboardPage() {
                             {workerRows.filter((r) => r.paymentMethod === "Bankë").reduce((s, r) => s + r.hours, 0)} orë
                           </td>
                           <td />
-                          <td className="px-4 py-2 text-right font-extrabold text-blue-800">
+                          <td className="px-3 py-2 text-right font-extrabold text-blue-800">
                             {eur(totalBankEur)}
+                          </td>
+                          <td className="px-3 py-2 text-right font-extrabold text-emerald-800">
+                            {eur(workerRows.filter((r) => r.paymentMethod === "Bankë").reduce((s, r) => s + r.paid, 0))}
+                          </td>
+                          <td className="px-4 py-2 text-right font-extrabold text-orange-800">
+                            {eur(workerRows.filter((r) => r.paymentMethod === "Bankë").reduce((s, r) => s + r.net, 0))}
                           </td>
                         </tr>
                       </tfoot>
                     </table>
+                    </div>
                   </div>
                 )}
 
                 {/* Grand total */}
-                <div className="flex items-center justify-between px-4 py-3 bg-gray-900 text-white">
-                  <span className="text-sm font-extrabold uppercase tracking-wide">
-                    {t.dashboard.grandTotal}
-                  </span>
-                  <span className="text-lg font-extrabold">
-                    {eur(totalCashEur + totalBankEur)}
-                  </span>
+                <div className="grid grid-cols-3 bg-gray-900 text-white">
+                  <div className="px-4 py-3">
+                    <p className="text-xs text-gray-400 uppercase tracking-wide">Fituar</p>
+                    <p className="text-base font-extrabold">{eur(totalCashEur + totalBankEur)}</p>
+                  </div>
+                  <div className="px-4 py-3 border-x border-gray-700">
+                    <p className="text-xs text-emerald-400 uppercase tracking-wide">Paguar</p>
+                    <p className="text-base font-extrabold text-emerald-300">{eur(workerRows.reduce((s, r) => s + r.paid, 0))}</p>
+                  </div>
+                  <div className="px-4 py-3">
+                    <p className="text-xs text-orange-400 uppercase tracking-wide">Mbetur</p>
+                    <p className="text-base font-extrabold text-orange-300">{eur(workerRows.reduce((s, r) => s + r.net, 0))}</p>
+                  </div>
                 </div>
               </>
             )}

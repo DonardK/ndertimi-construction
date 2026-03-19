@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { db, type Employee, type Attendance } from "@/lib/db";
 import { t } from "@/lib/translations";
-import { FormField, Input, Select } from "@/components/FormField";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
@@ -18,31 +17,13 @@ import {
   X,
   User,
   AlertCircle,
-  Info,
   Users,
   CheckSquare,
   Square,
+  ArrowRight,
 } from "lucide-react";
 import Link from "next/link";
 
-// ──────────────────────────────────────────────
-// Single-worker form
-// ──────────────────────────────────────────────
-interface FormData {
-  employeeId: string;
-  date: string;
-  hoursWorked: string;
-}
-
-interface FormErrors {
-  employeeId?: string;
-  date?: string;
-  hoursWorked?: string;
-}
-
-// ──────────────────────────────────────────────
-// Bulk form
-// ──────────────────────────────────────────────
 interface BulkRow {
   employeeId: number;
   name: string;
@@ -55,27 +36,16 @@ interface BulkRow {
 
 const today = new Date().toISOString().split("T")[0];
 
-const emptyForm: FormData = {
-  employeeId: "",
-  date: today,
-  hoursWorked: "",
-};
-
 export default function PjesemarrjaPage() {
   const [records, setRecords] = useState<Attendance[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // single form
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState<FormData>(emptyForm);
-  const [errors, setErrors] = useState<FormErrors>({});
-
-  // bulk form
   const [showBulk, setShowBulk] = useState(false);
   const [bulkDate, setBulkDate] = useState(today);
   const [bulkRows, setBulkRows] = useState<BulkRow[]>([]);
   const [bulkSaving, setBulkSaving] = useState(false);
+  const [sameHours, setSameHours] = useState("");
 
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [filterDate, setFilterDate] = useState(today);
@@ -99,9 +69,10 @@ export default function PjesemarrjaPage() {
     loadData();
   }, []);
 
-  // ── Open bulk modal ──
+  // ── Bulk modal ──
   const openBulk = () => {
     setBulkDate(filterDate);
+    setSameHours("");
     setBulkRows(
       employees.map((e) => ({
         employeeId: e.id!,
@@ -134,6 +105,16 @@ export default function PjesemarrjaPage() {
     );
   };
 
+  // Apply the same hours to all currently checked rows
+  const applyToAll = () => {
+    const normalized = sameHours.replace(",", ".");
+    setBulkRows((rows) =>
+      rows.map((r) =>
+        r.checked ? { ...r, hours: normalized, error: undefined } : r
+      )
+    );
+  };
+
   const handleBulkSave = async () => {
     const selected = bulkRows.filter((r) => r.checked);
     if (selected.length === 0) {
@@ -141,7 +122,6 @@ export default function PjesemarrjaPage() {
       return;
     }
 
-    // Validate hours for checked rows
     let hasErrors = false;
     setBulkRows((rows) =>
       rows.map((r) => {
@@ -181,53 +161,6 @@ export default function PjesemarrjaPage() {
     }
   };
 
-  // ── Single form ──
-  const selectedEmployee = employees.find(
-    (e) => e.id === parseInt(form.employeeId)
-  );
-
-  const parseNum = (val: string) => parseFloat(val.replace(",", "."));
-
-  const validate = (): boolean => {
-    const newErrors: FormErrors = {};
-    if (!form.employeeId) newErrors.employeeId = t.errors.requiredField;
-    if (!form.date) newErrors.date = t.errors.requiredField;
-    const hours = parseNum(form.hoursWorked);
-    if (!form.hoursWorked.trim()) {
-      newErrors.hoursWorked = t.errors.requiredField;
-    } else if (isNaN(hours) || hours <= 0 || hours > 24) {
-      newErrors.hoursWorked = t.errors.invalidNumber;
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validate()) return;
-
-    try {
-      const emp = employees.find((e) => e.id === parseInt(form.employeeId));
-      if (!emp) return;
-
-      await db.attendance.add({
-        employeeId: emp.id!,
-        emri: emp.emri,
-        mbiemri: emp.mbiemri,
-        date: form.date,
-        paymentMethod: emp.paymentMethod,
-        hoursWorked: parseNum(form.hoursWorked),
-      });
-      toast.success(t.success.saved);
-      setShowForm(false);
-      setForm({ ...emptyForm, date: form.date });
-      setErrors({});
-      await loadData();
-    } catch {
-      toast.error(t.errors.saveError);
-    }
-  };
-
   const handleDelete = async () => {
     if (deleteId === null) return;
     try {
@@ -243,16 +176,6 @@ export default function PjesemarrjaPage() {
   const filteredRecords = records.filter((r) => r.date === filterDate);
   const totalHours = filteredRecords.reduce((sum, r) => sum + r.hoursWorked, 0);
 
-  const handleChange =
-    (field: keyof FormData) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      let value = e.target.value;
-      if (field === "hoursWorked") value = value.replace(",", ".");
-      setForm((prev) => ({ ...prev, [field]: value }));
-      if (errors[field as keyof FormErrors])
-        setErrors((prev) => ({ ...prev, [field]: undefined }));
-    };
-
   const allChecked = bulkRows.length > 0 && bulkRows.every((r) => r.checked);
   const checkedCount = bulkRows.filter((r) => r.checked).length;
 
@@ -262,26 +185,13 @@ export default function PjesemarrjaPage() {
         title={t.attendance.title}
         action={
           employees.length > 0 ? (
-            <div className="flex gap-2">
-              <button
-                onClick={openBulk}
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-bold px-4 h-12 rounded-xl text-sm transition-colors shadow-md"
-              >
-                <Users className="w-4 h-4" />
-                {t.dashboard.addMultiple}
-              </button>
-              <button
-                onClick={() => {
-                  setForm({ ...emptyForm, date: filterDate });
-                  setErrors({});
-                  setShowForm(true);
-                }}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold px-4 h-12 rounded-xl text-sm transition-colors shadow-md"
-              >
-                <Plus className="w-4 h-4" />
-                {t.attendance.addTitle}
-              </button>
-            </div>
+            <button
+              onClick={openBulk}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold px-5 h-12 rounded-xl text-base transition-colors shadow-md"
+            >
+              <Plus className="w-5 h-5" />
+              {t.dashboard.addMultiple}
+            </button>
           ) : null
         }
       />
@@ -335,26 +245,13 @@ export default function PjesemarrjaPage() {
           message={t.attendance.noAttendance}
           icon={<CalendarCheck className="w-10 h-10" />}
           action={
-            <div className="flex flex-col gap-2 items-center">
-              <button
-                onClick={openBulk}
-                className="flex items-center gap-2 bg-green-600 text-white font-bold px-6 h-12 rounded-xl text-base"
-              >
-                <Users className="w-5 h-5" />
-                {t.dashboard.addMultiple}
-              </button>
-              <button
-                onClick={() => {
-                  setForm({ ...emptyForm, date: filterDate });
-                  setErrors({});
-                  setShowForm(true);
-                }}
-                className="flex items-center gap-2 bg-blue-600 text-white font-bold px-6 h-12 rounded-xl text-base"
-              >
-                <Plus className="w-5 h-5" />
-                {t.attendance.addTitle}
-              </button>
-            </div>
+            <button
+              onClick={openBulk}
+              className="flex items-center gap-2 bg-blue-600 text-white font-bold px-6 h-12 rounded-xl text-base"
+            >
+              <Users className="w-5 h-5" />
+              {t.dashboard.addMultiple}
+            </button>
           }
         />
       ) : (
@@ -367,8 +264,8 @@ export default function PjesemarrjaPage() {
                 key={rec.id}
                 className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-4"
               >
-                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                  <User className="w-7 h-7 text-green-600" />
+                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                  <User className="w-7 h-7 text-blue-600" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-base font-bold text-gray-900 truncate">
@@ -435,17 +332,50 @@ export default function PjesemarrjaPage() {
               </button>
             </div>
 
-            {/* Date */}
-            <div className="px-6 py-4 border-b border-gray-100 shrink-0">
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                {t.dashboard.bulkDate}
-              </label>
-              <input
-                type="date"
-                value={bulkDate}
-                onChange={(e) => setBulkDate(e.target.value)}
-                className="w-full h-12 px-4 rounded-xl border-2 border-gray-300 text-lg font-medium text-gray-900 focus:outline-none focus:border-blue-500 bg-white"
-              />
+            {/* Date + Same hours */}
+            <div className="px-6 py-4 border-b border-gray-100 shrink-0 flex flex-col gap-3">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  {t.dashboard.bulkDate}
+                </label>
+                <input
+                  type="date"
+                  value={bulkDate}
+                  onChange={(e) => setBulkDate(e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border-2 border-gray-300 text-lg font-medium text-gray-900 focus:outline-none focus:border-blue-500 bg-white"
+                />
+              </div>
+
+              {/* Same hours for all */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  {t.dashboard.sameHours}
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={sameHours}
+                    onChange={(e) => setSameHours(e.target.value.replace(",", "."))}
+                    placeholder={t.dashboard.sameHoursPlaceholder}
+                    className="flex-1 h-11 px-4 rounded-xl border-2 border-blue-300 text-base font-bold text-gray-900 focus:outline-none focus:border-blue-600 bg-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={applyToAll}
+                    disabled={!sameHours.trim() || checkedCount === 0}
+                    className="flex items-center gap-1.5 h-11 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-colors shadow-sm disabled:opacity-40"
+                  >
+                    {t.dashboard.applyToAll}
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+                {checkedCount === 0 && sameHours.trim() && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    Zgjidhni punonjësit fillimisht
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Select all + count */}
@@ -528,9 +458,7 @@ export default function PjesemarrjaPage() {
                         }`}
                     />
                     {row.error && (
-                      <p className="text-xs text-red-500 mt-0.5 text-center">
-                        ✕ invalid
-                      </p>
+                      <p className="text-xs text-red-500 mt-0.5 text-center">✕</p>
                     )}
                     {row.checked && row.hours && !row.error && (
                       <p className="text-xs text-gray-400 mt-0.5 text-center">
@@ -555,149 +483,13 @@ export default function PjesemarrjaPage() {
               <button
                 onClick={handleBulkSave}
                 disabled={bulkSaving || checkedCount === 0}
-                className="flex-1 h-14 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-lg transition-colors shadow-md disabled:opacity-50"
+                className="flex-1 h-14 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg transition-colors shadow-md disabled:opacity-50"
               >
-                {bulkSaving ? "Duke ruajtur..." : `Ruaj ${checkedCount > 0 ? `(${checkedCount})` : ""}`}
+                {bulkSaving
+                  ? "Duke ruajtur..."
+                  : `Ruaj${checkedCount > 0 ? ` (${checkedCount})` : ""}`}
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── SINGLE ADD MODAL ── */}
-      {showForm && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setShowForm(false)}
-          />
-          <div className="relative bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-lg p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-extrabold text-gray-900">
-                {t.attendance.addTitle}
-              </h2>
-              <button
-                onClick={() => setShowForm(false)}
-                className="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
-              >
-                <X className="w-5 h-5 text-gray-600" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
-              <FormField
-                label={t.attendance.selectEmployee}
-                error={errors.employeeId}
-                required
-              >
-                <Select
-                  value={form.employeeId}
-                  onChange={handleChange("employeeId")}
-                  error={!!errors.employeeId}
-                >
-                  <option value="">{t.attendance.selectEmployeePlaceholder}</option>
-                  {employees.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.emri} {emp.mbiemri}
-                    </option>
-                  ))}
-                </Select>
-              </FormField>
-
-              {selectedEmployee && (
-                <div
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 ${
-                    selectedEmployee.paymentMethod === "Bankë"
-                      ? "bg-blue-50 border-blue-200"
-                      : "bg-green-50 border-green-200"
-                  }`}
-                >
-                  <Info
-                    className={`w-4 h-4 shrink-0 ${
-                      selectedEmployee.paymentMethod === "Bankë"
-                        ? "text-blue-600"
-                        : "text-green-600"
-                    }`}
-                  />
-                  <div className="flex-1 text-sm">
-                    <span className="font-semibold text-gray-700">
-                      {t.attendance.autoPayment}:{" "}
-                    </span>
-                    <span
-                      className={`font-bold ${
-                        selectedEmployee.paymentMethod === "Bankë"
-                          ? "text-blue-700"
-                          : "text-green-700"
-                      }`}
-                    >
-                      {selectedEmployee.paymentMethod === "Bankë" ? (
-                        <span className="inline-flex items-center gap-1">
-                          <CreditCard className="w-3.5 h-3.5" />
-                          Bankë
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1">
-                          <Banknote className="w-3.5 h-3.5" />
-                          Cash
-                        </span>
-                      )}
-                    </span>
-                    <span className="text-gray-500 ml-2">
-                      · €{selectedEmployee.cmimiOre.toFixed(2)}/orë
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              <FormField label={t.attendance.date} error={errors.date} required>
-                <Input
-                  type="date"
-                  value={form.date}
-                  onChange={handleChange("date")}
-                  error={!!errors.date}
-                />
-              </FormField>
-
-              <FormField
-                label={t.attendance.hoursWorked}
-                error={errors.hoursWorked}
-                required
-              >
-                <Input
-                  type="text"
-                  inputMode="decimal"
-                  value={form.hoursWorked}
-                  onChange={handleChange("hoursWorked")}
-                  placeholder={t.attendance.hoursPlaceholder}
-                  error={!!errors.hoursWorked}
-                />
-              </FormField>
-
-              {selectedEmployee && form.hoursWorked && parseNum(form.hoursWorked) > 0 && (
-                <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 flex items-center justify-between">
-                  <span>Pagesa e llogaritur:</span>
-                  <span className="text-blue-700 font-extrabold text-base">
-                    €{(parseNum(form.hoursWorked) * selectedEmployee.cmimiOre).toFixed(2)}
-                  </span>
-                </div>
-              )}
-
-              <div className="flex gap-3 mt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="flex-1 h-14 rounded-xl border-2 border-gray-300 text-gray-700 font-bold text-lg hover:bg-gray-50 transition-colors"
-                >
-                  {t.common.cancel}
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 h-14 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-lg transition-colors shadow-md"
-                >
-                  {t.common.save}
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}
