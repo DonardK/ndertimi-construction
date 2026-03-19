@@ -1,23 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { db } from "@/lib/db";
+import { useState, useEffect, useCallback } from "react";
+import { db, type Employee } from "@/lib/db";
 import { t } from "@/lib/translations";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-} from "recharts";
-import {
-  TrendingUp,
   Fuel,
   Clock,
   CreditCard,
@@ -25,6 +11,8 @@ import {
   ChevronDown,
   Calendar,
   AlertCircle,
+  FileDown,
+  Euro,
 } from "lucide-react";
 import {
   startOfMonth,
@@ -32,27 +20,41 @@ import {
   subMonths,
   startOfYear,
   endOfYear,
+  subYears,
   format,
   isWithinInterval,
   parseISO,
 } from "date-fns";
 
-type DatePreset = "thisMonth" | "last3Months" | "last6Months" | "thisYear" | "custom";
+type DatePreset =
+  | "thisMonth"
+  | "last3Months"
+  | "last6Months"
+  | "thisYear"
+  | "lastYear"
+  | "allTime"
+  | "custom";
 
 interface DateRange {
   from: string;
   to: string;
 }
 
-const COLORS = [
-  "#3b82f6",
-  "#10b981",
-  "#f59e0b",
-  "#ef4444",
-  "#8b5cf6",
-  "#06b6d4",
-  "#f97316",
-];
+interface WorkerRow {
+  id: number;
+  name: string;
+  hours: number;
+  rate: number;
+  total: number;
+  paymentMethod: "Cash" | "Bankë";
+}
+
+interface VehicleRow {
+  name: string;
+  liters: number;
+  avgPricePerLiter: number;
+  total: number;
+}
 
 function getPresetRange(preset: DatePreset): DateRange {
   const now = new Date();
@@ -77,6 +79,15 @@ function getPresetRange(preset: DatePreset): DateRange {
         from: format(startOfYear(now), "yyyy-MM-dd"),
         to: format(endOfYear(now), "yyyy-MM-dd"),
       };
+    case "lastYear": {
+      const lastYear = subYears(now, 1);
+      return {
+        from: format(startOfYear(lastYear), "yyyy-MM-dd"),
+        to: format(endOfYear(lastYear), "yyyy-MM-dd"),
+      };
+    }
+    case "allTime":
+      return { from: "2000-01-01", to: "2099-12-31" };
     default:
       return {
         from: format(startOfMonth(now), "yyyy-MM-dd"),
@@ -90,61 +101,39 @@ const presetLabels: Record<DatePreset, string> = {
   last3Months: t.dashboard.last3Months,
   last6Months: t.dashboard.last6Months,
   thisYear: t.dashboard.thisYear,
+  lastYear: t.dashboard.lastYear,
+  allTime: t.dashboard.allTime,
   custom: t.dashboard.custom,
 };
+
+function eur(n: number) {
+  return `€${n.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
 
 function StatCard({
   icon,
   label,
   value,
-  sub,
   color,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
-  sub?: string;
   color: string;
 }) {
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-4">
-      <div
-        className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center shrink-0`}
-      >
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-3">
+      <div className={`w-11 h-11 rounded-xl ${color} flex items-center justify-center shrink-0`}>
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide leading-tight">
           {label}
         </p>
-        <p className="text-xl font-extrabold text-gray-900 truncate">{value}</p>
-        {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+        <p className="text-lg font-extrabold text-gray-900 truncate">{value}</p>
       </div>
     </div>
   );
-}
-
-interface CustomTooltipProps {
-  active?: boolean;
-  payload?: Array<{ value: number; name: string }>;
-  label?: string;
-  unit?: string;
-}
-
-function CustomTooltip({ active, payload, label, unit }: CustomTooltipProps) {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-gray-900 text-white px-3 py-2 rounded-xl text-sm font-semibold shadow-lg">
-        <p className="text-gray-300 text-xs mb-0.5">{label}</p>
-        <p>
-          {unit === "€"
-            ? `€${payload[0].value.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-            : `${payload[0].value.toLocaleString("sq-AL")} ${unit}`}
-        </p>
-      </div>
-    );
-  }
-  return null;
 }
 
 export default function DashboardPage() {
@@ -155,111 +144,118 @@ export default function DashboardPage() {
   const [customTo, setCustomTo] = useState(dateRange.to);
   const [loading, setLoading] = useState(true);
 
-  const [dieselByVehicle, setDieselByVehicle] = useState<
-    { name: string; total: number }[]
-  >([]);
-  const [hoursByEmployee, setHoursByEmployee] = useState<
-    { name: string; hours: number }[]
-  >([]);
-  const [paymentSplit, setPaymentSplit] = useState<
-    { name: string; value: number }[]
-  >([]);
+  const [workerRows, setWorkerRows] = useState<WorkerRow[]>([]);
+  const [vehicleRows, setVehicleRows] = useState<VehicleRow[]>([]);
   const [totalDiesel, setTotalDiesel] = useState(0);
   const [totalHours, setTotalHours] = useState(0);
   const [totalCashEur, setTotalCashEur] = useState(0);
   const [totalBankEur, setTotalBankEur] = useState(0);
+  const [employees, setEmployees] = useState<Employee[]>([]);
 
-  const isInRange = (dateStr: string) => {
-    try {
-      const d = parseISO(dateStr);
-      return isWithinInterval(d, {
-        start: parseISO(dateRange.from),
-        end: parseISO(dateRange.to),
-      });
-    } catch {
-      return false;
-    }
-  };
+  const isInRange = useCallback(
+    (dateStr: string) => {
+      if (preset === "allTime") return true;
+      try {
+        const d = parseISO(dateStr);
+        return isWithinInterval(d, {
+          start: parseISO(dateRange.from),
+          end: parseISO(dateRange.to),
+        });
+      } catch {
+        return false;
+      }
+    },
+    [dateRange, preset]
+  );
 
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     setLoading(true);
     try {
-      const [dieselRecs, attRecs, employees] = await Promise.all([
+      const [dieselRecs, attRecs, emps] = await Promise.all([
         db.diesel.getAll(),
         db.attendance.getAll(),
         db.employees.getAll(),
       ]);
+      setEmployees(emps);
 
       const filteredDiesel = dieselRecs.filter((r) => isInRange(r.date));
       const filteredAtt = attRecs.filter((r) => isInRange(r.date));
 
-      // Build employee rate lookup map
-      const rateMap: Record<number, number> = {};
-      employees.forEach((e) => {
-        if (e.id !== undefined) rateMap[e.id] = e.cmimiOre;
+      // Build employee rate lookup
+      const rateMap: Record<number, { rate: number; method: "Cash" | "Bankë"; name: string }> = {};
+      emps.forEach((e) => {
+        if (e.id !== undefined)
+          rateMap[e.id] = {
+            rate: e.cmimiOre,
+            method: e.paymentMethod,
+            name: `${e.emri} ${e.mbiemri}`,
+          };
       });
 
-      // Diesel by vehicle
-      const dvMap: Record<string, number> = {};
-      filteredDiesel.forEach((r) => {
-        dvMap[r.emriMjetit] = (dvMap[r.emriMjetit] || 0) + r.totalPrice;
-      });
-      setDieselByVehicle(
-        Object.entries(dvMap).map(([name, total]) => ({
-          name,
-          total: Math.round(total * 100) / 100,
-        }))
-      );
-      setTotalDiesel(filteredDiesel.reduce((s, r) => s + r.totalPrice, 0));
-
-      // Hours by employee
-      const heMap: Record<string, number> = {};
+      // --- Workers table ---
+      const wMap: Record<number, { hours: number }> = {};
       filteredAtt.forEach((r) => {
-        const key = `${r.emri} ${r.mbiemri}`;
-        heMap[key] = (heMap[key] || 0) + r.hoursWorked;
+        if (!wMap[r.employeeId]) wMap[r.employeeId] = { hours: 0 };
+        wMap[r.employeeId].hours += r.hoursWorked;
       });
-      setHoursByEmployee(
-        Object.entries(heMap).map(([name, hours]) => ({ name, hours }))
-      );
-      setTotalHours(filteredAtt.reduce((s, r) => s + r.hoursWorked, 0));
+      const wRows: WorkerRow[] = Object.entries(wMap)
+        .map(([idStr, { hours }]) => {
+          const id = parseInt(idStr);
+          const info = rateMap[id];
+          return {
+            id,
+            name: info?.name ?? `ID ${id}`,
+            hours,
+            rate: info?.rate ?? 0,
+            total: hours * (info?.rate ?? 0),
+            paymentMethod: info?.method ?? "Cash",
+          };
+        })
+        .sort((a, b) => b.total - a.total);
+      setWorkerRows(wRows);
 
-      // Payment split — amounts in EUR (hours × rate)
-      const calcEur = (records: typeof filteredAtt) =>
-        records.reduce((s, r) => {
-          const rate = rateMap[r.employeeId] ?? 0;
-          return s + r.hoursWorked * rate;
-        }, 0);
-
-      const cashAtt = filteredAtt.filter((r) => r.paymentMethod === "Cash");
-      const bankAtt = filteredAtt.filter((r) => r.paymentMethod === "Bankë");
-      const cashEur = calcEur(cashAtt);
-      const bankEur = calcEur(bankAtt);
-
+      // Payment totals
+      const cashEur = wRows
+        .filter((r) => r.paymentMethod === "Cash")
+        .reduce((s, r) => s + r.total, 0);
+      const bankEur = wRows
+        .filter((r) => r.paymentMethod === "Bankë")
+        .reduce((s, r) => s + r.total, 0);
       setTotalCashEur(cashEur);
       setTotalBankEur(bankEur);
-      setPaymentSplit(
-        [
-          { name: t.attendance.cash, value: Math.round(cashEur * 100) / 100 },
-          { name: t.attendance.bank, value: Math.round(bankEur * 100) / 100 },
-        ].filter((d) => d.value > 0)
-      );
+      setTotalHours(filteredAtt.reduce((s, r) => s + r.hoursWorked, 0));
+
+      // --- Vehicles table ---
+      const vMap: Record<string, { liters: number; cost: number }> = {};
+      filteredDiesel.forEach((r) => {
+        if (!vMap[r.emriMjetit]) vMap[r.emriMjetit] = { liters: 0, cost: 0 };
+        vMap[r.emriMjetit].liters += r.liters;
+        vMap[r.emriMjetit].cost += r.totalPrice;
+      });
+      const vRows: VehicleRow[] = Object.entries(vMap)
+        .map(([name, { liters, cost }]) => ({
+          name,
+          liters: Math.round(liters * 100) / 100,
+          avgPricePerLiter: liters > 0 ? Math.round((cost / liters) * 1000) / 1000 : 0,
+          total: Math.round(cost * 100) / 100,
+        }))
+        .sort((a, b) => b.total - a.total);
+      setVehicleRows(vRows);
+      setTotalDiesel(filteredDiesel.reduce((s, r) => s + r.totalPrice, 0));
     } catch {
       // silently handle
     } finally {
       setLoading(false);
     }
-  };
+  }, [isInRange]);
 
   useEffect(() => {
     loadStats();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dateRange]);
+  }, [loadStats]);
 
   const applyPreset = (p: DatePreset) => {
     setPreset(p);
-    if (p !== "custom") {
-      setDateRange(getPresetRange(p));
-    }
+    if (p !== "custom") setDateRange(getPresetRange(p));
     setShowDateMenu(false);
   };
 
@@ -270,26 +266,147 @@ export default function DashboardPage() {
     }
   };
 
+  const periodLabel =
+    preset === "allTime"
+      ? t.dashboard.allTime
+      : preset === "custom"
+      ? `${format(parseISO(dateRange.from), "dd/MM/yy")} — ${format(parseISO(dateRange.to), "dd/MM/yy")}`
+      : `${format(parseISO(dateRange.from), "dd/MM/yy")} — ${format(parseISO(dateRange.to), "dd/MM/yy")}`;
+
+  const exportWorkersPdf = async () => {
+    const { default: jsPDF } = await import("jspdf");
+    const { default: autoTable } = await import("jspdf-autotable");
+    const doc = new jsPDF();
+
+    doc.setFontSize(16);
+    doc.text("Punonjësit — Detajet", 14, 18);
+    doc.setFontSize(10);
+    doc.text(`Periudha: ${periodLabel}`, 14, 26);
+
+    const cashWorkers = workerRows.filter((r) => r.paymentMethod === "Cash");
+    const bankWorkers = workerRows.filter((r) => r.paymentMethod === "Bankë");
+
+    const makeRows = (rows: WorkerRow[]) =>
+      rows.map((r) => [
+        r.name,
+        r.hours.toString(),
+        `€${r.rate.toFixed(2)}`,
+        `€${r.total.toFixed(2)}`,
+      ]);
+
+    let finalY = 30;
+
+    if (cashWorkers.length > 0) {
+      doc.setFontSize(11);
+      doc.text("Cash", 14, finalY + 6);
+      autoTable(doc, {
+        startY: finalY + 10,
+        head: [["Punonjësi", "Orë", "€/orë", "Totali"]],
+        body: makeRows(cashWorkers),
+        foot: [
+          [
+            "TOTAL CASH",
+            cashWorkers.reduce((s, r) => s + r.hours, 0).toString(),
+            "",
+            `€${cashWorkers.reduce((s, r) => s + r.total, 0).toFixed(2)}`,
+          ],
+        ],
+        theme: "striped",
+        headStyles: { fillColor: [22, 163, 74] },
+        footStyles: { fillColor: [22, 163, 74], textColor: 255, fontStyle: "bold" },
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      finalY = (doc as any).lastAutoTable.finalY + 8;
+    }
+
+    if (bankWorkers.length > 0) {
+      doc.setFontSize(11);
+      doc.text("Bankë", 14, finalY + 6);
+      autoTable(doc, {
+        startY: finalY + 10,
+        head: [["Punonjësi", "Orë", "€/orë", "Totali"]],
+        body: makeRows(bankWorkers),
+        foot: [
+          [
+            "TOTAL BANKË",
+            bankWorkers.reduce((s, r) => s + r.hours, 0).toString(),
+            "",
+            `€${bankWorkers.reduce((s, r) => s + r.total, 0).toFixed(2)}`,
+          ],
+        ],
+        theme: "striped",
+        headStyles: { fillColor: [37, 99, 235] },
+        footStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: "bold" },
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      finalY = (doc as any).lastAutoTable.finalY + 8;
+    }
+
+    autoTable(doc, {
+      startY: finalY + 4,
+      body: [
+        ["TOTALI I PËRGJITHSHËM", `${totalHours} orë`, "", eur(totalCashEur + totalBankEur)],
+      ],
+      theme: "plain",
+      bodyStyles: { fontStyle: "bold", fontSize: 12, fillColor: [243, 244, 246] },
+    });
+
+    doc.save(`punonjesit-${dateRange.from}-${dateRange.to}.pdf`);
+  };
+
+  const exportVehiclesPdf = async () => {
+    const { default: jsPDF } = await import("jspdf");
+    const { default: autoTable } = await import("jspdf-autotable");
+    const doc = new jsPDF();
+
+    doc.setFontSize(16);
+    doc.text("Mjetet — Nafta", 14, 18);
+    doc.setFontSize(10);
+    doc.text(`Periudha: ${periodLabel}`, 14, 26);
+
+    autoTable(doc, {
+      startY: 32,
+      head: [["Mjeti", "Litrat", "Avg €/L", "Totali (€)"]],
+      body: vehicleRows.map((r) => [
+        r.name,
+        `${r.liters} L`,
+        `€${r.avgPricePerLiter.toFixed(3)}`,
+        `€${r.total.toFixed(2)}`,
+      ]),
+      foot: [
+        [
+          "TOTALI",
+          `${vehicleRows.reduce((s, r) => s + r.liters, 0).toFixed(2)} L`,
+          "",
+          `€${totalDiesel.toFixed(2)}`,
+        ],
+      ],
+      theme: "striped",
+      headStyles: { fillColor: [234, 88, 12] },
+      footStyles: { fillColor: [234, 88, 12], textColor: 255, fontStyle: "bold" },
+    });
+
+    doc.save(`nafta-${dateRange.from}-${dateRange.to}.pdf`);
+  };
+
+  // suppress unused import
+  void employees;
+
   return (
     <div className="px-4 pt-6 pb-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900">
-            {t.dashboard.title}
-          </h1>
-          <p className="text-sm text-gray-500 mt-0.5">
-            {format(parseISO(dateRange.from), "dd/MM/yyyy")} —{" "}
-            {format(parseISO(dateRange.to), "dd/MM/yyyy")}
-          </p>
+          <h1 className="text-2xl font-extrabold text-gray-900">{t.dashboard.title}</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{periodLabel}</p>
         </div>
         <div className="relative">
           <button
             onClick={() => setShowDateMenu(!showDateMenu)}
-            className="flex items-center gap-2 bg-white border-2 border-gray-200 rounded-xl px-4 h-11 font-semibold text-gray-700 hover:bg-gray-50 shadow-sm text-sm"
+            className="flex items-center gap-2 bg-white border-2 border-gray-200 rounded-xl px-3 h-11 font-semibold text-gray-700 hover:bg-gray-50 shadow-sm text-sm"
           >
             <Calendar className="w-4 h-4 text-blue-500" />
-            {presetLabels[preset]}
+            <span className="hidden sm:inline">{presetLabels[preset]}</span>
             <ChevronDown className="w-4 h-4 text-gray-400" />
           </button>
 
@@ -301,22 +418,20 @@ export default function DashboardPage() {
                   "last3Months",
                   "last6Months",
                   "thisYear",
+                  "lastYear",
+                  "allTime",
                 ] as DatePreset[]
               ).map((p) => (
                 <button
                   key={p}
                   onClick={() => applyPreset(p)}
-                  className={`w-full text-left px-4 py-3 text-sm font-semibold transition-colors
-                    ${
-                      preset === p
-                        ? "bg-blue-50 text-blue-600"
-                        : "text-gray-700 hover:bg-gray-50"
-                    }`}
+                  className={`w-full text-left px-4 py-3 text-sm font-semibold transition-colors border-b border-gray-50
+                    ${preset === p ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"}`}
                 >
                   {presetLabels[p]}
                 </button>
               ))}
-              <div className="border-t border-gray-100 p-3">
+              <div className="p-3">
                 <p className="text-xs font-bold text-gray-500 mb-2 uppercase">
                   {t.dashboard.custom}
                 </p>
@@ -349,12 +464,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Click outside to close menu */}
       {showDateMenu && (
-        <div
-          className="fixed inset-0 z-20"
-          onClick={() => setShowDateMenu(false)}
-        />
+        <div className="fixed inset-0 z-20" onClick={() => setShowDateMenu(false)} />
       )}
 
       {loading ? (
@@ -365,184 +476,221 @@ export default function DashboardPage() {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col gap-6">
-          {/* Stat Cards */}
+        <div className="flex flex-col gap-5">
+          {/* Summary cards */}
           <div className="grid grid-cols-2 gap-3">
             <StatCard
-              icon={<Fuel className="w-6 h-6 text-orange-600" />}
+              icon={<Fuel className="w-5 h-5 text-orange-600" />}
               label={t.dashboard.totalDieselCost}
-              value={`€${totalDiesel.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              value={eur(totalDiesel)}
               color="bg-orange-100"
             />
             <StatCard
-              icon={<Clock className="w-6 h-6 text-blue-600" />}
+              icon={<Clock className="w-5 h-5 text-blue-600" />}
               label={t.dashboard.totalHoursWorked}
-              value={`${totalHours} ${t.dashboard.hours}`}
+              value={`${totalHours} orë`}
               color="bg-blue-100"
             />
             <StatCard
-              icon={<Banknote className="w-6 h-6 text-green-600" />}
+              icon={<Banknote className="w-5 h-5 text-green-600" />}
               label={t.dashboard.totalCash}
-              value={`€${totalCashEur.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              value={eur(totalCashEur)}
               color="bg-green-100"
             />
             <StatCard
-              icon={<CreditCard className="w-6 h-6 text-purple-600" />}
+              icon={<CreditCard className="w-5 h-5 text-purple-600" />}
               label={t.dashboard.totalBank}
-              value={`€${totalBankEur.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              value={eur(totalBankEur)}
               color="bg-purple-100"
             />
           </div>
 
-          {/* Diesel by vehicle chart */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-            <h2 className="text-base font-extrabold text-gray-900 mb-4 flex items-center gap-2">
-              <Fuel className="w-5 h-5 text-orange-500" />
-              {t.dashboard.dieselPerVehicle}
-            </h2>
-            {dieselByVehicle.length === 0 ? (
-              <div className="flex items-center justify-center gap-2 py-8 text-gray-400">
-                <AlertCircle className="w-5 h-5" />
-                <span className="text-sm">{t.dashboard.noDataForPeriod}</span>
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart
-                  data={dieselByVehicle}
-                  margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+          {/* ── Workers table ── */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+              <h2 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
+                <Euro className="w-4 h-4 text-blue-500" />
+                {t.dashboard.workersTable}
+              </h2>
+              {workerRows.length > 0 && (
+                <button
+                  onClick={exportWorkersPdf}
+                  className="flex items-center gap-1.5 text-sm font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors"
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis
-                    dataKey="name"
-                    tick={{ fontSize: 11, fontWeight: 600, fill: "#64748b" }}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 10, fill: "#94a3b8" }}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <Tooltip
-                    content={<CustomTooltip unit="€" />}
-                    cursor={{ fill: "#f8fafc" }}
-                  />
-                  <Bar dataKey="total" radius={[8, 8, 0, 0]}>
-                    {dieselByVehicle.map((_, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </div>
+                  <FileDown className="w-4 h-4" />
+                  PDF
+                </button>
+              )}
+            </div>
 
-          {/* Hours by employee chart */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-            <h2 className="text-base font-extrabold text-gray-900 mb-4 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-blue-500" />
-              {t.dashboard.hoursPerEmployee}
-            </h2>
-            {hoursByEmployee.length === 0 ? (
+            {workerRows.length === 0 ? (
               <div className="flex items-center justify-center gap-2 py-8 text-gray-400">
                 <AlertCircle className="w-5 h-5" />
                 <span className="text-sm">{t.dashboard.noDataForPeriod}</span>
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart
-                  data={hoursByEmployee}
-                  margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis
-                    dataKey="name"
-                    tick={{ fontSize: 11, fontWeight: 600, fill: "#64748b" }}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 10, fill: "#94a3b8" }}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <Tooltip
-                    content={<CustomTooltip unit="orë" />}
-                    cursor={{ fill: "#f8fafc" }}
-                  />
-                  <Bar dataKey="hours" radius={[8, 8, 0, 0]}>
-                    {hoursByEmployee.map((_, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[(index + 2) % COLORS.length]}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-
-          {/* Payment split pie chart */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-            <h2 className="text-base font-extrabold text-gray-900 mb-4 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-green-500" />
-              {t.dashboard.paymentSplit}
-            </h2>
-            {paymentSplit.length === 0 ? (
-              <div className="flex items-center justify-center gap-2 py-8 text-gray-400">
-                <AlertCircle className="w-5 h-5" />
-                <span className="text-sm">{t.dashboard.noDataForPeriod}</span>
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height={220}>
-                <PieChart>
-                  <Pie
-                    data={paymentSplit}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={55}
-                    outerRadius={85}
-                    paddingAngle={4}
-                    dataKey="value"
-                  >
-                    {paymentSplit.map((_, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={index === 0 ? "#10b981" : "#3b82f6"}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value) => [
-                      `€${Number(value).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-                      "",
-                    ]}
-                    contentStyle={{
-                      borderRadius: "12px",
-                      fontWeight: 600,
-                      border: "none",
-                      boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                    }}
-                  />
-                  <Legend
-                    formatter={(value) => (
-                      <span
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 700,
-                          color: "#374151",
-                        }}
-                      >
-                        {value}
+              <>
+                {/* Cash workers */}
+                {workerRows.filter((r) => r.paymentMethod === "Cash").length > 0 && (
+                  <div>
+                    <div className="px-4 py-2 bg-green-50 border-b border-green-100">
+                      <span className="text-xs font-bold text-green-700 uppercase tracking-wide flex items-center gap-1">
+                        <Banknote className="w-3.5 h-3.5" /> Cash
                       </span>
-                    )}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+                    </div>
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
+                          <th className="text-left px-4 py-2 font-semibold">Punonjësi</th>
+                          <th className="text-right px-3 py-2 font-semibold">Orë</th>
+                          <th className="text-right px-3 py-2 font-semibold">€/orë</th>
+                          <th className="text-right px-4 py-2 font-semibold">Totali</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {workerRows
+                          .filter((r) => r.paymentMethod === "Cash")
+                          .map((r) => (
+                            <tr key={r.id} className="border-t border-gray-50 hover:bg-gray-50">
+                              <td className="px-4 py-3 font-semibold text-gray-900">{r.name}</td>
+                              <td className="px-3 py-3 text-right text-gray-700">{r.hours}</td>
+                              <td className="px-3 py-3 text-right text-gray-500">€{r.rate.toFixed(2)}</td>
+                              <td className="px-4 py-3 text-right font-bold text-gray-900">{eur(r.total)}</td>
+                            </tr>
+                          ))}
+                      </tbody>
+                      <tfoot>
+                        <tr className="bg-green-50 border-t-2 border-green-200">
+                          <td className="px-4 py-2 text-xs font-bold text-green-800 uppercase">Total Cash</td>
+                          <td className="px-3 py-2 text-right text-xs font-bold text-green-800">
+                            {workerRows.filter((r) => r.paymentMethod === "Cash").reduce((s, r) => s + r.hours, 0)} orë
+                          </td>
+                          <td />
+                          <td className="px-4 py-2 text-right font-extrabold text-green-800">
+                            {eur(totalCashEur)}
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                )}
+
+                {/* Bank workers */}
+                {workerRows.filter((r) => r.paymentMethod === "Bankë").length > 0 && (
+                  <div>
+                    <div className="px-4 py-2 bg-blue-50 border-b border-blue-100 border-t border-gray-100">
+                      <span className="text-xs font-bold text-blue-700 uppercase tracking-wide flex items-center gap-1">
+                        <CreditCard className="w-3.5 h-3.5" /> Bankë
+                      </span>
+                    </div>
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
+                          <th className="text-left px-4 py-2 font-semibold">Punonjësi</th>
+                          <th className="text-right px-3 py-2 font-semibold">Orë</th>
+                          <th className="text-right px-3 py-2 font-semibold">€/orë</th>
+                          <th className="text-right px-4 py-2 font-semibold">Totali</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {workerRows
+                          .filter((r) => r.paymentMethod === "Bankë")
+                          .map((r) => (
+                            <tr key={r.id} className="border-t border-gray-50 hover:bg-gray-50">
+                              <td className="px-4 py-3 font-semibold text-gray-900">{r.name}</td>
+                              <td className="px-3 py-3 text-right text-gray-700">{r.hours}</td>
+                              <td className="px-3 py-3 text-right text-gray-500">€{r.rate.toFixed(2)}</td>
+                              <td className="px-4 py-3 text-right font-bold text-gray-900">{eur(r.total)}</td>
+                            </tr>
+                          ))}
+                      </tbody>
+                      <tfoot>
+                        <tr className="bg-blue-50 border-t-2 border-blue-200">
+                          <td className="px-4 py-2 text-xs font-bold text-blue-800 uppercase">Total Bankë</td>
+                          <td className="px-3 py-2 text-right text-xs font-bold text-blue-800">
+                            {workerRows.filter((r) => r.paymentMethod === "Bankë").reduce((s, r) => s + r.hours, 0)} orë
+                          </td>
+                          <td />
+                          <td className="px-4 py-2 text-right font-extrabold text-blue-800">
+                            {eur(totalBankEur)}
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                )}
+
+                {/* Grand total */}
+                <div className="flex items-center justify-between px-4 py-3 bg-gray-900 text-white">
+                  <span className="text-sm font-extrabold uppercase tracking-wide">
+                    {t.dashboard.grandTotal}
+                  </span>
+                  <span className="text-lg font-extrabold">
+                    {eur(totalCashEur + totalBankEur)}
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* ── Vehicles / Nafta table ── */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+              <h2 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
+                <Fuel className="w-4 h-4 text-orange-500" />
+                {t.dashboard.vehiclesTable}
+              </h2>
+              {vehicleRows.length > 0 && (
+                <button
+                  onClick={exportVehiclesPdf}
+                  className="flex items-center gap-1.5 text-sm font-bold text-orange-600 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  <FileDown className="w-4 h-4" />
+                  PDF
+                </button>
+              )}
+            </div>
+
+            {vehicleRows.length === 0 ? (
+              <div className="flex items-center justify-center gap-2 py-8 text-gray-400">
+                <AlertCircle className="w-5 h-5" />
+                <span className="text-sm">{t.dashboard.noDataForPeriod}</span>
+              </div>
+            ) : (
+              <>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
+                      <th className="text-left px-4 py-2 font-semibold">Mjeti</th>
+                      <th className="text-right px-3 py-2 font-semibold">Litrat</th>
+                      <th className="text-right px-3 py-2 font-semibold">Avg €/L</th>
+                      <th className="text-right px-4 py-2 font-semibold">Totali</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {vehicleRows.map((r) => (
+                      <tr key={r.name} className="border-t border-gray-50 hover:bg-gray-50">
+                        <td className="px-4 py-3 font-semibold text-gray-900">{r.name}</td>
+                        <td className="px-3 py-3 text-right text-gray-700">{r.liters} L</td>
+                        <td className="px-3 py-3 text-right text-gray-500">€{r.avgPricePerLiter.toFixed(3)}</td>
+                        <td className="px-4 py-3 text-right font-bold text-gray-900">{eur(r.total)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-orange-50 border-t-2 border-orange-200">
+                      <td className="px-4 py-2 text-xs font-bold text-orange-800 uppercase">Total</td>
+                      <td className="px-3 py-2 text-right text-xs font-bold text-orange-800">
+                        {vehicleRows.reduce((s, r) => s + r.liters, 0).toFixed(2)} L
+                      </td>
+                      <td />
+                      <td className="px-4 py-2 text-right font-extrabold text-orange-800">
+                        {eur(totalDiesel)}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </>
             )}
           </div>
         </div>
