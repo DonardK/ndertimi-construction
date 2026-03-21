@@ -49,6 +49,8 @@ interface WorkerRow {
   paid: number;
   net: number;
   paymentMethod: "Cash" | "Bankë";
+  emriBankes: string;
+  llogariaBankes: string;
 }
 
 interface VehicleRow {
@@ -185,13 +187,24 @@ export default function DashboardPage() {
       const filteredAtt = attRecs.filter((r) => isInRange(r.date));
 
       // Build employee rate lookup
-      const rateMap: Record<number, { rate: number; method: "Cash" | "Bankë"; name: string }> = {};
+      const rateMap: Record<
+        number,
+        {
+          rate: number;
+          method: "Cash" | "Bankë";
+          name: string;
+          emriBankes: string;
+          llogariaBankes: string;
+        }
+      > = {};
       emps.forEach((e) => {
         if (e.id !== undefined)
           rateMap[e.id] = {
             rate: e.cmimiOre,
             method: e.paymentMethod,
             name: `${e.emri} ${e.mbiemri}`,
+            emriBankes: e.emriBankes ?? "",
+            llogariaBankes: e.llogariaBankes ?? "",
           };
       });
 
@@ -224,6 +237,8 @@ export default function DashboardPage() {
             paid,
             net: total - paid,
             paymentMethod: info?.method ?? "Cash",
+            emriBankes: info?.emriBankes ?? "",
+            llogariaBankes: info?.llogariaBankes ?? "",
           };
         })
         .sort((a, b) => b.total - a.total);
@@ -291,7 +306,8 @@ export default function DashboardPage() {
   const exportWorkersPdf = async () => {
     const { default: jsPDF } = await import("jspdf");
     const { default: autoTable } = await import("jspdf-autotable");
-    const doc = new jsPDF();
+    const useLandscape = workerRows.some((r) => r.paymentMethod === "Bankë");
+    const doc = new jsPDF(useLandscape ? { orientation: "landscape" } : {});
 
     doc.setFontSize(16);
     doc.text("Punonjësit — Detajet", 14, 18);
@@ -338,16 +354,41 @@ export default function DashboardPage() {
       finalY = (doc as any).lastAutoTable.finalY + 8;
     }
 
+    const makeBankPdfRows = (rows: WorkerRow[]) =>
+      rows.map((r) => [
+        r.name,
+        r.emriBankes || "—",
+        r.llogariaBankes || "—",
+        r.hours.toString(),
+        `€${r.rate.toFixed(2)}`,
+        `€${r.total.toFixed(2)}`,
+        r.paid > 0 ? `€${r.paid.toFixed(2)}` : "—",
+        `€${r.net.toFixed(2)}`,
+      ]);
+
     if (bankWorkers.length > 0) {
       doc.setFontSize(11);
       doc.text("Bankë", 14, finalY + 6);
       autoTable(doc, {
         startY: finalY + 10,
-        head: [["Punonjësi", "Orë", "€/orë", "Fituar", "Paguar", "Mbetur"]],
-        body: makeRows(bankWorkers),
+        head: [
+          [
+            "Punonjësi",
+            "Emri i bankës",
+            "Llogaria e bankës",
+            "Orë",
+            "€/orë",
+            "Fituar",
+            "Paguar",
+            "Mbetur",
+          ],
+        ],
+        body: makeBankPdfRows(bankWorkers),
         foot: [
           [
             "TOTAL BANKË",
+            "",
+            "",
             bankWorkers.reduce((s, r) => s + r.hours, 0).toString(),
             "",
             `€${bankWorkers.reduce((s, r) => s + r.total, 0).toFixed(2)}`,
@@ -356,8 +397,9 @@ export default function DashboardPage() {
           ],
         ],
         theme: "striped",
-        headStyles: { fillColor: [37, 99, 235] },
-        footStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: "bold" },
+        styles: { fontSize: 7, cellPadding: 2 },
+        headStyles: { fillColor: [37, 99, 235], fontSize: 8 },
+        footStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: "bold", fontSize: 8 },
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       finalY = (doc as any).lastAutoTable.finalY + 8;
@@ -625,6 +667,12 @@ export default function DashboardPage() {
                       <thead>
                         <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
                           <th className="text-left px-4 py-2 font-semibold">Punonjësi</th>
+                          <th className="text-left px-3 py-2 font-semibold min-w-[6rem]">
+                            {t.dashboard.bankNameCol}
+                          </th>
+                          <th className="text-left px-3 py-2 font-semibold min-w-[6rem]">
+                            {t.dashboard.bankAccountCol}
+                          </th>
                           <th className="text-right px-3 py-2 font-semibold">Orë</th>
                           <th className="text-right px-3 py-2 font-semibold">€/orë</th>
                           <th className="text-right px-3 py-2 font-semibold">Fituar</th>
@@ -638,6 +686,12 @@ export default function DashboardPage() {
                           .map((r) => (
                             <tr key={r.id} className="border-t border-gray-50 hover:bg-gray-50">
                               <td className="px-4 py-3 font-semibold text-gray-900">{r.name}</td>
+                              <td className="px-3 py-3 text-left text-gray-700 text-xs max-w-[8rem] truncate" title={r.emriBankes}>
+                                {r.emriBankes || "—"}
+                              </td>
+                              <td className="px-3 py-3 text-left text-gray-700 text-xs max-w-[9rem] truncate font-mono" title={r.llogariaBankes}>
+                                {r.llogariaBankes || "—"}
+                              </td>
                               <td className="px-3 py-3 text-right text-gray-700">{r.hours}</td>
                               <td className="px-3 py-3 text-right text-gray-500">€{r.rate.toFixed(2)}</td>
                               <td className="px-3 py-3 text-right font-bold text-gray-900">{eur(r.total)}</td>
@@ -649,6 +703,7 @@ export default function DashboardPage() {
                       <tfoot>
                         <tr className="bg-blue-50 border-t-2 border-blue-200">
                           <td className="px-4 py-2 text-xs font-bold text-blue-800 uppercase">Total Bankë</td>
+                          <td colSpan={2} />
                           <td className="px-3 py-2 text-right text-xs font-bold text-blue-800">
                             {workerRows.filter((r) => r.paymentMethod === "Bankë").reduce((s, r) => s + r.hours, 0)} orë
                           </td>

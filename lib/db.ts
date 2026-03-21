@@ -6,6 +6,10 @@ export interface Employee {
   mbiemri: string;
   paymentMethod: "Cash" | "Bankë";
   cmimiOre: number;
+  /** Bank name — used when paymentMethod is Bankë */
+  emriBankes: string;
+  /** Bank account (IBAN / account no.) — used when paymentMethod is Bankë */
+  llogariaBankes: string;
   createdAt?: string;
 }
 
@@ -59,6 +63,8 @@ function mapEmployee(row: any): Employee {
     mbiemri: row.mbiemri,
     paymentMethod: row.payment_method,
     cmimiOre: Number(row.cmimi_ore),
+    emriBankes: row.emri_bankes ?? "",
+    llogariaBankes: row.llogaria_bankes ?? "",
     createdAt: row.created_at,
   };
 }
@@ -134,6 +140,8 @@ export const db = {
         mbiemri: emp.mbiemri,
         payment_method: emp.paymentMethod,
         cmimi_ore: emp.cmimiOre,
+        emri_bankes: emp.paymentMethod === "Bankë" ? emp.emriBankes.trim() || null : null,
+        llogaria_bankes: emp.paymentMethod === "Bankë" ? emp.llogariaBankes.trim() || null : null,
       });
       if (error) throw error;
     },
@@ -144,6 +152,8 @@ export const db = {
       if (emp.mbiemri !== undefined) updates.mbiemri = emp.mbiemri;
       if (emp.paymentMethod !== undefined) updates.payment_method = emp.paymentMethod;
       if (emp.cmimiOre !== undefined) updates.cmimi_ore = emp.cmimiOre;
+      if (emp.emriBankes !== undefined) updates.emri_bankes = emp.emriBankes.trim() || null;
+      if (emp.llogariaBankes !== undefined) updates.llogaria_bankes = emp.llogariaBankes.trim() || null;
       const { error } = await getClient().from("employees").update(updates).eq("id", id);
       if (error) throw error;
     },

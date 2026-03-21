@@ -30,12 +30,16 @@ interface FormData {
   mbiemri: string;
   paymentMethod: "Cash" | "Bankë";
   cmimiOre: string;
+  emriBankes: string;
+  llogariaBankes: string;
 }
 
 interface FormErrors {
   emri?: string;
   mbiemri?: string;
   cmimiOre?: string;
+  emriBankes?: string;
+  llogariaBankes?: string;
 }
 
 interface PaymentFormData {
@@ -57,6 +61,8 @@ const emptyForm: FormData = {
   mbiemri: "",
   paymentMethod: "Cash",
   cmimiOre: "",
+  emriBankes: "",
+  llogariaBankes: "",
 };
 
 const emptyPaymentForm: PaymentFormData = {
@@ -113,6 +119,10 @@ export default function PunonjesitPage() {
     } else if (isNaN(rate) || rate < 0) {
       newErrors.cmimiOre = t.errors.invalidNumber;
     }
+    if (form.paymentMethod === "Bankë") {
+      if (!form.emriBankes.trim()) newErrors.emriBankes = t.errors.requiredField;
+      if (!form.llogariaBankes.trim()) newErrors.llogariaBankes = t.errors.requiredField;
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -121,12 +131,18 @@ export default function PunonjesitPage() {
     e.preventDefault();
     if (!validate()) return;
     try {
+      const bankPayload =
+        form.paymentMethod === "Bankë"
+          ? { emriBankes: form.emriBankes.trim(), llogariaBankes: form.llogariaBankes.trim() }
+          : { emriBankes: "", llogariaBankes: "" };
+
       if (editId !== null) {
         await db.employees.update(editId, {
           emri: form.emri.trim(),
           mbiemri: form.mbiemri.trim(),
           paymentMethod: form.paymentMethod,
           cmimiOre: parseNum(form.cmimiOre),
+          ...bankPayload,
         });
         toast.success(t.success.updated);
       } else {
@@ -135,6 +151,7 @@ export default function PunonjesitPage() {
           mbiemri: form.mbiemri.trim(),
           paymentMethod: form.paymentMethod,
           cmimiOre: parseNum(form.cmimiOre),
+          ...bankPayload,
         });
         toast.success(t.success.saved);
       }
@@ -154,6 +171,8 @@ export default function PunonjesitPage() {
       mbiemri: emp.mbiemri,
       paymentMethod: emp.paymentMethod,
       cmimiOre: String(emp.cmimiOre),
+      emriBankes: emp.emriBankes ?? "",
+      llogariaBankes: emp.llogariaBankes ?? "",
     });
     setEditId(emp.id!);
     setErrors({});
@@ -180,7 +199,12 @@ export default function PunonjesitPage() {
   };
 
   const handleChange =
-    (field: keyof Pick<FormData, "emri" | "mbiemri" | "cmimiOre">) =>
+    (
+      field: keyof Pick<
+        FormData,
+        "emri" | "mbiemri" | "cmimiOre" | "emriBankes" | "llogariaBankes"
+      >
+    ) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
       let value = e.target.value;
       if (field === "cmimiOre") value = value.replace(",", ".");
@@ -188,6 +212,19 @@ export default function PunonjesitPage() {
       if (errors[field as keyof FormErrors])
         setErrors((prev) => ({ ...prev, [field]: undefined }));
     };
+
+  const setPaymentMethod = (method: "Cash" | "Bankë") => {
+    setForm((prev) => ({
+      ...prev,
+      paymentMethod: method,
+      ...(method === "Cash" ? { emriBankes: "", llogariaBankes: "" } : {}),
+    }));
+    setErrors((prev) => ({
+      ...prev,
+      emriBankes: undefined,
+      llogariaBankes: undefined,
+    }));
+  };
 
   // ── Payments ──
   const openPayments = async (emp: Employee) => {
@@ -339,6 +376,14 @@ export default function PunonjesitPage() {
                       <Euro className="w-3 h-3" />
                       {emp.cmimiOre.toFixed(2)}/orë
                     </span>
+                    {emp.paymentMethod === "Bankë" &&
+                      (emp.emriBankes || emp.llogariaBankes) && (
+                        <span className="block w-full text-xs text-gray-500 mt-1 truncate">
+                          {emp.emriBankes}
+                          {emp.emriBankes && emp.llogariaBankes ? " · " : ""}
+                          {emp.llogariaBankes}
+                        </span>
+                      )}
                   </div>
                 </div>
                 <div className="flex gap-2 shrink-0">
@@ -417,7 +462,7 @@ export default function PunonjesitPage() {
                     <button
                       key={method}
                       type="button"
-                      onClick={() => setForm((prev) => ({ ...prev, paymentMethod: method }))}
+                      onClick={() => setPaymentMethod(method)}
                       className={`flex-1 h-14 rounded-xl border-2 font-bold text-lg flex items-center justify-center gap-2 transition-colors
                         ${
                           form.paymentMethod === method
@@ -437,6 +482,31 @@ export default function PunonjesitPage() {
                   ))}
                 </div>
               </FormField>
+
+              {form.paymentMethod === "Bankë" && (
+                <>
+                  <FormField label={t.employees.emriBankes} error={errors.emriBankes} required>
+                    <Input
+                      value={form.emriBankes}
+                      onChange={handleChange("emriBankes")}
+                      placeholder={t.employees.emriBankesPlaceholder}
+                      error={!!errors.emriBankes}
+                    />
+                  </FormField>
+                  <FormField
+                    label={t.employees.llogariaBankes}
+                    error={errors.llogariaBankes}
+                    required
+                  >
+                    <Input
+                      value={form.llogariaBankes}
+                      onChange={handleChange("llogariaBankes")}
+                      placeholder={t.employees.llogariaBankesPlaceholder}
+                      error={!!errors.llogariaBankes}
+                    />
+                  </FormField>
+                </>
+              )}
 
               <FormField label={t.employees.cmimiOre} error={errors.cmimiOre} required>
                 <div className="relative">
