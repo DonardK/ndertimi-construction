@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { db, type Employee, type Attendance } from "@/lib/db";
+import {
+  db,
+  type Employee,
+  type Attendance,
+  type WorkLocation,
+  WORK_LOCATION_LABELS,
+} from "@/lib/db";
 import { t } from "@/lib/translations";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import PageHeader from "@/components/PageHeader";
@@ -21,8 +27,12 @@ import {
   CheckSquare,
   Square,
   ArrowRight,
+  MapPin,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
+
+const LOCATIONS: WorkLocation[] = ["Pr", "Pz", "M"];
 
 interface BulkRow {
   employeeId: number;
@@ -30,6 +40,7 @@ interface BulkRow {
   paymentMethod: "Cash" | "Bankë";
   rate: number;
   hours: string;
+  location: WorkLocation;
   checked: boolean;
   error?: string;
 }
@@ -46,6 +57,10 @@ export default function PjesemarrjaPage() {
   const [bulkRows, setBulkRows] = useState<BulkRow[]>([]);
   const [bulkSaving, setBulkSaving] = useState(false);
   const [sameHours, setSameHours] = useState("");
+  const [sameLocation, setSameLocation] = useState<WorkLocation>("Pr");
+  const [reportTitle, setReportTitle] = useState("");
+  const [reportContent, setReportContent] = useState("");
+  const [reportError, setReportError] = useState<string | null>(null);
 
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [filterDate, setFilterDate] = useState(today);
@@ -70,9 +85,11 @@ export default function PjesemarrjaPage() {
   }, []);
 
   // ── Bulk modal ──
-  const openBulk = () => {
+  const openBulk = async () => {
     setBulkDate(filterDate);
     setSameHours("");
+    setSameLocation("Pr");
+    setReportError(null);
     setBulkRows(
       employees.map((e) => ({
         employeeId: e.id!,
@@ -80,10 +97,32 @@ export default function PjesemarrjaPage() {
         paymentMethod: e.paymentMethod,
         rate: e.cmimiOre,
         hours: "",
+        location: "Pr",
         checked: false,
       }))
     );
+    // Prefill existing report for date if present
+    try {
+      const existing = await db.dailyReports.getByDate(filterDate);
+      setReportTitle(existing?.title ?? "");
+      setReportContent(existing?.content ?? "");
+    } catch {
+      setReportTitle("");
+      setReportContent("");
+    }
     setShowBulk(true);
+  };
+
+  // When bulk date changes, refresh report prefill
+  const handleBulkDateChange = async (newDate: string) => {
+    setBulkDate(newDate);
+    try {
+      const existing = await db.dailyReports.getByDate(newDate);
+      setReportTitle(existing?.title ?? "");
+      setReportContent(existing?.content ?? "");
+    } catch {
+      // ignore
+    }
   };
 
   const toggleAll = (checked: boolean) => {
@@ -105,6 +144,12 @@ export default function PjesemarrjaPage() {
     );
   };
 
+  const setBulkLocation = (idx: number, loc: WorkLocation) => {
+    setBulkRows((rows) =>
+      rows.map((r, i) => (i === idx ? { ...r, location: loc } : r))
+    );
+  };
+
   // Apply the same hours to all currently checked rows
   const applyToAll = () => {
     const normalized = sameHours.replace(",", ".");
@@ -115,12 +160,27 @@ export default function PjesemarrjaPage() {
     );
   };
 
+  // Apply the same location to all currently checked rows
+  const applyLocationToAll = () => {
+    setBulkRows((rows) =>
+      rows.map((r) => (r.checked ? { ...r, location: sameLocation } : r))
+    );
+  };
+
   const handleBulkSave = async () => {
     const selected = bulkRows.filter((r) => r.checked);
     if (selected.length === 0) {
       toast.error(t.dashboard.bulkNoEmployees);
       return;
     }
+
+    // Mandatory report
+    if (!reportTitle.trim() || !reportContent.trim()) {
+      setReportError(t.dashboard.reportRequired);
+      toast.error(t.dashboard.reportRequired);
+      return;
+    }
+    setReportError(null);
 
     let hasErrors = false;
     setBulkRows((rows) =>
@@ -147,9 +207,15 @@ export default function PjesemarrjaPage() {
             date: bulkDate,
             paymentMethod: r.paymentMethod,
             hoursWorked: parseFloat(r.hours),
+            location: r.location,
           })
         )
       );
+      await db.dailyReports.upsert({
+        date: bulkDate,
+        title: reportTitle.trim(),
+        content: reportContent.trim(),
+      });
       toast.success(`${selected.length} regjistrime u ruajtën!`);
       setShowBulk(false);
       setFilterDate(bulkDate);
@@ -290,6 +356,13 @@ export default function PjesemarrjaPage() {
                       )}
                       {rec.paymentMethod}
                     </span>
+                    <span
+                      className="flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700"
+                      title={WORK_LOCATION_LABELS[rec.location]}
+                    >
+                      <MapPin className="w-3 h-3" />
+                      {rec.location}
+                    </span>
                     {earned && (
                       <span className="text-xs font-semibold text-gray-500">
                         €{earned}
@@ -332,7 +405,7 @@ export default function PjesemarrjaPage() {
               </button>
             </div>
 
-            {/* Date + Same hours */}
+            {/* Date + Same hours + Same location */}
             <div className="px-6 py-4 border-b border-gray-100 shrink-0 flex flex-col gap-3">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">
@@ -341,7 +414,7 @@ export default function PjesemarrjaPage() {
                 <input
                   type="date"
                   value={bulkDate}
-                  onChange={(e) => setBulkDate(e.target.value)}
+                  onChange={(e) => handleBulkDateChange(e.target.value)}
                   className="w-full h-12 px-4 rounded-xl border-2 border-gray-300 text-lg font-medium text-gray-900 focus:outline-none focus:border-blue-500 bg-white"
                 />
               </div>
@@ -375,6 +448,35 @@ export default function PjesemarrjaPage() {
                     Zgjidhni punonjësit fillimisht
                   </p>
                 )}
+              </div>
+
+              {/* Same location for all */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  {t.dashboard.sameLocation}
+                </label>
+                <div className="flex gap-2">
+                  <select
+                    value={sameLocation}
+                    onChange={(e) => setSameLocation(e.target.value as WorkLocation)}
+                    className="flex-1 h-11 px-3 rounded-xl border-2 border-indigo-300 text-base font-bold text-gray-900 focus:outline-none focus:border-indigo-600 bg-white"
+                  >
+                    {LOCATIONS.map((loc) => (
+                      <option key={loc} value={loc}>
+                        {loc} — {WORK_LOCATION_LABELS[loc]}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={applyLocationToAll}
+                    disabled={checkedCount === 0}
+                    className="flex items-center gap-1.5 h-11 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-colors shadow-sm disabled:opacity-40"
+                  >
+                    {t.dashboard.applyToAll}
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -439,6 +541,28 @@ export default function PjesemarrjaPage() {
                     </div>
                   </div>
 
+                  {/* Location selector */}
+                  <div className="shrink-0 w-16">
+                    <select
+                      value={row.location}
+                      onChange={(e) => setBulkLocation(idx, e.target.value as WorkLocation)}
+                      disabled={!row.checked}
+                      title={WORK_LOCATION_LABELS[row.location]}
+                      className={`w-full h-11 px-2 rounded-xl border-2 text-sm font-bold text-center transition-colors focus:outline-none
+                        ${
+                          row.checked
+                            ? "border-indigo-300 bg-white text-indigo-700 focus:border-indigo-600"
+                            : "border-gray-200 bg-gray-50 text-gray-400"
+                        }`}
+                    >
+                      {LOCATIONS.map((loc) => (
+                        <option key={loc} value={loc}>
+                          {loc}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
                   {/* Hours input */}
                   <div className="shrink-0 w-24">
                     <input
@@ -468,6 +592,53 @@ export default function PjesemarrjaPage() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Daily report (mandatory) */}
+            <div className="px-6 py-4 border-t border-gray-100 shrink-0 bg-amber-50/50">
+              <div className="flex items-center gap-2 mb-2">
+                <FileText className="w-4 h-4 text-amber-700" />
+                <h3 className="text-sm font-extrabold text-amber-900 uppercase tracking-wide">
+                  Raporti i ditës
+                </h3>
+                <span className="text-[10px] font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">
+                  {t.common.required}
+                </span>
+              </div>
+              <input
+                type="text"
+                value={reportTitle}
+                onChange={(e) => {
+                  setReportTitle(e.target.value);
+                  if (reportError) setReportError(null);
+                }}
+                placeholder={t.dashboard.reportTitlePlaceholder}
+                className={`w-full h-11 px-3 rounded-xl border-2 text-base font-bold text-gray-900 focus:outline-none bg-white mb-2 ${
+                  reportError && !reportTitle.trim()
+                    ? "border-red-400"
+                    : "border-amber-300 focus:border-amber-600"
+                }`}
+              />
+              <textarea
+                value={reportContent}
+                onChange={(e) => {
+                  setReportContent(e.target.value);
+                  if (reportError) setReportError(null);
+                }}
+                placeholder={t.dashboard.reportContentPlaceholder}
+                rows={3}
+                className={`w-full px-3 py-2 rounded-xl border-2 text-sm font-medium text-gray-900 focus:outline-none bg-white resize-y ${
+                  reportError && !reportContent.trim()
+                    ? "border-red-400"
+                    : "border-amber-300 focus:border-amber-600"
+                }`}
+              />
+              {reportError && (
+                <p className="text-xs font-semibold text-red-600 mt-1.5 flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  {reportError}
+                </p>
+              )}
             </div>
 
             {/* Footer */}

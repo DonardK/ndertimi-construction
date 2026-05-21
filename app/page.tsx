@@ -1,11 +1,17 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { db, type Employee } from "@/lib/db";
+import {
+  db,
+  type Employee,
+  type DailyReport,
+  WORK_LOCATION_LABELS,
+  type WorkLocation,
+} from "@/lib/db";
 import { t } from "@/lib/translations";
 import {
   Fuel,
-  Clock,
+  Users as UsersIcon,
   CreditCard,
   Banknote,
   ChevronDown,
@@ -13,6 +19,10 @@ import {
   AlertCircle,
   FileDown,
   Euro,
+  FileText,
+  X,
+  Printer,
+  ChevronRight,
 } from "lucide-react";
 import {
   startOfMonth,
@@ -152,9 +162,20 @@ export default function DashboardPage() {
   const [vehicleRows, setVehicleRows] = useState<VehicleRow[]>([]);
   const [totalDiesel, setTotalDiesel] = useState(0);
   const [totalHours, setTotalHours] = useState(0);
+  const [workerCount, setWorkerCount] = useState(0);
   const [totalCashEur, setTotalCashEur] = useState(0);
   const [totalBankEur, setTotalBankEur] = useState(0);
   const [employees, setEmployees] = useState<Employee[]>([]);
+
+  // Reports state
+  const [showReports, setShowReports] = useState(false);
+  const [reportsMonth, setReportsMonth] = useState(() => format(new Date(), "yyyy-MM"));
+  const [reportsList, setReportsList] = useState<DailyReport[]>([]);
+  const [reportsLoading, setReportsLoading] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<DailyReport | null>(null);
+  const [reportLocations, setReportLocations] = useState<
+    Record<string, { name: string; location: WorkLocation; hours: number }[]>
+  >({});
 
   const isInRange = useCallback(
     (dateStr: string) => {
@@ -254,6 +275,8 @@ export default function DashboardPage() {
       setTotalCashEur(cashEur);
       setTotalBankEur(bankEur);
       setTotalHours(filteredAtt.reduce((s, r) => s + r.hoursWorked, 0));
+      // Unique workers that received any hours in the period
+      setWorkerCount(new Set(filteredAtt.map((r) => r.employeeId)).size);
 
       // --- Vehicles table ---
       const vMap: Record<string, { liters: number; cost: number }> = {};
@@ -458,6 +481,111 @@ export default function DashboardPage() {
 
   // suppress unused import
   void employees;
+  void totalHours;
+
+  // ── Reports ──
+  const loadReports = useCallback(async (ym: string) => {
+    if (!ym) return;
+    setReportsLoading(true);
+    try {
+      const [year, month] = ym.split("-").map((n) => parseInt(n));
+      const [reports, atts] = await Promise.all([
+        db.dailyReports.getByMonth(year, month),
+        db.attendance.getAll(),
+      ]);
+      setReportsList(reports);
+
+      // Build location breakdown per date
+      const mm = String(month).padStart(2, "0");
+      const monthPrefix = `${year}-${mm}-`;
+      const breakdown: Record<
+        string,
+        { name: string; location: WorkLocation; hours: number }[]
+      > = {};
+      atts
+        .filter((a) => a.date.startsWith(monthPrefix))
+        .forEach((a) => {
+          if (!breakdown[a.date]) breakdown[a.date] = [];
+          breakdown[a.date].push({
+            name: `${a.emri} ${a.mbiemri}`,
+            location: a.location,
+            hours: a.hoursWorked,
+          });
+        });
+      Object.keys(breakdown).forEach((d) => {
+        breakdown[d].sort((a, b) => a.name.localeCompare(b.name));
+      });
+      setReportLocations(breakdown);
+    } catch {
+      setReportsList([]);
+      setReportLocations({});
+    } finally {
+      setReportsLoading(false);
+    }
+  }, []);
+
+  const openReports = () => {
+    setShowReports(true);
+    loadReports(reportsMonth);
+  };
+
+  const changeReportsMonth = (ym: string) => {
+    setReportsMonth(ym);
+    loadReports(ym);
+  };
+
+  const escapeHtml = (s: string) =>
+    s
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+
+  const printReport = (r: DailyReport) => {
+    const workers = reportLocations[r.date] ?? [];
+    const dateLabel = format(parseISO(r.date), "dd/MM/yyyy");
+    const rows = workers
+      .map(
+        (w) =>
+          `<tr><td>${escapeHtml(w.name)}</td><td style="text-align:center">${
+            w.location
+          } — ${escapeHtml(WORK_LOCATION_LABELS[w.location])}</td><td style="text-align:right">${
+            w.hours
+          } orë</td></tr>`
+      )
+      .join("");
+    const totalH = workers.reduce((s, w) => s + w.hours, 0);
+    const html = `<!doctype html>
+<html lang="sq"><head><meta charset="utf-8"><title>Raport ${escapeHtml(r.title)} — ${dateLabel}</title>
+<style>
+  body{font-family:Arial,Helvetica,sans-serif;color:#111;padding:24px;max-width:780px;margin:0 auto}
+  h1{font-size:22px;margin:0 0 4px}
+  .meta{color:#555;font-size:13px;margin-bottom:18px}
+  .content{background:#f8fafc;padding:14px 16px;border-radius:8px;border:1px solid #e5e7eb;white-space:pre-wrap;font-size:14px;line-height:1.5;margin-bottom:22px}
+  h2{font-size:14px;text-transform:uppercase;letter-spacing:0.05em;color:#374151;margin:18px 0 8px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{border:1px solid #e5e7eb;padding:8px 10px}
+  th{background:#f1f5f9;text-align:left}
+  tfoot td{font-weight:bold;background:#f1f5f9}
+  @media print {body{padding:0}}
+</style></head><body>
+  <h1>${escapeHtml(r.title)}</h1>
+  <div class="meta">Data: <b>${dateLabel}</b></div>
+  <h2>Përshkrimi</h2>
+  <div class="content">${escapeHtml(r.content)}</div>
+  <h2>Punonjësit (${workers.length})</h2>
+  <table>
+    <thead><tr><th>Punonjësi</th><th style="text-align:center">Vendi</th><th style="text-align:right">Orët</th></tr></thead>
+    <tbody>${rows || `<tr><td colspan="3" style="text-align:center;color:#888">—</td></tr>`}</tbody>
+    <tfoot><tr><td colspan="2">Totali</td><td style="text-align:right">${totalH} orë</td></tr></tfoot>
+  </table>
+  <script>window.onload=()=>{window.print();}</script>
+</body></html>`;
+    const w = window.open("", "_blank", "width=820,height=900");
+    if (!w) return;
+    w.document.write(html);
+    w.document.close();
+  };
 
   return (
     <div className="px-4 pt-6 pb-4">
@@ -553,9 +681,9 @@ export default function DashboardPage() {
               color="bg-orange-100"
             />
             <StatCard
-              icon={<Clock className="w-5 h-5 text-blue-600" />}
-              label={t.dashboard.totalHoursWorked}
-              value={`${totalHours} orë`}
+              icon={<UsersIcon className="w-5 h-5 text-blue-600" />}
+              label={t.dashboard.workersThisMonth}
+              value={`${workerCount}`}
               color="bg-blue-100"
             />
             <StatCard
@@ -743,6 +871,15 @@ export default function DashboardPage() {
             )}
           </div>
 
+          {/* ── Raportet button ── */}
+          <button
+            onClick={openReports}
+            className="w-full flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white font-bold h-14 rounded-2xl text-base transition-colors shadow-md"
+          >
+            <FileText className="w-5 h-5" />
+            {t.dashboard.reports}
+          </button>
+
           {/* ── Vehicles / Nafta table ── */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
@@ -801,6 +938,154 @@ export default function DashboardPage() {
                   </tfoot>
                 </table>
               </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── REPORTS MODAL ── */}
+      {showReports && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowReports(false)}
+          />
+          <div className="relative bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 shrink-0">
+              <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-amber-600" />
+                {t.dashboard.reportsTitle}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowReports(false);
+                  setSelectedReport(null);
+                }}
+                className="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+
+            {/* Month picker */}
+            <div className="px-6 py-4 border-b border-gray-100 shrink-0">
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                {t.dashboard.selectMonth}
+              </label>
+              <input
+                type="month"
+                value={reportsMonth}
+                onChange={(e) => changeReportsMonth(e.target.value)}
+                className="w-full h-12 px-4 rounded-xl border-2 border-gray-300 text-lg font-medium text-gray-900 focus:outline-none focus:border-amber-500 bg-white"
+              />
+            </div>
+
+            {/* List or detail */}
+            {selectedReport ? (
+              <div className="flex-1 overflow-y-auto">
+                <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3 bg-amber-50">
+                  <button
+                    onClick={() => setSelectedReport(null)}
+                    className="text-sm font-bold text-amber-800 hover:text-amber-900"
+                  >
+                    ← {t.common.back}
+                  </button>
+                  <button
+                    onClick={() => printReport(selectedReport)}
+                    className="flex items-center gap-1.5 text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    <Printer className="w-4 h-4" />
+                    {t.dashboard.print}
+                  </button>
+                </div>
+                <div className="px-6 py-4">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                    {format(parseISO(selectedReport.date), "dd/MM/yyyy")}
+                  </p>
+                  <h3 className="text-lg font-extrabold text-gray-900 mt-1">
+                    {selectedReport.title}
+                  </h3>
+                  <div className="mt-3 bg-gray-50 rounded-xl p-3 border border-gray-200 whitespace-pre-wrap text-sm text-gray-800 leading-relaxed">
+                    {selectedReport.content}
+                  </div>
+
+                  {/* Workers + locations for the day */}
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide mt-5 mb-2">
+                    Punonjësit
+                  </h4>
+                  {(reportLocations[selectedReport.date] ?? []).length === 0 ? (
+                    <p className="text-sm text-gray-400 italic">—</p>
+                  ) : (
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
+                          <th className="text-left px-2 py-2 font-semibold">Emri</th>
+                          <th className="text-center px-2 py-2 font-semibold">{t.dashboard.locationCol}</th>
+                          <th className="text-right px-2 py-2 font-semibold">Orë</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(reportLocations[selectedReport.date] ?? []).map((w, i) => (
+                          <tr key={i} className="border-t border-gray-100">
+                            <td className="px-2 py-2 font-semibold text-gray-900">{w.name}</td>
+                            <td className="px-2 py-2 text-center">
+                              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                                {w.location}
+                              </span>
+                            </td>
+                            <td className="px-2 py-2 text-right font-bold text-gray-700">
+                              {w.hours}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex-1 overflow-y-auto">
+                {reportsLoading ? (
+                  <div className="flex justify-center py-12">
+                    <div className="w-8 h-8 border-4 border-amber-600 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : reportsList.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center gap-2 py-12 text-gray-400">
+                    <AlertCircle className="w-8 h-8" />
+                    <span className="text-sm">{t.dashboard.noReports}</span>
+                  </div>
+                ) : (
+                  <ul>
+                    {reportsList.map((r) => (
+                      <li key={r.id ?? r.date}>
+                        <button
+                          onClick={() => setSelectedReport(r)}
+                          className="w-full flex items-center gap-3 px-6 py-3 border-b border-gray-100 hover:bg-amber-50 transition-colors text-left"
+                        >
+                          <div className="w-14 shrink-0 text-center">
+                            <p className="text-xs font-bold text-amber-700 uppercase">
+                              {format(parseISO(r.date), "MMM")}
+                            </p>
+                            <p className="text-xl font-extrabold text-gray-900 leading-none">
+                              {format(parseISO(r.date), "dd")}
+                            </p>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-gray-900 truncate">
+                              {r.title}
+                            </p>
+                            <p className="text-xs text-gray-500 truncate">
+                              {r.content}
+                            </p>
+                          </div>
+                          <ChevronRight className="w-5 h-5 text-gray-400 shrink-0" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             )}
           </div>
         </div>

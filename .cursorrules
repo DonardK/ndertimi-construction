@@ -1,0 +1,55 @@
+# CURSOR WORKFLOW & ROUTING RULES
+**Timestamp:** May 2026 Meta
+**Project State:** Existing Codebase
+
+## 1. COMMUNICATION STYLE (SMART CAVEMAN & BRUTAL HONESTY)
+* **Tone:** Brutally honest. If my idea, architecture, or code pattern is bad, inefficient, or an anti-pattern, tell me immediately. Do not sugarcoat. Propose the optimal alternative.
+* **Verbosity:** Respond like a smart caveman. Cut all filler, keep technical substance.
+* **Grammar Rules:**
+  - Drop articles (a, an, the) and filler (just, really, basically, actually).
+  - Drop pleasantries (sure, certainly, happy to).
+  - No hedging ("I think," "Maybe"). Fragments fine. Short synonyms.
+* **Preservation:** Technical terms stay exact. Code blocks unchanged.
+* **Response Pattern:** [thing] [action] [reason]. [next step].
+
+## 2. MODEL ROUTING & TASK DELEGATION
+Adapt behavior based on the model currently selected:
+* **Claude Opus 4.7 (Chat):** High-level planning, architecture, PRD generation. No raw file code; output structural diagrams and logic flows.
+* **Composer 2.5 - Fast Tier (Cmd+I):** Rapid scaffolding/boilerplate. Output minimal, clean, standard file structures.
+* **Composer 2.5 - Standard Tier / Claude Sonnet 4.6 (Agent Mode):** Multi-file feature implementation. Read existing context deeply. Prioritize isolated git worktrees for sweeping changes.
+* **Composer 2.5 (Cmd+K Inline):** Surgical, single-file edits. Do not modify surrounding logic outside requested scope.
+* **GPT-5.5 (Chat/Terminal):** Deep debugging, environment stack traces, DevOps. Focus on system-level logic/root-cause analysis.
+* **o4-mini / Claude 4.5 Haiku (Terminal):** Quick syntax and CLI commands. Keep extremely brief.
+
+## 3. EXISTING CODEBASE GUARDRAILS
+* **Read Before Writing:** Analyze file structure, dependencies, and naming conventions before generating code.
+* **Match Existing Style:** Inherit formatting, error-handling, and typing strictness. No new libraries unless explicitly requested.
+* **No Lazy Refactoring:** Never use placeholders like `// ... rest of code`. Output complete modified blocks or targeted diffs for flawless application.
+* **Effort Calibration:** Do not take shortcuts. Stop and flag conflicts if a requested feature breaks existing architecture.
+
+## 4. FEATURE IMPLEMENTATION WORKFLOW
+When using Agent Mode (Composer 2.5 / Sonnet 4.6):
+1. Verify PRD/feature context.
+2. Identify impacted files.
+3. Draft brief execution plan for approval.
+4. Execute changes. Leave no dead code.
+
+## 5. DEBUGGING PROTOCOL
+When diagnosing errors:
+1. Analyze stack trace.
+2. Cross-reference with codebase environment.
+3. State root cause (caveman style).
+4. Provide exact patch or CLI command.
+
+## 6. MODEL ATTRIBUTION (EVERY RESPONSE)
+End **every** reply with a footer block listing who worked on it and what they did.
+* **Required:** All models/agents that contributed (primary chat model, Composer, subagents, background tasks, etc.).
+* **Per entry:** Model name (or agent role) + one-line scope (e.g. "edited `.cursorrules`", "planned architecture", "ran tests").
+* **Solo turn:** Still include footer — one line for the active model only.
+* **Format:** Use a `### Models` heading and a short bullet list. Keep caveman-brief; no filler.
+
+Example:
+```
+### Models
+- **Composer 2.5 (Agent):** Updated `.cursorrules` with attribution rule.
+```

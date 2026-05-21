@@ -13,6 +13,14 @@ export interface Employee {
   createdAt?: string;
 }
 
+export type WorkLocation = "Pr" | "Pz" | "M";
+
+export const WORK_LOCATION_LABELS: Record<WorkLocation, string> = {
+  Pr: "Prishtinë",
+  Pz: "Prizren",
+  M: "Malishevë",
+};
+
 export interface Attendance {
   id?: number;
   employeeId: number;
@@ -21,6 +29,15 @@ export interface Attendance {
   date: string;
   paymentMethod: "Cash" | "Bankë";
   hoursWorked: number;
+  location: WorkLocation;
+  createdAt?: string;
+}
+
+export interface DailyReport {
+  id?: number;
+  date: string;
+  title: string;
+  content: string;
   createdAt?: string;
 }
 
@@ -79,6 +96,18 @@ function mapAttendance(row: any): Attendance {
     date: row.date,
     paymentMethod: row.payment_method,
     hoursWorked: Number(row.hours_worked),
+    location: (row.location as WorkLocation) ?? "Pr",
+    createdAt: row.created_at,
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapDailyReport(row: any): DailyReport {
+  return {
+    id: row.id,
+    date: row.date,
+    title: row.title,
+    content: row.content,
     createdAt: row.created_at,
   };
 }
@@ -182,12 +211,66 @@ export const db = {
         date: att.date,
         payment_method: att.paymentMethod,
         hours_worked: att.hoursWorked,
+        location: att.location,
       });
       if (error) throw error;
     },
 
     async delete(id: number): Promise<void> {
       const { error } = await getClient().from("attendance").delete().eq("id", id);
+      if (error) throw error;
+    },
+  },
+
+  dailyReports: {
+    async getAll(): Promise<DailyReport[]> {
+      const { data, error } = await getClient()
+        .from("daily_reports")
+        .select("*")
+        .order("date", { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map(mapDailyReport);
+    },
+
+    async getByMonth(year: number, month: number): Promise<DailyReport[]> {
+      // month is 1-12
+      const mm = String(month).padStart(2, "0");
+      const from = `${year}-${mm}-01`;
+      const lastDay = new Date(year, month, 0).getDate();
+      const to = `${year}-${mm}-${String(lastDay).padStart(2, "0")}`;
+      const { data, error } = await getClient()
+        .from("daily_reports")
+        .select("*")
+        .gte("date", from)
+        .lte("date", to)
+        .order("date", { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map(mapDailyReport);
+    },
+
+    async getByDate(date: string): Promise<DailyReport | null> {
+      const { data, error } = await getClient()
+        .from("daily_reports")
+        .select("*")
+        .eq("date", date)
+        .maybeSingle();
+      if (error) throw error;
+      return data ? mapDailyReport(data) : null;
+    },
+
+    // Upsert by date (one report per day).
+    async upsert(r: Omit<DailyReport, "id" | "createdAt">): Promise<void> {
+      const { error } = await getClient()
+        .from("daily_reports")
+        .upsert(
+          { date: r.date, title: r.title, content: r.content },
+          { onConflict: "date" }
+        );
+      if (error) throw error;
+    },
+
+    async delete(id: number): Promise<void> {
+      const { error } = await getClient().from("daily_reports").delete().eq("id", id);
       if (error) throw error;
     },
   },
