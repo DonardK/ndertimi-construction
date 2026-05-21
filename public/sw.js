@@ -1,4 +1,4 @@
-const CACHE_NAME = "ndertimi-v2";
+const CACHE_NAME = "ndertimi-v3";
 const STATIC_ASSETS = [
   "/",
   "/personeli",
