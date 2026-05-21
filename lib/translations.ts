@@ -228,6 +228,7 @@ export const t = {
     paymentSplit: "Ndarja e Pagesave",
     totalDieselCost: "Kosto Nafta",
     totalHoursWorked: "Orë pune gjithsej",
+    workersThisMonth: "Punonjës (muaj)",
     totalCash: "Totali Cash",
     totalBank: "Totali Bankë",
     euro: "€",
@@ -276,6 +277,22 @@ export const t = {
     sameHours: "Orë njësoj për të gjithë",
     sameHoursPlaceholder: "p.sh. 8",
     applyToAll: "Apliko",
+    // Location
+    location: "Vendi",
+    sameLocation: "Vendi njësoj për të gjithë",
+    locationCol: "Vendi",
+    // Daily report
+    reports: "Raportet",
+    reportTitle: "Titulli i raportit",
+    reportTitlePlaceholder: "p.sh. Themeli, Llaqi, Suvatim...",
+    reportContent: "Përshkrimi i punës",
+    reportContentPlaceholder: "Çfarë u punua sot...",
+    reportRequired: "Raporti është i detyrueshëm",
+    reportsTitle: "Raportet ditore",
+    selectMonth: "Zgjidh muajin",
+    noReports: "Nuk ka raporte për këtë muaj.",
+    print: "Printo",
+    viewReport: "Shiko raportin",
   },
 } as const;
 
