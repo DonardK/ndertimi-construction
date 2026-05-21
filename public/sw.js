@@ -1,10 +1,10 @@
-const CACHE_NAME = "ndertimi-v1";
+const CACHE_NAME = "ndertimi-v2";
 const STATIC_ASSETS = [
   "/",
-  "/punonjesit",
-  "/pjesemarrja",
+  "/personeli",
   "/mjetet",
-  "/karburanti",
+  "/stoku",
+  "/profili",
   "/manifest.json",
 ];
 

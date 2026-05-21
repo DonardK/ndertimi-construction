@@ -2,25 +2,55 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, CalendarCheck, Truck, Fuel } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  Truck,
+  Package,
+  UserCircle,
+} from "lucide-react";
 import { t } from "@/lib/translations";
 
 const navItems = [
-  { href: "/", label: t.nav.dashboard, icon: LayoutDashboard },
-  { href: "/punonjesit", label: t.nav.employees, icon: Users },
-  { href: "/pjesemarrja", label: t.nav.attendance, icon: CalendarCheck },
-  { href: "/mjetet", label: t.nav.vehicles, icon: Truck },
-  { href: "/nafta", label: t.nav.diesel, icon: Fuel },
+  { href: "/", label: t.nav.dashboard, icon: LayoutDashboard, match: (p: string) => p === "/" },
+  {
+    href: "/personeli",
+    label: t.nav.personnel,
+    icon: Users,
+    match: (p: string) => p.startsWith("/personeli"),
+  },
+  {
+    href: "/mjetet",
+    label: t.nav.vehiclesHub,
+    icon: Truck,
+    match: (p: string) => p.startsWith("/mjetet"),
+  },
+  {
+    href: "/stoku",
+    label: t.nav.stock,
+    icon: Package,
+    match: (p: string) => p.startsWith("/stoku"),
+  },
+  {
+    href: "/profili",
+    label: t.nav.profile,
+    icon: UserCircle,
+    match: (p: string) => p.startsWith("/profili"),
+  },
 ];
 
 export default function BottomNav() {
   const pathname = usePathname();
 
+  if (pathname === "/login") {
+    return null;
+  }
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t-2 border-gray-200 shadow-lg">
       <div className="flex items-stretch max-w-lg mx-auto">
-        {navItems.map(({ href, label, icon: Icon }) => {
-          const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
+        {navItems.map(({ href, label, icon: Icon, match }) => {
+          const isActive = match(pathname);
           return (
             <Link
               key={href}
@@ -32,7 +62,9 @@ export default function BottomNav() {
                 }`}
             >
               <Icon className={`w-6 h-6 ${isActive ? "stroke-[2.5px]" : "stroke-2"}`} />
-              <span className={`text-[10px] font-semibold leading-tight text-center ${isActive ? "text-blue-600" : ""}`}>
+              <span
+                className={`text-[10px] font-semibold leading-tight text-center ${isActive ? "text-blue-600" : ""}`}
+              >
                 {label}
               </span>
             </Link>

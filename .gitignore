@@ -36,6 +36,9 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# Vercel deployment source recovery (transient)
+vercel-recovery/
+
 # vercel
 .vercel
 
