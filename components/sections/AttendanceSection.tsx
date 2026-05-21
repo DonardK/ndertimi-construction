@@ -645,9 +645,50 @@ export default function AttendanceSection() {
             </div>
 
             <div className="px-6 py-4 flex-1 overflow-y-auto">
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-gray-600 mb-3">
                 {pendingSelected.length} punonjës · {bulkDate}
               </p>
+
+              <div className="mb-4 rounded-xl border-2 border-amber-200 bg-amber-50 overflow-hidden">
+                <div className="px-3 py-2 bg-amber-100 border-b border-amber-200 flex items-center justify-between text-xs font-bold text-amber-900 uppercase tracking-wide">
+                  <span>Punonjësi</span>
+                  <span className="flex items-center gap-3">
+                    <span>Vendi</span>
+                    <span>Orë</span>
+                  </span>
+                </div>
+                <div className="max-h-44 overflow-y-auto divide-y divide-amber-200">
+                  {pendingSelected.map((row) => (
+                    <div
+                      key={row.employeeId}
+                      className="flex items-center justify-between px-3 py-2 text-sm"
+                    >
+                      <span className="font-semibold text-gray-900 truncate pr-2">
+                        {row.name}
+                      </span>
+                      <span className="flex items-center gap-3 shrink-0">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-amber-300 text-amber-800 font-bold text-xs">
+                          <MapPin className="w-3 h-3" />
+                          {WORK_LOCATION_LABELS[row.location]}
+                        </span>
+                        <span className="font-extrabold text-gray-900 tabular-nums w-10 text-right">
+                          {row.hours}h
+                        </span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="px-3 py-2 bg-amber-100 border-t border-amber-200 flex items-center justify-between text-xs font-bold text-amber-900">
+                  <span>Gjithsej</span>
+                  <span className="tabular-nums">
+                    {pendingSelected
+                      .reduce((sum, r) => sum + (Number(r.hours) || 0), 0)
+                      .toFixed(2)
+                      .replace(/\.?0+$/, "")}
+                    h
+                  </span>
+                </div>
+              </div>
 
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                 {t.dashboard.reportTitle} <span className="text-red-500">*</span>
