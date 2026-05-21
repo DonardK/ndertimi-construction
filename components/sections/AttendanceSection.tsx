@@ -58,9 +58,13 @@ export default function AttendanceSection() {
   const [bulkSaving, setBulkSaving] = useState(false);
   const [sameHours, setSameHours] = useState("");
   const [sameLocation, setSameLocation] = useState<WorkLocation>("Pr");
+
+  // Report dialog (opens after Ruaj)
+  const [showReportModal, setShowReportModal] = useState(false);
   const [reportTitle, setReportTitle] = useState("");
   const [reportContent, setReportContent] = useState("");
   const [reportError, setReportError] = useState<string | null>(null);
+  const [pendingSelected, setPendingSelected] = useState<BulkRow[]>([]);
 
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [filterDate, setFilterDate] = useState(today);
@@ -85,11 +89,13 @@ export default function AttendanceSection() {
   }, []);
 
   // ── Bulk modal ──
-  const openBulk = async () => {
+  const openBulk = () => {
     setBulkDate(filterDate);
     setSameHours("");
     setSameLocation("Pr");
     setReportError(null);
+    setReportTitle("");
+    setReportContent("");
     setBulkRows(
       employees.map((e) => ({
         employeeId: e.id!,
@@ -101,26 +107,11 @@ export default function AttendanceSection() {
         checked: false,
       }))
     );
-    try {
-      const existing = await db.dailyReports.getByDate(filterDate);
-      setReportTitle(existing?.title ?? "");
-      setReportContent(existing?.content ?? "");
-    } catch {
-      setReportTitle("");
-      setReportContent("");
-    }
     setShowBulk(true);
   };
 
-  const handleBulkDateChange = async (newDate: string) => {
+  const handleBulkDateChange = (newDate: string) => {
     setBulkDate(newDate);
-    try {
-      const existing = await db.dailyReports.getByDate(newDate);
-      setReportTitle(existing?.title ?? "");
-      setReportContent(existing?.content ?? "");
-    } catch {
-      // ignore
-    }
   };
 
   const toggleAll = (checked: boolean) => {
@@ -164,19 +155,13 @@ export default function AttendanceSection() {
     );
   };
 
+  // Step 1: validate hours, then open report dialog
   const handleBulkSave = async () => {
     const selected = bulkRows.filter((r) => r.checked);
     if (selected.length === 0) {
       toast.error(t.dashboard.bulkNoEmployees);
       return;
     }
-
-    if (!reportTitle.trim() || !reportContent.trim()) {
-      setReportError(t.dashboard.reportRequired);
-      toast.error(t.dashboard.reportRequired);
-      return;
-    }
-    setReportError(null);
 
     let hasErrors = false;
     setBulkRows((rows) =>
@@ -192,10 +177,31 @@ export default function AttendanceSection() {
     );
     if (hasErrors) return;
 
+    setPendingSelected(selected);
+    setReportError(null);
+    try {
+      const existing = await db.dailyReports.getByDate(bulkDate);
+      setReportTitle(existing?.title ?? "");
+      setReportContent(existing?.content ?? "");
+    } catch {
+      setReportTitle("");
+      setReportContent("");
+    }
+    setShowReportModal(true);
+  };
+
+  // Step 2: save attendance + report together
+  const handleReportSave = async () => {
+    if (!reportTitle.trim() || !reportContent.trim()) {
+      setReportError(t.dashboard.reportRequired);
+      return;
+    }
+    setReportError(null);
+
     setBulkSaving(true);
     try {
       await Promise.all(
-        selected.map((r) =>
+        pendingSelected.map((r) =>
           db.attendance.add({
             employeeId: r.employeeId,
             emri: r.name.split(" ")[0],
@@ -212,8 +218,10 @@ export default function AttendanceSection() {
         title: reportTitle.trim(),
         content: reportContent.trim(),
       });
-      toast.success(`${selected.length} regjistrime u ruajtën!`);
+      toast.success(`${pendingSelected.length} regjistrime u ruajtën!`);
+      setShowReportModal(false);
       setShowBulk(false);
+      setPendingSelected([]);
       setFilterDate(bulkDate);
       await loadData();
     } catch {
@@ -590,53 +598,6 @@ export default function AttendanceSection() {
               ))}
             </div>
 
-            {/* Daily report (mandatory) */}
-            <div className="px-6 py-4 border-t border-gray-100 shrink-0 bg-amber-50/50">
-              <div className="flex items-center gap-2 mb-2">
-                <FileText className="w-4 h-4 text-amber-700" />
-                <h3 className="text-sm font-extrabold text-amber-900 uppercase tracking-wide">
-                  Raporti i ditës
-                </h3>
-                <span className="text-[10px] font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">
-                  {t.common.required}
-                </span>
-              </div>
-              <input
-                type="text"
-                value={reportTitle}
-                onChange={(e) => {
-                  setReportTitle(e.target.value);
-                  if (reportError) setReportError(null);
-                }}
-                placeholder={t.dashboard.reportTitlePlaceholder}
-                className={`w-full h-11 px-3 rounded-xl border-2 text-base font-bold text-gray-900 focus:outline-none bg-white mb-2 ${
-                  reportError && !reportTitle.trim()
-                    ? "border-red-400"
-                    : "border-amber-300 focus:border-amber-600"
-                }`}
-              />
-              <textarea
-                value={reportContent}
-                onChange={(e) => {
-                  setReportContent(e.target.value);
-                  if (reportError) setReportError(null);
-                }}
-                placeholder={t.dashboard.reportContentPlaceholder}
-                rows={3}
-                className={`w-full px-3 py-2 rounded-xl border-2 text-sm font-medium text-gray-900 focus:outline-none bg-white resize-y ${
-                  reportError && !reportContent.trim()
-                    ? "border-red-400"
-                    : "border-amber-300 focus:border-amber-600"
-                }`}
-              />
-              {reportError && (
-                <p className="text-xs font-semibold text-red-600 mt-1.5 flex items-center gap-1">
-                  <AlertCircle className="w-3.5 h-3.5" />
-                  {reportError}
-                </p>
-              )}
-            </div>
-
             {/* Footer */}
             <div className="px-6 py-4 border-t border-gray-100 shrink-0 flex gap-3">
               <button
@@ -655,6 +616,98 @@ export default function AttendanceSection() {
                 {bulkSaving
                   ? "Duke ruajtur..."
                   : `Ruaj${checkedCount > 0 ? ` (${checkedCount})` : ""}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── REPORT MODAL (opens after Ruaj) ── */}
+      {showReportModal && (
+        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => !bulkSaving && setShowReportModal(false)}
+          />
+          <div className="relative bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 shrink-0">
+              <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-amber-600" />
+                Raporti i ditës
+              </h2>
+              <button
+                onClick={() => !bulkSaving && setShowReportModal(false)}
+                disabled={bulkSaving}
+                className="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center disabled:opacity-50"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+
+            <div className="px-6 py-4 flex-1 overflow-y-auto">
+              <p className="text-sm text-gray-600 mb-4">
+                {pendingSelected.length} punonjës · {bulkDate}
+              </p>
+
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                {t.dashboard.reportTitle} <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={reportTitle}
+                onChange={(e) => {
+                  setReportTitle(e.target.value);
+                  if (reportError) setReportError(null);
+                }}
+                placeholder={t.dashboard.reportTitlePlaceholder}
+                autoFocus
+                className={`w-full h-12 px-4 rounded-xl border-2 text-base font-bold text-gray-900 focus:outline-none bg-white mb-4 ${
+                  reportError && !reportTitle.trim()
+                    ? "border-red-400"
+                    : "border-amber-300 focus:border-amber-600"
+                }`}
+              />
+
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                {t.dashboard.reportContent} <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={reportContent}
+                onChange={(e) => {
+                  setReportContent(e.target.value);
+                  if (reportError) setReportError(null);
+                }}
+                placeholder={t.dashboard.reportContentPlaceholder}
+                rows={6}
+                className={`w-full px-4 py-3 rounded-xl border-2 text-base font-medium text-gray-900 focus:outline-none bg-white resize-y ${
+                  reportError && !reportContent.trim()
+                    ? "border-red-400"
+                    : "border-amber-300 focus:border-amber-600"
+                }`}
+              />
+              {reportError && (
+                <p className="text-sm font-semibold text-red-600 mt-2 flex items-center gap-1">
+                  <AlertCircle className="w-4 h-4" />
+                  {reportError}
+                </p>
+              )}
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-100 shrink-0 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowReportModal(false)}
+                disabled={bulkSaving}
+                className="flex-1 h-14 rounded-xl border-2 border-gray-300 text-gray-700 font-bold text-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                {t.common.back}
+              </button>
+              <button
+                onClick={handleReportSave}
+                disabled={bulkSaving}
+                className="flex-1 h-14 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-lg transition-colors shadow-md disabled:opacity-50"
+              >
+                {bulkSaving ? "Duke ruajtur..." : t.common.save}
               </button>
             </div>
           </div>
