@@ -14,6 +14,7 @@ import { t } from "@/lib/translations";
 
 const PULL_THRESHOLD = 64;
 const MAX_PULL = 96;
+const MIN_VISIBLE_PULL = 12;
 
 type AppRefreshContextValue = {
   version: number;
@@ -40,6 +41,7 @@ function PullToRefresh({
   const pullRef = useRef(0);
   const refreshingRef = useRef(false);
   const isDraggingRef = useRef(false);
+  const touchActiveRef = useRef(false);
 
   useEffect(() => {
     refreshingRef.current = refreshing;
@@ -49,6 +51,7 @@ function PullToRefresh({
     const isAtTop = () => window.scrollY <= 1;
 
     const resetPull = () => {
+      touchActiveRef.current = false;
       isDraggingRef.current = false;
       setIsDragging(false);
       pullRef.current = 0;
@@ -59,18 +62,21 @@ function PullToRefresh({
       if (refreshingRef.current || !isAtTop()) return;
       const target = e.target as Element | null;
       if (target?.closest("[data-no-pull-refresh]")) return;
-      isDraggingRef.current = true;
-      setIsDragging(true);
+      touchActiveRef.current = true;
       startY.current = e.touches[0].clientY;
     };
 
     const onMove = (e: TouchEvent) => {
-      if (!isDraggingRef.current || refreshingRef.current) return;
+      if (!touchActiveRef.current || refreshingRef.current) return;
       const dy = e.touches[0].clientY - startY.current;
       if (dy > 0 && isAtTop()) {
         const next = Math.min(dy * 0.45, MAX_PULL);
         pullRef.current = next;
         setPull(next);
+        if (next >= MIN_VISIBLE_PULL) {
+          isDraggingRef.current = true;
+          setIsDragging(true);
+        }
         if (next > 10) e.preventDefault();
       } else {
         resetPull();
@@ -78,7 +84,8 @@ function PullToRefresh({
     };
 
     const onEnd = () => {
-      if (!isDraggingRef.current || refreshingRef.current) return;
+      touchActiveRef.current = false;
+      if (refreshingRef.current) return;
       isDraggingRef.current = false;
       setIsDragging(false);
       const shouldRefresh = pullRef.current >= PULL_THRESHOLD;
@@ -109,36 +116,38 @@ function PullToRefresh({
   }, [onRefresh]);
 
   const progress = Math.min(pull / PULL_THRESHOLD, 1);
-  const showIndicator = pull > 0 || refreshing;
+  const showIndicator = pull >= MIN_VISIBLE_PULL || refreshing;
 
   return (
     <>
-      <div
-        className="fixed left-0 right-0 z-[60] mx-auto max-w-lg flex justify-center pointer-events-none"
-        style={{
-          top: 0,
-          height: showIndicator ? (refreshing ? 52 : Math.max(pull, 0)) : 0,
-          transition: isDragging ? "none" : "height 0.2s ease-out",
-        }}
-        aria-live="polite"
-        aria-busy={refreshing}
-      >
-        <div className="flex h-12 items-center justify-center gap-2 text-blue-600">
-          <Loader2
-            className={`h-6 w-6 ${refreshing || progress >= 1 ? "animate-spin" : ""}`}
-            style={
-              refreshing
-                ? undefined
-                : { transform: `rotate(${progress * 360}deg)` }
-            }
-          />
-          {refreshing && (
-            <span className="text-sm font-semibold text-gray-600">
-              {t.common.refreshing}
-            </span>
-          )}
+      {showIndicator && (
+        <div
+          className="fixed left-0 right-0 z-[60] mx-auto max-w-lg flex justify-center overflow-hidden pointer-events-none"
+          style={{
+            top: 0,
+            height: refreshing ? 52 : Math.max(pull, 0),
+            transition: isDragging ? "none" : "height 0.2s ease-out",
+          }}
+          aria-live="polite"
+          aria-busy={refreshing}
+        >
+          <div className="flex h-12 items-center justify-center gap-2 text-blue-600">
+            <Loader2
+              className={`h-6 w-6 ${refreshing || progress >= 1 ? "animate-spin" : ""}`}
+              style={
+                refreshing
+                  ? undefined
+                  : { transform: `rotate(${progress * 360}deg)` }
+              }
+            />
+            {refreshing && (
+              <span className="text-sm font-semibold text-gray-600">
+                {t.common.refreshing}
+              </span>
+            )}
+          </div>
         </div>
-      </div>
+      )}
       <div
         style={{
           transform: showIndicator
