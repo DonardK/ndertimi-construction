@@ -35,10 +35,11 @@ function PullToRefresh({
 }) {
   const [pull, setPull] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
-  const pulling = useRef(false);
+  const [isDragging, setIsDragging] = useState(false);
   const startY = useRef(0);
   const pullRef = useRef(0);
   const refreshingRef = useRef(false);
+  const isDraggingRef = useRef(false);
 
   useEffect(() => {
     refreshingRef.current = refreshing;
@@ -48,7 +49,8 @@ function PullToRefresh({
     const isAtTop = () => window.scrollY <= 1;
 
     const resetPull = () => {
-      pulling.current = false;
+      isDraggingRef.current = false;
+      setIsDragging(false);
       pullRef.current = 0;
       setPull(0);
     };
@@ -57,12 +59,13 @@ function PullToRefresh({
       if (refreshingRef.current || !isAtTop()) return;
       const target = e.target as Element | null;
       if (target?.closest("[data-no-pull-refresh]")) return;
-      pulling.current = true;
+      isDraggingRef.current = true;
+      setIsDragging(true);
       startY.current = e.touches[0].clientY;
     };
 
     const onMove = (e: TouchEvent) => {
-      if (!pulling.current || refreshingRef.current) return;
+      if (!isDraggingRef.current || refreshingRef.current) return;
       const dy = e.touches[0].clientY - startY.current;
       if (dy > 0 && isAtTop()) {
         const next = Math.min(dy * 0.45, MAX_PULL);
@@ -75,8 +78,9 @@ function PullToRefresh({
     };
 
     const onEnd = () => {
-      if (!pulling.current || refreshingRef.current) return;
-      pulling.current = false;
+      if (!isDraggingRef.current || refreshingRef.current) return;
+      isDraggingRef.current = false;
+      setIsDragging(false);
       const shouldRefresh = pullRef.current >= PULL_THRESHOLD;
       if (shouldRefresh) {
         setRefreshing(true);
@@ -114,7 +118,7 @@ function PullToRefresh({
         style={{
           top: 0,
           height: showIndicator ? (refreshing ? 52 : Math.max(pull, 0)) : 0,
-          transition: pulling.current ? "none" : "height 0.2s ease-out",
+          transition: isDragging ? "none" : "height 0.2s ease-out",
         }}
         aria-live="polite"
         aria-busy={refreshing}
@@ -140,7 +144,7 @@ function PullToRefresh({
           transform: showIndicator
             ? `translateY(${refreshing ? 48 : pull}px)`
             : undefined,
-          transition: pulling.current ? "none" : "transform 0.2s ease-out",
+          transition: isDragging ? "none" : "transform 0.2s ease-out",
         }}
       >
         {children}
