@@ -194,8 +194,15 @@ export const t = {
     emriMjetitPlaceholder: "p.sh. Kamion i Madh",
     targaPlaceholder: "p.sh. AA 123 BB",
     noVehicles: "Nuk ka mjete. Shtoni mjetin e parë!",
-    deleteConfirm: "A doni ta fshini këtë mjet?",
-    totalVehicles: "Mjete gjithsej",
+    deleteConfirm:
+      "A doni ta hiqni këtë mjet nga lista? Nafta dhe serviset e mëparshme mbeten të ruajtura.",
+    archivedSection: "Mjete të hequra",
+    archivedBadge: "I hequr",
+    restore: "Kthe",
+    restored: "Mjeti u kthye në listë.",
+    removed: "Mjeti u hoq nga lista.",
+    totalVehicles: "mjete aktiv",
+    totalArchived: "të hequr",
   },
 
   diesel: {

@@ -9,7 +9,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
 import toast from "react-hot-toast";
-import { Plus, Pencil, Trash2, Truck, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Truck, X, RotateCcw } from "lucide-react";
 
 interface FormData {
   emriMjetit: string;
@@ -91,15 +91,25 @@ export default function VehiclesSection() {
     setShowForm(true);
   };
 
-  const handleDelete = async () => {
+  const handleArchive = async () => {
     if (deleteId === null) return;
     try {
-      await db.vehicles.delete(deleteId);
-      toast.success(t.success.deleted);
+      await db.vehicles.archive(deleteId);
+      toast.success(t.vehicles.removed);
       setDeleteId(null);
       await loadVehicles();
     } catch {
       toast.error(t.errors.deleteError);
+    }
+  };
+
+  const handleRestore = async (id: number) => {
+    try {
+      await db.vehicles.restore(id);
+      toast.success(t.vehicles.restored);
+      await loadVehicles();
+    } catch {
+      toast.error(t.errors.saveError);
     }
   };
 
@@ -117,11 +127,84 @@ export default function VehiclesSection() {
       if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
     };
 
+  const activeVehicles = vehicles.filter((v) => !v.archivedAt);
+  const archivedVehicles = vehicles.filter((v) => v.archivedAt);
+
+  const renderVehicleCard = (v: Vehicle, archived: boolean) => (
+    <li
+      key={v.id}
+      className={`rounded-2xl shadow-sm border p-4 flex items-center gap-4 ${
+        archived
+          ? "bg-gray-50 border-gray-200 opacity-80"
+          : "bg-white border-gray-100"
+      }`}
+    >
+      <div
+        className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${
+          archived ? "bg-gray-200" : "bg-indigo-100"
+        }`}
+      >
+        <Truck className={`w-7 h-7 ${archived ? "text-gray-500" : "text-indigo-600"}`} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p
+          className={`text-lg font-bold truncate ${
+            archived ? "text-gray-600" : "text-gray-900"
+          }`}
+        >
+          {v.emriMjetit}
+        </p>
+        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+          {archived && (
+            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-gray-200 text-gray-600">
+              {t.vehicles.archivedBadge}
+            </span>
+          )}
+          <span className="inline-block bg-gray-100 text-gray-700 text-sm font-bold px-3 py-0.5 rounded-lg">
+            {v.targa}
+          </span>
+        </div>
+      </div>
+      <div className="flex gap-2 shrink-0">
+        {archived ? (
+          <button
+            onClick={() => handleRestore(v.id!)}
+            className="flex items-center gap-1.5 h-11 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 active:bg-blue-200 text-blue-700 font-bold text-sm transition-colors"
+          >
+            <RotateCcw className="w-4 h-4" />
+            {t.vehicles.restore}
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={() => handleEdit(v)}
+              className="w-11 h-11 rounded-xl bg-amber-50 hover:bg-amber-100 active:bg-amber-200 text-amber-600 flex items-center justify-center transition-colors"
+              aria-label={t.common.edit}
+            >
+              <Pencil className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => setDeleteId(v.id!)}
+              className="w-11 h-11 rounded-xl bg-red-50 hover:bg-red-100 active:bg-red-200 text-red-600 flex items-center justify-center transition-colors"
+              aria-label={t.common.delete}
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
+          </>
+        )}
+      </div>
+    </li>
+  );
+
   return (
     <div className="px-4 pt-6">
       <PageHeader
         title={t.vehicles.title}
-        subtitle={`${vehicles.length} ${t.vehicles.totalVehicles}`}
+        subtitle={
+          archivedVehicles.length > 0
+            ? `${activeVehicles.length} ${t.vehicles.totalVehicles} · ${archivedVehicles.length} ${t.vehicles.totalArchived}`
+            : `${activeVehicles.length} ${t.vehicles.totalVehicles}`
+        }
         action={
           <button
             onClick={handleOpenAdd}
@@ -140,7 +223,7 @@ export default function VehiclesSection() {
             <span className="text-gray-500 font-medium">{t.common.loading}</span>
           </div>
         </div>
-      ) : vehicles.length === 0 ? (
+      ) : activeVehicles.length === 0 && archivedVehicles.length === 0 ? (
         <EmptyState
           message={t.vehicles.noVehicles}
           icon={<Truck className="w-10 h-10" />}
@@ -155,46 +238,32 @@ export default function VehiclesSection() {
           }
         />
       ) : (
-        <ul className="flex flex-col gap-3">
-          {vehicles.map((v) => (
-            <li
-              key={v.id}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-4"
-            >
-              <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
-                <Truck className="w-7 h-7 text-indigo-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-lg font-bold text-gray-900 truncate">
-                  {v.emriMjetit}
+        <div className="flex flex-col gap-3">
+          <ul className="flex flex-col gap-3">
+            {activeVehicles.map((v) => renderVehicleCard(v, false))}
+          </ul>
+          {archivedVehicles.length > 0 && (
+            <>
+              <div className="flex items-center gap-3 pt-4 pb-1">
+                <div className="flex-1 h-px bg-gray-200" />
+                <p className="text-sm font-bold text-gray-500 shrink-0">
+                  {t.vehicles.archivedSection}
                 </p>
-                <span className="inline-block bg-gray-100 text-gray-700 text-sm font-bold px-3 py-0.5 rounded-lg mt-0.5">
-                  {v.targa}
-                </span>
+                <div className="flex-1 h-px bg-gray-200" />
               </div>
-              <div className="flex gap-2 shrink-0">
-                <button
-                  onClick={() => handleEdit(v)}
-                  className="w-11 h-11 rounded-xl bg-amber-50 hover:bg-amber-100 active:bg-amber-200 text-amber-600 flex items-center justify-center transition-colors"
-                  aria-label={t.common.edit}
-                >
-                  <Pencil className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => setDeleteId(v.id!)}
-                  className="w-11 h-11 rounded-xl bg-red-50 hover:bg-red-100 active:bg-red-200 text-red-600 flex items-center justify-center transition-colors"
-                  aria-label={t.common.delete}
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+              <ul className="flex flex-col gap-3">
+                {archivedVehicles.map((v) => renderVehicleCard(v, true))}
+              </ul>
+            </>
+          )}
+        </div>
       )}
 
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+          data-no-pull-refresh
+        >
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowForm(false)}
@@ -260,7 +329,7 @@ export default function VehiclesSection() {
       <ConfirmDialog
         open={deleteId !== null}
         message={t.vehicles.deleteConfirm}
-        onConfirm={handleDelete}
+        onConfirm={handleArchive}
         onCancel={() => setDeleteId(null)}
       />
     </div>

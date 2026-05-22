@@ -47,6 +47,8 @@ export interface Vehicle {
   id?: number;
   emriMjetit: string;
   targa: string;
+  /** Set when vehicle is removed from active lists (soft delete). */
+  archivedAt?: string | null;
   createdAt?: string;
 }
 
@@ -160,6 +162,7 @@ function mapVehicle(row: any): Vehicle {
     id: row.id,
     emriMjetit: row.emri_mjetit,
     targa: row.targa,
+    archivedAt: row.archived_at ?? null,
     createdAt: row.created_at,
   };
 }
@@ -393,6 +396,17 @@ export const db = {
       const { data, error } = await getClient()
         .from("vehicles")
         .select("*")
+        .order("archived_at", { nullsFirst: true })
+        .order("emri_mjetit");
+      if (error) throw error;
+      return (data ?? []).map(mapVehicle);
+    },
+
+    async getActive(): Promise<Vehicle[]> {
+      const { data, error } = await getClient()
+        .from("vehicles")
+        .select("*")
+        .is("archived_at", null)
         .order("emri_mjetit");
       if (error) throw error;
       return (data ?? []).map(mapVehicle);
@@ -414,8 +428,19 @@ export const db = {
       if (error) throw error;
     },
 
-    async delete(id: number): Promise<void> {
-      const { error } = await getClient().from("vehicles").delete().eq("id", id);
+    async archive(id: number): Promise<void> {
+      const { error } = await getClient()
+        .from("vehicles")
+        .update({ archived_at: new Date().toISOString() })
+        .eq("id", id);
+      if (error) throw error;
+    },
+
+    async restore(id: number): Promise<void> {
+      const { error } = await getClient()
+        .from("vehicles")
+        .update({ archived_at: null })
+        .eq("id", id);
       if (error) throw error;
     },
   },

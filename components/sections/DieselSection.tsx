@@ -68,6 +68,7 @@ export default function DieselSection() {
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const parseNum = (val: string) => parseFloat(val.replace(",", "."));
+  const activeVehicles = vehicles.filter((v) => !v.archivedAt);
 
   // Calculated total shown as preview
   const calculatedTotal =
@@ -258,7 +259,7 @@ export default function DieselSection() {
       <PageHeader
         title={t.diesel.title}
         action={
-          vehicles.length > 0 ? (
+          activeVehicles.length > 0 ? (
             <button
               onClick={() => {
                 setForm(emptyForm);
@@ -283,7 +284,7 @@ export default function DieselSection() {
             <span className="text-gray-500 font-medium">{t.common.loading}</span>
           </div>
         </div>
-      ) : vehicles.length === 0 ? (
+      ) : activeVehicles.length === 0 ? (
         <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-5 flex flex-col items-center gap-3">
           <AlertCircle className="w-10 h-10 text-amber-600" />
           <p className="text-amber-800 font-semibold text-center text-base">
@@ -523,7 +524,7 @@ export default function DieselSection() {
                     disabled={ocrLoading}
                   >
                     <option value="">{t.diesel.selectVehiclePlaceholder}</option>
-                    {vehicles.map((v) => (
+                    {activeVehicles.map((v) => (
                       <option key={v.id} value={v.id}>
                         {v.emriMjetit} — {v.targa}
                       </option>

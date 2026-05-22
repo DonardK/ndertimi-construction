@@ -14,7 +14,7 @@ import { t } from "@/lib/translations";
 
 const PULL_THRESHOLD = 64;
 const MAX_PULL = 96;
-const MIN_VISIBLE_PULL = 12;
+const MIN_VISIBLE_PULL = 20;
 
 type AppRefreshContextValue = {
   version: number;
@@ -64,6 +64,8 @@ function PullToRefresh({
       if (target?.closest("[data-no-pull-refresh]")) return;
       touchActiveRef.current = true;
       startY.current = e.touches[0].clientY;
+      pullRef.current = 0;
+      setPull(0);
     };
 
     const onMove = (e: TouchEvent) => {
@@ -91,12 +93,11 @@ function PullToRefresh({
       const shouldRefresh = pullRef.current >= PULL_THRESHOLD;
       if (shouldRefresh) {
         setRefreshing(true);
-        setPull(PULL_THRESHOLD);
+        setPull(0);
+        pullRef.current = 0;
         onRefresh();
         window.setTimeout(() => {
           setRefreshing(false);
-          pullRef.current = 0;
-          setPull(0);
         }, 700);
       } else {
         resetPull();
@@ -116,43 +117,42 @@ function PullToRefresh({
   }, [onRefresh]);
 
   const progress = Math.min(pull / PULL_THRESHOLD, 1);
-  const showIndicator = pull >= MIN_VISIBLE_PULL || refreshing;
+  const showPullBar = isDragging && pull >= MIN_VISIBLE_PULL && !refreshing;
+  const showSpinner = refreshing;
 
   return (
     <>
-      {showIndicator && (
+      {showPullBar && (
         <div
-          className="fixed left-0 right-0 z-[60] mx-auto max-w-lg flex justify-center overflow-hidden pointer-events-none"
-          style={{
-            top: 0,
-            height: refreshing ? 52 : Math.max(pull, 0),
-            transition: isDragging ? "none" : "height 0.2s ease-out",
-          }}
-          aria-live="polite"
-          aria-busy={refreshing}
+          className="fixed left-0 right-0 z-[60] mx-auto max-w-lg px-4 pointer-events-none"
+          style={{ top: "env(safe-area-inset-top, 0px)" }}
         >
-          <div className="flex h-12 items-center justify-center gap-2 text-blue-600">
-            <Loader2
-              className={`h-6 w-6 ${refreshing || progress >= 1 ? "animate-spin" : ""}`}
-              style={
-                refreshing
-                  ? undefined
-                  : { transform: `rotate(${progress * 360}deg)` }
-              }
+          <div className="h-1 rounded-full bg-blue-100 overflow-hidden">
+            <div
+              className="h-full bg-blue-600"
+              style={{ width: `${progress * 100}%` }}
             />
-            {refreshing && (
-              <span className="text-sm font-semibold text-gray-600">
-                {t.common.refreshing}
-              </span>
-            )}
           </div>
+        </div>
+      )}
+      {showSpinner && (
+        <div
+          className="fixed left-0 right-0 z-[60] mx-auto max-w-lg flex h-12 items-center justify-center pointer-events-none"
+          style={{ top: "env(safe-area-inset-top, 0px)" }}
+          aria-live="polite"
+          aria-busy
+        >
+          <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+          <span className="sr-only">{t.common.refreshing}</span>
         </div>
       )}
       <div
         style={{
-          transform: showIndicator
-            ? `translateY(${refreshing ? 48 : pull}px)`
-            : undefined,
+          transform: showSpinner
+            ? "translateY(48px)"
+            : showPullBar
+              ? `translateY(${Math.min(pull * 0.25, 24)}px)`
+              : undefined,
           transition: isDragging ? "none" : "transform 0.2s ease-out",
         }}
       >

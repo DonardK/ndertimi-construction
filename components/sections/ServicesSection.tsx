@@ -63,6 +63,7 @@ export default function ServicesSection() {
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const parseNum = (val: string) => parseFloat(val.replace(",", "."));
+  const activeVehicles = vehicles.filter((v) => !v.archivedAt);
 
   const lineTotal = items.reduce((s, it) => s + (Number(it.amount) || 0), 0);
 
@@ -246,7 +247,7 @@ export default function ServicesSection() {
       <PageHeader
         title={t.services.title}
         action={
-          vehicles.length > 0 ? (
+          activeVehicles.length > 0 ? (
             <button
               onClick={() => {
                 resetForm();
@@ -265,7 +266,7 @@ export default function ServicesSection() {
         <div className="flex justify-center py-20">
           <div className="w-10 h-10 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" />
         </div>
-      ) : vehicles.length === 0 ? (
+      ) : activeVehicles.length === 0 ? (
         <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-5 flex flex-col items-center gap-3">
           <AlertCircle className="w-10 h-10 text-amber-600" />
           <p className="text-amber-800 font-semibold text-center text-base">
@@ -494,7 +495,7 @@ export default function ServicesSection() {
                     disabled={ocrLoading}
                   >
                     <option value="">{t.diesel.selectVehiclePlaceholder}</option>
-                    {vehicles.map((v) => (
+                    {activeVehicles.map((v) => (
                       <option key={v.id} value={v.id}>
                         {v.emriMjetit} — {v.targa}
                       </option>
