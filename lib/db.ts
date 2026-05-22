@@ -10,6 +10,8 @@ export interface Employee {
   emriBankes: string;
   /** Bank account (IBAN / account no.) — used when paymentMethod is Bankë */
   llogariaBankes: string;
+  /** Set when worker is removed from active lists (soft delete). */
+  archivedAt?: string | null;
   createdAt?: string;
 }
 
@@ -121,6 +123,7 @@ function mapEmployee(row: any): Employee {
     cmimiOre: Number(row.cmimi_ore),
     emriBankes: row.emri_bankes ?? "",
     llogariaBankes: row.llogaria_bankes ?? "",
+    archivedAt: row.archived_at ?? null,
     createdAt: row.created_at,
   };
 }
@@ -248,6 +251,17 @@ export const db = {
       const { data, error } = await getClient()
         .from("employees")
         .select("*")
+        .order("archived_at", { nullsFirst: true })
+        .order("emri");
+      if (error) throw error;
+      return (data ?? []).map(mapEmployee);
+    },
+
+    async getActive(): Promise<Employee[]> {
+      const { data, error } = await getClient()
+        .from("employees")
+        .select("*")
+        .is("archived_at", null)
         .order("emri");
       if (error) throw error;
       return (data ?? []).map(mapEmployee);
@@ -277,8 +291,19 @@ export const db = {
       if (error) throw error;
     },
 
-    async delete(id: number): Promise<void> {
-      const { error } = await getClient().from("employees").delete().eq("id", id);
+    async archive(id: number): Promise<void> {
+      const { error } = await getClient()
+        .from("employees")
+        .update({ archived_at: new Date().toISOString() })
+        .eq("id", id);
+      if (error) throw error;
+    },
+
+    async restore(id: number): Promise<void> {
+      const { error } = await getClient()
+        .from("employees")
+        .update({ archived_at: null })
+        .eq("id", id);
       if (error) throw error;
     },
   },

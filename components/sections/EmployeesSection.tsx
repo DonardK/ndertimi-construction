@@ -22,6 +22,7 @@ import {
   Calendar,
   FileText,
   ChevronRight,
+  RotateCcw,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -179,15 +180,25 @@ export default function EmployeesSection() {
     setShowForm(true);
   };
 
-  const handleDelete = async () => {
+  const handleArchive = async () => {
     if (deleteId === null) return;
     try {
-      await db.employees.delete(deleteId);
-      toast.success(t.success.deleted);
+      await db.employees.archive(deleteId);
+      toast.success(t.employees.removed);
       setDeleteId(null);
       await loadEmployees();
     } catch {
       toast.error(t.errors.deleteError);
+    }
+  };
+
+  const handleRestore = async (id: number) => {
+    try {
+      await db.employees.restore(id);
+      toast.success(t.employees.restored);
+      await loadEmployees();
+    } catch {
+      toast.error(t.errors.saveError);
     }
   };
 
@@ -305,11 +316,118 @@ export default function EmployeesSection() {
 
   const totalPaid = payments.reduce((s, p) => s + p.amount, 0);
 
+  const activeEmployees = employees.filter((e) => !e.archivedAt);
+  const archivedEmployees = employees.filter((e) => e.archivedAt);
+
+  const renderEmployeeCard = (emp: Employee, archived: boolean) => (
+    <li
+      key={emp.id}
+      className={`rounded-2xl shadow-sm border p-4 ${
+        archived
+          ? "bg-gray-50 border-gray-200 opacity-80"
+          : "bg-white border-gray-100"
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        <div
+          className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${
+            archived ? "bg-gray-200" : "bg-blue-100"
+          }`}
+        >
+          <UserCircle
+            className={`w-7 h-7 ${archived ? "text-gray-500" : "text-blue-600"}`}
+          />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p
+            className={`text-lg font-bold truncate ${
+              archived ? "text-gray-600" : "text-gray-900"
+            }`}
+          >
+            {emp.emri} {emp.mbiemri}
+          </p>
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+            {archived && (
+              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-gray-200 text-gray-600">
+                {t.employees.archivedBadge}
+              </span>
+            )}
+            <span
+              className={`flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full ${
+                emp.paymentMethod === "Bankë"
+                  ? "bg-blue-100 text-blue-700"
+                  : "bg-green-100 text-green-700"
+              }`}
+            >
+              {emp.paymentMethod === "Bankë" ? (
+                <CreditCard className="w-3 h-3" />
+              ) : (
+                <Banknote className="w-3 h-3" />
+              )}
+              {emp.paymentMethod}
+            </span>
+            <span className="flex items-center gap-1 text-xs font-semibold text-gray-600 bg-gray-100 px-2.5 py-0.5 rounded-full">
+              <Euro className="w-3 h-3" />
+              {emp.cmimiOre.toFixed(2)}/orë
+            </span>
+            {emp.paymentMethod === "Bankë" &&
+              (emp.emriBankes || emp.llogariaBankes) && (
+                <span className="block w-full text-xs text-gray-500 mt-1 truncate">
+                  {emp.emriBankes}
+                  {emp.emriBankes && emp.llogariaBankes ? " · " : ""}
+                  {emp.llogariaBankes}
+                </span>
+              )}
+          </div>
+        </div>
+        <div className="flex gap-2 shrink-0">
+          {archived ? (
+            <button
+              onClick={() => handleRestore(emp.id!)}
+              className="flex items-center gap-1.5 h-11 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 active:bg-blue-200 text-blue-700 font-bold text-sm transition-colors"
+            >
+              <RotateCcw className="w-4 h-4" />
+              {t.employees.restore}
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={() => openPayments(emp)}
+                className="w-11 h-11 rounded-xl bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 text-emerald-600 flex items-center justify-center transition-colors"
+                aria-label={t.employees.payments}
+              >
+                <Wallet className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => handleEdit(emp)}
+                className="w-11 h-11 rounded-xl bg-amber-50 hover:bg-amber-100 active:bg-amber-200 text-amber-600 flex items-center justify-center transition-colors"
+                aria-label={t.common.edit}
+              >
+                <Pencil className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setDeleteId(emp.id!)}
+                className="w-11 h-11 rounded-xl bg-red-50 hover:bg-red-100 active:bg-red-200 text-red-600 flex items-center justify-center transition-colors"
+                aria-label={t.common.delete}
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </li>
+  );
+
   return (
     <div className="px-4 pt-6">
       <PageHeader
         title={t.employees.title}
-        subtitle={`${employees.length} ${t.employees.totalEmployees}`}
+        subtitle={
+          archivedEmployees.length > 0
+            ? `${activeEmployees.length} ${t.employees.totalEmployees} · ${archivedEmployees.length} ${t.employees.totalArchived}`
+            : `${activeEmployees.length} ${t.employees.totalEmployees}`
+        }
         action={
           <button
             onClick={handleOpenAdd}
@@ -328,7 +446,7 @@ export default function EmployeesSection() {
             <span className="text-gray-500 font-medium">{t.common.loading}</span>
           </div>
         </div>
-      ) : employees.length === 0 ? (
+      ) : activeEmployees.length === 0 && archivedEmployees.length === 0 ? (
         <EmptyState
           message={t.employees.noEmployees}
           icon={<Users className="w-10 h-10" />}
@@ -343,77 +461,25 @@ export default function EmployeesSection() {
           }
         />
       ) : (
-        <ul className="flex flex-col gap-3">
-          {employees.map((emp) => (
-            <li
-              key={emp.id}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                  <UserCircle className="w-7 h-7 text-blue-600" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-lg font-bold text-gray-900 truncate">
-                    {emp.emri} {emp.mbiemri}
-                  </p>
-                  <div className="flex items-center gap-2 mt-1 flex-wrap">
-                    <span
-                      className={`flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full ${
-                        emp.paymentMethod === "Bankë"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-green-100 text-green-700"
-                      }`}
-                    >
-                      {emp.paymentMethod === "Bankë" ? (
-                        <CreditCard className="w-3 h-3" />
-                      ) : (
-                        <Banknote className="w-3 h-3" />
-                      )}
-                      {emp.paymentMethod}
-                    </span>
-                    <span className="flex items-center gap-1 text-xs font-semibold text-gray-600 bg-gray-100 px-2.5 py-0.5 rounded-full">
-                      <Euro className="w-3 h-3" />
-                      {emp.cmimiOre.toFixed(2)}/orë
-                    </span>
-                    {emp.paymentMethod === "Bankë" &&
-                      (emp.emriBankes || emp.llogariaBankes) && (
-                        <span className="block w-full text-xs text-gray-500 mt-1 truncate">
-                          {emp.emriBankes}
-                          {emp.emriBankes && emp.llogariaBankes ? " · " : ""}
-                          {emp.llogariaBankes}
-                        </span>
-                      )}
-                  </div>
-                </div>
-                <div className="flex gap-2 shrink-0">
-                  {/* Payments button */}
-                  <button
-                    onClick={() => openPayments(emp)}
-                    className="w-11 h-11 rounded-xl bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 text-emerald-600 flex items-center justify-center transition-colors"
-                    aria-label={t.employees.payments}
-                  >
-                    <Wallet className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => handleEdit(emp)}
-                    className="w-11 h-11 rounded-xl bg-amber-50 hover:bg-amber-100 active:bg-amber-200 text-amber-600 flex items-center justify-center transition-colors"
-                    aria-label={t.common.edit}
-                  >
-                    <Pencil className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => setDeleteId(emp.id!)}
-                    className="w-11 h-11 rounded-xl bg-red-50 hover:bg-red-100 active:bg-red-200 text-red-600 flex items-center justify-center transition-colors"
-                    aria-label={t.common.delete}
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                </div>
+        <div className="flex flex-col gap-3">
+          <ul className="flex flex-col gap-3">
+            {activeEmployees.map((emp) => renderEmployeeCard(emp, false))}
+          </ul>
+          {archivedEmployees.length > 0 && (
+            <>
+              <div className="flex items-center gap-3 pt-4 pb-1">
+                <div className="flex-1 h-px bg-gray-200" />
+                <p className="text-sm font-bold text-gray-500 shrink-0">
+                  {t.employees.archivedSection}
+                </p>
+                <div className="flex-1 h-px bg-gray-200" />
               </div>
-            </li>
-          ))}
-        </ul>
+              <ul className="flex flex-col gap-3">
+                {archivedEmployees.map((emp) => renderEmployeeCard(emp, true))}
+              </ul>
+            </>
+          )}
+        </div>
       )}
 
       {/* ── ADD/EDIT EMPLOYEE MODAL ── */}
@@ -709,7 +775,7 @@ export default function EmployeesSection() {
       <ConfirmDialog
         open={deleteId !== null}
         message={t.employees.deleteConfirm}
-        onConfirm={handleDelete}
+        onConfirm={handleArchive}
         onCancel={() => setDeleteId(null)}
       />
 

@@ -97,7 +97,7 @@ export default function AttendanceSection() {
     setReportTitle("");
     setReportContent("");
     setBulkRows(
-      employees.map((e) => ({
+      activeEmployees.map((e) => ({
         employeeId: e.id!,
         name: `${e.emri} ${e.mbiemri}`,
         paymentMethod: e.paymentMethod,
@@ -245,6 +245,7 @@ export default function AttendanceSection() {
 
   const filteredRecords = records.filter((r) => r.date === filterDate);
   const totalHours = filteredRecords.reduce((sum, r) => sum + r.hoursWorked, 0);
+  const activeEmployees = employees.filter((e) => !e.archivedAt);
 
   const allChecked = bulkRows.length > 0 && bulkRows.every((r) => r.checked);
   const checkedCount = bulkRows.filter((r) => r.checked).length;
@@ -254,7 +255,7 @@ export default function AttendanceSection() {
       <PageHeader
         title={t.attendance.title}
         action={
-          employees.length > 0 ? (
+          activeEmployees.length > 0 ? (
             <button
               onClick={openBulk}
               className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold px-5 h-12 rounded-xl text-base transition-colors shadow-md"
@@ -297,7 +298,7 @@ export default function AttendanceSection() {
             <span className="text-gray-500 font-medium">{t.common.loading}</span>
           </div>
         </div>
-      ) : employees.length === 0 ? (
+      ) : activeEmployees.length === 0 ? (
         <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-5 flex flex-col items-center gap-3">
           <AlertCircle className="w-10 h-10 text-amber-600" />
           <p className="text-amber-800 font-semibold text-center text-base">
