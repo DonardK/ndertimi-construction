@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useAppRefreshVersion } from "@/components/AppRefreshProvider";
 import {
   db,
   type Vehicle,
@@ -39,6 +40,7 @@ function emptyLine(): ServiceLineItem {
 }
 
 export default function ServicesSection() {
+  const refreshVersion = useAppRefreshVersion();
   const [records, setRecords] = useState<VehicleServiceEntry[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,7 +83,7 @@ export default function ServicesSection() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [refreshVersion]);
 
   const resetForm = () => {
     setVehicleId("");

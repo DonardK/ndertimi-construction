@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useAppRefreshVersion } from "@/components/AppRefreshProvider";
 import { db, type Employee, type WorkerPayment } from "@/lib/db";
 import { t } from "@/lib/translations";
 import { FormField, Input } from "@/components/FormField";
@@ -73,6 +74,7 @@ const emptyPaymentForm: PaymentFormData = {
 };
 
 export default function EmployeesSection() {
+  const refreshVersion = useAppRefreshVersion();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -105,7 +107,7 @@ export default function EmployeesSection() {
 
   useEffect(() => {
     loadEmployees();
-  }, []);
+  }, [refreshVersion]);
 
   const parseNum = (val: string) => parseFloat(val.replace(",", "."));
 

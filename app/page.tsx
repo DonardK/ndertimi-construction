@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useAppRefreshVersion } from "@/components/AppRefreshProvider";
 import {
   db,
   type Employee,
@@ -151,6 +152,7 @@ function StatCard({
 }
 
 export default function DashboardPage() {
+  const refreshVersion = useAppRefreshVersion();
   const [preset, setPreset] = useState<DatePreset>("thisMonth");
   const [dateRange, setDateRange] = useState<DateRange>(getPresetRange("thisMonth"));
   const [showDateMenu, setShowDateMenu] = useState(false);
@@ -303,7 +305,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     loadStats();
-  }, [loadStats]);
+  }, [loadStats, refreshVersion]);
 
   const applyPreset = (p: DatePreset) => {
     setPreset(p);

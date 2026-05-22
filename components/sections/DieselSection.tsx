@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useAppRefreshVersion } from "@/components/AppRefreshProvider";
 import { db, type Vehicle, type DieselEntry } from "@/lib/db";
 import { t } from "@/lib/translations";
 import { FormField, Input, Select } from "@/components/FormField";
@@ -52,6 +53,7 @@ const emptyForm: FormData = {
 };
 
 export default function DieselSection() {
+  const refreshVersion = useAppRefreshVersion();
   const [records, setRecords] = useState<DieselEntry[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,7 +92,7 @@ export default function DieselSection() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [refreshVersion]);
 
   const validate = (): boolean => {
     const newErrors: FormErrors = {};

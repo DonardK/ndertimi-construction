@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useAppRefreshVersion } from "@/components/AppRefreshProvider";
 import { createClient } from "@/utils/supabase/client";
 import { t } from "@/lib/translations";
 import PageHeader from "@/components/PageHeader";
@@ -8,6 +9,7 @@ import { Loader2, LogOut } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function ProfiliPage() {
+  const refreshVersion = useAppRefreshVersion();
   const [email, setEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [signingOut, setSigningOut] = useState(false);
@@ -30,7 +32,7 @@ export default function ProfiliPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [refreshVersion]);
 
   const handleLogout = async () => {
     setSigningOut(true);

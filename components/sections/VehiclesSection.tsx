@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useAppRefreshVersion } from "@/components/AppRefreshProvider";
 import { db, type Vehicle } from "@/lib/db";
 import { t } from "@/lib/translations";
 import { FormField, Input } from "@/components/FormField";
@@ -23,6 +24,7 @@ interface FormErrors {
 const emptyForm: FormData = { emriMjetit: "", targa: "" };
 
 export default function VehiclesSection() {
+  const refreshVersion = useAppRefreshVersion();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -44,7 +46,7 @@ export default function VehiclesSection() {
 
   useEffect(() => {
     loadVehicles();
-  }, []);
+  }, [refreshVersion]);
 
   const validate = (): boolean => {
     const newErrors: FormErrors = {};

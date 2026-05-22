@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
+import AppRefreshProvider from "@/components/AppRefreshProvider";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import { Toaster } from "react-hot-toast";
 import { t } from "@/lib/translations";
@@ -46,10 +47,12 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-slate-50">
         <ServiceWorkerRegistration />
-        <main className="max-w-lg mx-auto min-h-screen pb-20">
-          {children}
-        </main>
-        <BottomNav />
+        <AppRefreshProvider>
+          <main className="max-w-lg mx-auto min-h-screen pb-20">
+            {children}
+          </main>
+          <BottomNav />
+        </AppRefreshProvider>
         <Toaster
           position="top-center"
           toastOptions={{

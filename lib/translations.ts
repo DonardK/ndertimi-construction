@@ -89,6 +89,8 @@ export const t = {
     yes: "Po",
     no: "Jo",
     loading: "Duke ngarkuar...",
+    refreshing: "Duke rifreskuar...",
+    pullToRefresh: "Tërhiq poshtë për të rifreskuar",
     noData: "Nuk ka të dhëna",
     search: "Kërko...",
     filter: "Filtro",

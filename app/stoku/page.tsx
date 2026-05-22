@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo, Suspense, useCallback } from "react";
+import { useAppRefreshVersion } from "@/components/AppRefreshProvider";
 import { useSearchParams, useRouter } from "next/navigation";
 import { db, type StockItem, type OfficeExpense } from "@/lib/db";
 import { t } from "@/lib/translations";
@@ -38,6 +39,7 @@ const mainTabs = [
 ];
 
 function StokuContent() {
+  const refreshVersion = useAppRefreshVersion();
   const searchParams = useSearchParams();
   const router = useRouter();
   const section = searchParams.get("p") === "expenses" ? "expenses" : "inventory";
@@ -108,7 +110,7 @@ function StokuContent() {
 
   useEffect(() => {
     loadAll();
-  }, []);
+  }, [refreshVersion]);
 
   const filteredStock = useMemo(() => {
     let list = stockItems;
