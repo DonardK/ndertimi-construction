@@ -10,18 +10,29 @@ import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
 import toast from "react-hot-toast";
 import { Plus, Pencil, Trash2, Truck, X, RotateCcw } from "lucide-react";
+import {
+  formatRegistrationDate,
+  getRegistrationStatus,
+  registrationBadgeClass,
+} from "@/lib/vehicleRegistration";
 
 interface FormData {
   emriMjetit: string;
   targa: string;
+  registrationExpiresAt: string;
 }
 
 interface FormErrors {
   emriMjetit?: string;
   targa?: string;
+  registrationExpiresAt?: string;
 }
 
-const emptyForm: FormData = { emriMjetit: "", targa: "" };
+const emptyForm: FormData = {
+  emriMjetit: "",
+  targa: "",
+  registrationExpiresAt: "",
+};
 
 export default function VehiclesSection() {
   const refreshVersion = useAppRefreshVersion();
@@ -65,12 +76,14 @@ export default function VehiclesSection() {
         await db.vehicles.update(editId, {
           emriMjetit: form.emriMjetit.trim(),
           targa: form.targa.trim().toUpperCase(),
+          registrationExpiresAt: form.registrationExpiresAt.trim() || null,
         });
         toast.success(t.success.updated);
       } else {
         await db.vehicles.add({
           emriMjetit: form.emriMjetit.trim(),
           targa: form.targa.trim().toUpperCase(),
+          registrationExpiresAt: form.registrationExpiresAt.trim() || null,
         });
         toast.success(t.success.saved);
       }
@@ -79,13 +92,18 @@ export default function VehiclesSection() {
       setForm(emptyForm);
       setErrors({});
       await loadVehicles();
+      window.dispatchEvent(new CustomEvent("vehicles:updated"));
     } catch {
       toast.error(t.errors.saveError);
     }
   };
 
   const handleEdit = (v: Vehicle) => {
-    setForm({ emriMjetit: v.emriMjetit, targa: v.targa });
+    setForm({
+      emriMjetit: v.emriMjetit,
+      targa: v.targa,
+      registrationExpiresAt: v.registrationExpiresAt ?? "",
+    });
     setEditId(v.id!);
     setErrors({});
     setShowForm(true);
@@ -98,6 +116,7 @@ export default function VehiclesSection() {
       toast.success(t.vehicles.removed);
       setDeleteId(null);
       await loadVehicles();
+      window.dispatchEvent(new CustomEvent("vehicles:updated"));
     } catch {
       toast.error(t.errors.deleteError);
     }
@@ -108,6 +127,7 @@ export default function VehiclesSection() {
       await db.vehicles.restore(id);
       toast.success(t.vehicles.restored);
       await loadVehicles();
+      window.dispatchEvent(new CustomEvent("vehicles:updated"));
     } catch {
       toast.error(t.errors.saveError);
     }
@@ -129,6 +149,19 @@ export default function VehiclesSection() {
 
   const activeVehicles = vehicles.filter((v) => !v.archivedAt);
   const archivedVehicles = vehicles.filter((v) => v.archivedAt);
+
+  const renderRegistrationBadge = (v: Vehicle) => {
+    if (!v.registrationExpiresAt) return null;
+    const status = getRegistrationStatus(v.registrationExpiresAt);
+    if (status === "unknown") return null;
+    return (
+      <span
+        className={`inline-block text-sm font-bold px-3 py-0.5 rounded-lg ${registrationBadgeClass[status]}`}
+      >
+        {formatRegistrationDate(v.registrationExpiresAt)}
+      </span>
+    );
+  };
 
   const renderVehicleCard = (v: Vehicle, archived: boolean) => (
     <li
@@ -163,6 +196,7 @@ export default function VehiclesSection() {
           <span className="inline-block bg-gray-100 text-gray-700 text-sm font-bold px-3 py-0.5 rounded-lg">
             {v.targa}
           </span>
+          {renderRegistrationBadge(v)}
         </div>
       </div>
       <div className="flex gap-2 shrink-0">
@@ -303,6 +337,15 @@ export default function VehiclesSection() {
                   placeholder={t.vehicles.targaPlaceholder}
                   error={!!errors.targa}
                   className="uppercase"
+                />
+              </FormField>
+
+              <FormField label={t.vehicles.registrationExpires}>
+                <Input
+                  type="date"
+                  value={form.registrationExpiresAt}
+                  onChange={handleChange("registrationExpiresAt")}
+                  className="text-base"
                 />
               </FormField>
 

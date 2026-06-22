@@ -1,0 +1,418 @@
+{
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\eslint.config.mjs": {
+    "mtime": 1779365117.4517384,
+    "hash": "dfa1f5f6a7037bf39dc510f30b180002"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\middleware.ts": {
+    "mtime": 1779365601.0694613,
+    "hash": "ef6742de9df696c1dd6d5370af0cc705"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\next-env.d.ts": {
+    "mtime": 1779365302.1066957,
+    "hash": "d0f8375ae1199dc7acd3977fc33b78b8"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\next.config.ts": {
+    "mtime": 1779365601.0704615,
+    "hash": "9f486069480cef2251fff2232626e279"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\postcss.config.mjs": {
+    "mtime": 1779365124.175056,
+    "hash": "239f3ebf717465dc636818a1a619398d"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\app\\layout.tsx": {
+    "mtime": 1779433617.2723432,
+    "hash": "58c3daed2747882cd8e2c579af59a67f"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\app\\page.tsx": {
+    "mtime": 1779433648.5046408,
+    "hash": "1b692470d0fc809bc223160ded63c5ae"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\app\\api\\ocr\\route.ts": {
+    "mtime": 1779365601.0441883,
+    "hash": "62fc8127d55598e3177b62cbeb869e30"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\app\\login\\page.tsx": {
+    "mtime": 1779365601.046189,
+    "hash": "f10ab67c4ab1bc5775c858856db113b6"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\app\\mjetet\\page.tsx": {
+    "mtime": 1779365601.047189,
+    "hash": "e9ee1ec00d3a05cfeaa7fca6298dc3a2"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\app\\nafta\\page.tsx": {
+    "mtime": 1779365601.048188,
+    "hash": "6eead6b9814d4f1fff4bf33a4d82979b"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\app\\personeli\\page.tsx": {
+    "mtime": 1779365601.0501893,
+    "hash": "6357c402ba98935408cd2284da03e682"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\app\\pjesemarrja\\page.tsx": {
+    "mtime": 1779365601.0511892,
+    "hash": "96aff9784fc5323f99cd8002804ad9c8"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\app\\profili\\page.tsx": {
+    "mtime": 1779433656.3823225,
+    "hash": "5cf7ea659a738ef8ca70e4a70c63fe1f"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\app\\punonjesit\\page.tsx": {
+    "mtime": 1779365601.053207,
+    "hash": "c73ab447c980fab69b3e32a8a2486e0a"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\app\\stoku\\page.tsx": {
+    "mtime": 1779433653.2932742,
+    "hash": "d3b421ee6380ddb68647b02e539e3531"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\AppRefreshProvider.tsx": {
+    "mtime": 1779434499.4662862,
+    "hash": "8fc52fe0d04a0157613c551a3403684b"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\BottomNav.tsx": {
+    "mtime": 1782114168.7792215,
+    "hash": "0a781b0727fdff2e071901f3fa93bf88"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\ConfirmDialog.tsx": {
+    "mtime": 1779365110.916454,
+    "hash": "dd38293e80b84eab3fbcd747e64becbb"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\EmptyState.tsx": {
+    "mtime": 1779365111.4723554,
+    "hash": "2b545ca2702d9117490c39497a9ff82a"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\FormField.tsx": {
+    "mtime": 1779365112.0155313,
+    "hash": "d32b01381712d07d4cf39c8bf78eae88"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\PageHeader.tsx": {
+    "mtime": 1779365112.6365983,
+    "hash": "7901a8643c66fcff98a6c98be350cd2f"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\SegmentedTabs.tsx": {
+    "mtime": 1779365601.056188,
+    "hash": "9a6be21a308f3cc0235e892f89fe97de"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\ServiceWorkerRegistration.tsx": {
+    "mtime": 1779365113.8986225,
+    "hash": "4ab5b69af4d2576320adf2e048fbd047"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\sections\\AttendanceSection.tsx": {
+    "mtime": 1779433629.0666728,
+    "hash": "dbe7d6dde5fadf0667e90b3000070a15"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\sections\\DieselSection.tsx": {
+    "mtime": 1779434549.490211,
+    "hash": "1377762e4b7ead55e310ab46e68452fe"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\sections\\EmployeesSection.tsx": {
+    "mtime": 1779433625.7324011,
+    "hash": "4d574c2106043bb7fc364bbc2b995e88"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\sections\\ServicesSection.tsx": {
+    "mtime": 1779434552.447861,
+    "hash": "004b0c51d5f92fc5b6b1e793f83022e7"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\sections\\VehiclesSection.tsx": {
+    "mtime": 1782114166.3303216,
+    "hash": "1ecbe4e523c50526e58545202039e5c4"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\lib\\auth-email.ts": {
+    "mtime": 1779365601.0634573,
+    "hash": "aa72165a607538d218091602ff67293c"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\lib\\db.ts": {
+    "mtime": 1782114138.7431853,
+    "hash": "2888aa7b70c810c280df96e5efa99e54"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\lib\\imageCompress.ts": {
+    "mtime": 1779365601.0664618,
+    "hash": "6556f3c98524cf4b97602e9d32731c05"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\lib\\stockConstants.ts": {
+    "mtime": 1779365601.0674613,
+    "hash": "6eb52fc93d144710f62ffcd6e756d4a5"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\lib\\supabase-env.ts": {
+    "mtime": 1779361329.1324954,
+    "hash": "ed8d6302316c60becd9cb1bb0127d79f"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\lib\\supabase.ts": {
+    "mtime": 1779365601.0674613,
+    "hash": "8757cb7ab4c969a71ec97a8f470c9ebe"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\lib\\translations.ts": {
+    "mtime": 1782114187.1296523,
+    "hash": "3809d44cb48024817695e042cb98b080"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\lib\\vehicleRegistration.ts": {
+    "mtime": 1782114136.0385327,
+    "hash": "722eaf5ff649d01ff318327f55a1a584"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\public\\sw.js": {
+    "mtime": 1779368175.7099297,
+    "hash": "7a7d1453c4ca43fdf87082178d4579bd"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\scripts\\generate-icons.mjs": {
+    "mtime": 1779365129.0061693,
+    "hash": "a8284f03fe52c4e12b6fba759b3f828a"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\scripts\\vercel-recover.mjs": {
+    "mtime": 1779365601.0724618,
+    "hash": "f6e130e434425d91feba6a66869317be"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\supabase\\migrations\\001_location_and_daily_reports.sql": {
+    "mtime": 1779360465.7100775,
+    "hash": "a6ff5027d038854fd255167386256df6"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\supabase\\migrations\\002_daily_reports_rls.sql": {
+    "mtime": 1779368146.2324462,
+    "hash": "5e6424ecb88a1a1655018e668d4a5e0b"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\supabase\\migrations\\003_employees_archived.sql": {
+    "mtime": 1779433003.4480069,
+    "hash": "0ce92775e13754ab6949e449d0218662"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\supabase\\migrations\\004_vehicles_archived.sql": {
+    "mtime": 1779434482.148506,
+    "hash": "ba3d556b4e61916c8d8edfc0d030e400"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\supabase\\migrations\\005_vehicle_registration_expires.sql": {
+    "mtime": 1782114134.1294684,
+    "hash": "125e7d6d6e8aa5149f2a7e8d0b2a5990"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\supabase\\migrations\\20250324_feature_tables.sql": {
+    "mtime": 1779365601.0737336,
+    "hash": "bfc54d9b7f53a3d667bd14d6caf541f2"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\utils\\supabase\\client.ts": {
+    "mtime": 1779365601.0748851,
+    "hash": "0e19fa0f5df6208ee7fd967f917cbbe6"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\utils\\supabase\\middleware.ts": {
+    "mtime": 1779361340.4788046,
+    "hash": "a7638a79dd047bc447d71eb57bf2e8df"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\utils\\supabase\\server.ts": {
+    "mtime": 1779365601.075968,
+    "hash": "b151fbcd58b2d5d3cdfe5b8a51a7831f"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\eslint.config.mjs": {
+    "mtime": 1779365117.4517384,
+    "hash": "dfa1f5f6a7037bf39dc510f30b180002"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\middleware.ts": {
+    "mtime": 1779365121.582471,
+    "hash": "ef6742de9df696c1dd6d5370af0cc705"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\next-env.d.ts": {
+    "mtime": 1779365121.88718,
+    "hash": "2a74d3909800ca5467fa83b0ab4a4890"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\next.config.ts": {
+    "mtime": 1779365122.4551406,
+    "hash": "9c3ac094b4a38f214df1af54e3b9f54d"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\postcss.config.mjs": {
+    "mtime": 1779365124.175056,
+    "hash": "239f3ebf717465dc636818a1a619398d"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\app\\layout.tsx": {
+    "mtime": 1779365104.4443944,
+    "hash": "cde99daab2145ab7f60c4c8c87b2ebd3"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\app\\page.tsx": {
+    "mtime": 1779365106.740989,
+    "hash": "8c24fd3aab31fa5ac22efaa975bfec15"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\app\\api\\ocr\\route.ts": {
+    "mtime": 1779365102.932701,
+    "hash": "8d25c747e9de905f508e128e61d772ca"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\app\\login\\page.tsx": {
+    "mtime": 1779365105.0300727,
+    "hash": "68615a26724660590a58a9b9adeae410"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\app\\mjetet\\page.tsx": {
+    "mtime": 1779365105.5889306,
+    "hash": "c21bbeb54659a5b41043bc68453ba20d"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\app\\nafta\\page.tsx": {
+    "mtime": 1779365106.1093705,
+    "hash": "6eead6b9814d4f1fff4bf33a4d82979b"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\app\\personeli\\page.tsx": {
+    "mtime": 1779365107.3147395,
+    "hash": "f700a39de1a0481733d481ad64d19360"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\app\\pjesemarrja\\page.tsx": {
+    "mtime": 1779365107.834215,
+    "hash": "fe28e7e80f3f733af686fb96fc20374e"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\app\\profili\\page.tsx": {
+    "mtime": 1779365108.3898234,
+    "hash": "5c4b4736df698afaaf7995bf873ad39e"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\app\\punonjesit\\page.tsx": {
+    "mtime": 1779365108.9047122,
+    "hash": "5a7c4d010db61fb2d29dc50105bb7b5f"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\app\\stoku\\page.tsx": {
+    "mtime": 1779365109.5379868,
+    "hash": "828834c0768ae7272015c8da96216e14"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\components\\BottomNav.tsx": {
+    "mtime": 1779365110.1556315,
+    "hash": "2d53755d80d8c8272d25646447c63514"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\components\\ConfirmDialog.tsx": {
+    "mtime": 1779365110.916454,
+    "hash": "dd38293e80b84eab3fbcd747e64becbb"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\components\\EmptyState.tsx": {
+    "mtime": 1779365111.4723554,
+    "hash": "2b545ca2702d9117490c39497a9ff82a"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\components\\FormField.tsx": {
+    "mtime": 1779365112.0155313,
+    "hash": "d32b01381712d07d4cf39c8bf78eae88"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\components\\PageHeader.tsx": {
+    "mtime": 1779365112.6365983,
+    "hash": "7901a8643c66fcff98a6c98be350cd2f"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\components\\SegmentedTabs.tsx": {
+    "mtime": 1779365113.2778535,
+    "hash": "2d0bf55fc4fa69936e879153af46db48"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\components\\ServiceWorkerRegistration.tsx": {
+    "mtime": 1779365113.8986225,
+    "hash": "4ab5b69af4d2576320adf2e048fbd047"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\components\\sections\\AttendanceSection.tsx": {
+    "mtime": 1779365114.4623144,
+    "hash": "c7f0bc841db272e702607b8aa642d97d"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\components\\sections\\DieselSection.tsx": {
+    "mtime": 1779365115.0887341,
+    "hash": "195baae2ab6f383c159501cbdc7157f4"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\components\\sections\\EmployeesSection.tsx": {
+    "mtime": 1779365115.706994,
+    "hash": "274296ce2177dbeaee5b8c09354da193"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\components\\sections\\ServicesSection.tsx": {
+    "mtime": 1779365116.3980708,
+    "hash": "0364ed8a04deb6aa9df4ede5ec5999be"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\components\\sections\\VehiclesSection.tsx": {
+    "mtime": 1779365117.129606,
+    "hash": "016314ac001fd5077057e28d7371a774"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\lib\\auth-email.ts": {
+    "mtime": 1779365118.010003,
+    "hash": "594e047733e70286a82a605331205490"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\lib\\db.ts": {
+    "mtime": 1779365118.571977,
+    "hash": "ecc6a7e1a95560170c63d41c4ca31833"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\lib\\imageCompress.ts": {
+    "mtime": 1779365119.2069898,
+    "hash": "50bb6043f22c769f479f4606bc11bce3"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\lib\\stockConstants.ts": {
+    "mtime": 1779365119.7903843,
+    "hash": "2a5e11819a4e2f30f74d61bdd751c747"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\lib\\supabase.ts": {
+    "mtime": 1779365120.352931,
+    "hash": "8757cb7ab4c969a71ec97a8f470c9ebe"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\lib\\translations.ts": {
+    "mtime": 1779365120.961754,
+    "hash": "76da8c7da900474dc8c3d1cd960831ca"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\public\\sw.js": {
+    "mtime": 1779365127.6029868,
+    "hash": "d91844956911db81b26c15e25e62dac2"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\scripts\\generate-icons.mjs": {
+    "mtime": 1779365129.0061693,
+    "hash": "a8284f03fe52c4e12b6fba759b3f828a"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\supabase\\migrations\\20250324_feature_tables.sql": {
+    "mtime": 1779365129.5400333,
+    "hash": "8e09f0d86d2edb7489aa76e763f81c49"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\utils\\supabase\\client.ts": {
+    "mtime": 1779365131.2096636,
+    "hash": "0e19fa0f5df6208ee7fd967f917cbbe6"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\utils\\supabase\\server.ts": {
+    "mtime": 1779365131.7963402,
+    "hash": "b151fbcd58b2d5d3cdfe5b8a51a7831f"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\README.md": {
+    "mtime": 1779365102.3082297,
+    "hash": "f15aaa42d5d299d091b1171097ea56ad"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\README.md": {
+    "mtime": 1779365102.3082297,
+    "hash": "f15aaa42d5d299d091b1171097ea56ad"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\public\\file.svg": {
+    "mtime": 1779365124.4963193,
+    "hash": "d09f95206c3fa0bb9bd9fefabfd0ea71"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\public\\globe.svg": {
+    "mtime": 1779365124.8287458,
+    "hash": "2aaafa6a49b6563925fe440891e32717"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\public\\next.svg": {
+    "mtime": 1779365127.023875,
+    "hash": "8e061864f388b47f33a1c3780831193e"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\public\\vercel.svg": {
+    "mtime": 1779365127.974653,
+    "hash": "c0af2f507b369b085b35ef4bbe3bcf1e"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\public\\window.svg": {
+    "mtime": 1779365128.284192,
+    "hash": "a2760511c65806022ad20adf74370ff3"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\public\\icons\\icon-192x192.png": {
+    "mtime": 1779365125.5245433,
+    "hash": "2fba85983b38bd00bf643fa3980eceff"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\public\\icons\\icon-512x512.png": {
+    "mtime": 1779365126.0635223,
+    "hash": "d8f6120bd40b22056d2a6e0de1ff8c0d"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\public\\file.svg": {
+    "mtime": 1779365124.4963193,
+    "hash": "d09f95206c3fa0bb9bd9fefabfd0ea71"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\public\\globe.svg": {
+    "mtime": 1779365124.8287458,
+    "hash": "2aaafa6a49b6563925fe440891e32717"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\public\\next.svg": {
+    "mtime": 1779365127.023875,
+    "hash": "8e061864f388b47f33a1c3780831193e"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\public\\vercel.svg": {
+    "mtime": 1779365127.974653,
+    "hash": "c0af2f507b369b085b35ef4bbe3bcf1e"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\public\\window.svg": {
+    "mtime": 1779365128.284192,
+    "hash": "a2760511c65806022ad20adf74370ff3"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\public\\icons\\icon-192x192.png": {
+    "mtime": 1779365125.5245433,
+    "hash": "2fba85983b38bd00bf643fa3980eceff"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\public\\icons\\icon-512x512.png": {
+    "mtime": 1779365126.0635223,
+    "hash": "d8f6120bd40b22056d2a6e0de1ff8c0d"
+  }
+}

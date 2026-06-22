@@ -47,6 +47,8 @@ export interface Vehicle {
   id?: number;
   emriMjetit: string;
   targa: string;
+  /** Registration expiration date (YYYY-MM-DD). */
+  registrationExpiresAt?: string | null;
   /** Set when vehicle is removed from active lists (soft delete). */
   archivedAt?: string | null;
   createdAt?: string;
@@ -162,6 +164,7 @@ function mapVehicle(row: any): Vehicle {
     id: row.id,
     emriMjetit: row.emri_mjetit,
     targa: row.targa,
+    registrationExpiresAt: row.registration_expires_at ?? null,
     archivedAt: row.archived_at ?? null,
     createdAt: row.created_at,
   };
@@ -416,6 +419,7 @@ export const db = {
       const { error } = await getClient().from("vehicles").insert({
         emri_mjetit: v.emriMjetit,
         targa: v.targa,
+        registration_expires_at: v.registrationExpiresAt || null,
       });
       if (error) throw error;
     },
@@ -424,6 +428,9 @@ export const db = {
       const updates: Record<string, unknown> = {};
       if (v.emriMjetit !== undefined) updates.emri_mjetit = v.emriMjetit;
       if (v.targa !== undefined) updates.targa = v.targa;
+      if (v.registrationExpiresAt !== undefined) {
+        updates.registration_expires_at = v.registrationExpiresAt || null;
+      }
       const { error } = await getClient().from("vehicles").update(updates).eq("id", id);
       if (error) throw error;
     },

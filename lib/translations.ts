@@ -191,6 +191,7 @@ export const t = {
     editTitle: "Ndrysho Mjetin",
     emriMjetit: "Emri i Mjetit",
     targa: "Targa",
+    registrationExpires: "Regjistrimi skadon",
     emriMjetitPlaceholder: "p.sh. Kamion i Madh",
     targaPlaceholder: "p.sh. AA 123 BB",
     noVehicles: "Nuk ka mjete. Shtoni mjetin e parë!",
@@ -203,6 +204,7 @@ export const t = {
     removed: "Mjeti u hoq nga lista.",
     totalVehicles: "mjete aktiv",
     totalArchived: "të hequr",
+    expiredRegistrationBadge: "mjete me regjistrim të skaduar",
   },
 
   diesel: {
