@@ -126,7 +126,7 @@ export default function EmployeesSection() {
         newErrors.cmimiOre = t.errors.invalidNumber;
       }
     }
-    if (form.paymentMethod === "Bankë") {
+    if (canViewFinancials && form.paymentMethod === "Bankë") {
       if (!form.emriBankes.trim()) newErrors.emriBankes = t.errors.requiredField;
       if (!form.llogariaBankes.trim()) newErrors.llogariaBankes = t.errors.requiredField;
     }
@@ -138,19 +138,20 @@ export default function EmployeesSection() {
     e.preventDefault();
     if (!validate()) return;
     try {
-      const bankPayload =
-        form.paymentMethod === "Bankë"
+      const bankPayload = canViewFinancials
+        ? form.paymentMethod === "Bankë"
           ? { emriBankes: form.emriBankes.trim(), llogariaBankes: form.llogariaBankes.trim() }
-          : { emriBankes: "", llogariaBankes: "" };
+          : { emriBankes: "", llogariaBankes: "" }
+        : {};
 
       if (editId !== null) {
         const updates: Parameters<typeof db.employees.update>[1] = {
           emri: form.emri.trim(),
           mbiemri: form.mbiemri.trim(),
-          paymentMethod: form.paymentMethod,
           ...bankPayload,
         };
         if (canViewFinancials) {
+          updates.paymentMethod = form.paymentMethod;
           updates.cmimiOre = parseNum(form.cmimiOre);
         }
         await db.employees.update(editId, updates);
@@ -159,9 +160,11 @@ export default function EmployeesSection() {
         await db.employees.add({
           emri: form.emri.trim(),
           mbiemri: form.mbiemri.trim(),
-          paymentMethod: form.paymentMethod,
+          paymentMethod: canViewFinancials ? form.paymentMethod : "Cash",
           cmimiOre: canViewFinancials ? parseNum(form.cmimiOre) : 0,
-          ...bankPayload,
+          emriBankes: canViewFinancials && form.paymentMethod === "Bankë" ? form.emriBankes.trim() : "",
+          llogariaBankes:
+            canViewFinancials && form.paymentMethod === "Bankë" ? form.llogariaBankes.trim() : "",
         });
         toast.success(t.success.saved);
       }
@@ -361,34 +364,36 @@ export default function EmployeesSection() {
                 {t.employees.archivedBadge}
               </span>
             )}
-            <span
-              className={`flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full ${
-                emp.paymentMethod === "Bankë"
-                  ? "bg-blue-100 text-blue-700"
-                  : "bg-green-100 text-green-700"
-              }`}
-            >
-              {emp.paymentMethod === "Bankë" ? (
-                <CreditCard className="w-3 h-3" />
-              ) : (
-                <Banknote className="w-3 h-3" />
-              )}
-              {emp.paymentMethod}
-            </span>
             {canViewFinancials && (
-              <span className="flex items-center gap-1 text-xs font-semibold text-gray-600 bg-gray-100 px-2.5 py-0.5 rounded-full">
-                <Euro className="w-3 h-3" />
-                {emp.cmimiOre.toFixed(2)}/orë
-              </span>
-            )}
-            {emp.paymentMethod === "Bankë" &&
-              (emp.emriBankes || emp.llogariaBankes) && (
-                <span className="block w-full text-xs text-gray-500 mt-1 truncate">
-                  {emp.emriBankes}
-                  {emp.emriBankes && emp.llogariaBankes ? " · " : ""}
-                  {emp.llogariaBankes}
+              <>
+                <span
+                  className={`flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full ${
+                    emp.paymentMethod === "Bankë"
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-green-100 text-green-700"
+                  }`}
+                >
+                  {emp.paymentMethod === "Bankë" ? (
+                    <CreditCard className="w-3 h-3" />
+                  ) : (
+                    <Banknote className="w-3 h-3" />
+                  )}
+                  {emp.paymentMethod}
                 </span>
-              )}
+                {emp.paymentMethod === "Bankë" &&
+                  (emp.emriBankes || emp.llogariaBankes) && (
+                    <span className="block w-full text-xs text-gray-500 mt-1 truncate">
+                      {emp.emriBankes}
+                      {emp.emriBankes && emp.llogariaBankes ? " · " : ""}
+                      {emp.llogariaBankes}
+                    </span>
+                  )}
+                <span className="flex items-center gap-1 text-xs font-semibold text-gray-600 bg-gray-100 px-2.5 py-0.5 rounded-full">
+                  <Euro className="w-3 h-3" />
+                  {emp.cmimiOre.toFixed(2)}/orë
+                </span>
+              </>
+            )}
           </div>
         </div>
         <div className="flex gap-2 shrink-0">
@@ -535,14 +540,16 @@ export default function EmployeesSection() {
                 />
               </FormField>
 
-              <FormField label={t.employees.paymentMethod} required>
-                <div className="flex gap-3">
-                  {(["Cash", "Bankë"] as const).map((method) => (
-                    <button
-                      key={method}
-                      type="button"
-                      onClick={() => setPaymentMethod(method)}
-                      className={`flex-1 h-14 rounded-xl border-2 font-bold text-lg flex items-center justify-center gap-2 transition-colors
+              {canViewFinancials && (
+                <>
+                  <FormField label={t.employees.paymentMethod} required>
+                    <div className="flex gap-3">
+                      {(["Cash", "Bankë"] as const).map((method) => (
+                        <button
+                          key={method}
+                          type="button"
+                          onClick={() => setPaymentMethod(method)}
+                          className={`flex-1 h-14 rounded-xl border-2 font-bold text-lg flex items-center justify-center gap-2 transition-colors
                         ${
                           form.paymentMethod === method
                             ? method === "Cash"
@@ -550,40 +557,42 @@ export default function EmployeesSection() {
                               : "border-blue-500 bg-blue-500 text-white"
                             : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
                         }`}
-                    >
-                      {method === "Cash" ? (
-                        <Banknote className="w-5 h-5" />
-                      ) : (
-                        <CreditCard className="w-5 h-5" />
-                      )}
-                      {method}
-                    </button>
-                  ))}
-                </div>
-              </FormField>
+                        >
+                          {method === "Cash" ? (
+                            <Banknote className="w-5 h-5" />
+                          ) : (
+                            <CreditCard className="w-5 h-5" />
+                          )}
+                          {method}
+                        </button>
+                      ))}
+                    </div>
+                  </FormField>
 
-              {form.paymentMethod === "Bankë" && (
-                <>
-                  <FormField label={t.employees.emriBankes} error={errors.emriBankes} required>
-                    <Input
-                      value={form.emriBankes}
-                      onChange={handleChange("emriBankes")}
-                      placeholder={t.employees.emriBankesPlaceholder}
-                      error={!!errors.emriBankes}
-                    />
-                  </FormField>
-                  <FormField
-                    label={t.employees.llogariaBankes}
-                    error={errors.llogariaBankes}
-                    required
-                  >
-                    <Input
-                      value={form.llogariaBankes}
-                      onChange={handleChange("llogariaBankes")}
-                      placeholder={t.employees.llogariaBankesPlaceholder}
-                      error={!!errors.llogariaBankes}
-                    />
-                  </FormField>
+                  {form.paymentMethod === "Bankë" && (
+                    <>
+                      <FormField label={t.employees.emriBankes} error={errors.emriBankes} required>
+                        <Input
+                          value={form.emriBankes}
+                          onChange={handleChange("emriBankes")}
+                          placeholder={t.employees.emriBankesPlaceholder}
+                          error={!!errors.emriBankes}
+                        />
+                      </FormField>
+                      <FormField
+                        label={t.employees.llogariaBankes}
+                        error={errors.llogariaBankes}
+                        required
+                      >
+                        <Input
+                          value={form.llogariaBankes}
+                          onChange={handleChange("llogariaBankes")}
+                          placeholder={t.employees.llogariaBankesPlaceholder}
+                          error={!!errors.llogariaBankes}
+                        />
+                      </FormField>
+                    </>
+                  )}
                 </>
               )}
 

@@ -351,20 +351,22 @@ export default function AttendanceSection() {
                       <Clock className="w-3.5 h-3.5 text-blue-500" />
                       {rec.hoursWorked} {t.dashboard.hours}
                     </span>
-                    <span
-                      className={`flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full ${
-                        rec.paymentMethod === "Bankë"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-green-100 text-green-700"
-                      }`}
-                    >
-                      {rec.paymentMethod === "Bankë" ? (
-                        <CreditCard className="w-3 h-3" />
-                      ) : (
-                        <Banknote className="w-3 h-3" />
-                      )}
-                      {rec.paymentMethod}
-                    </span>
+                    {canViewFinancials && (
+                      <span
+                        className={`flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full ${
+                          rec.paymentMethod === "Bankë"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-green-100 text-green-700"
+                        }`}
+                      >
+                        {rec.paymentMethod === "Bankë" ? (
+                          <CreditCard className="w-3 h-3" />
+                        ) : (
+                          <Banknote className="w-3 h-3" />
+                        )}
+                        {rec.paymentMethod}
+                      </span>
+                    )}
                     <span
                       className="flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700"
                       title={WORK_LOCATION_LABELS[rec.location]}
@@ -535,18 +537,22 @@ export default function AttendanceSection() {
                       {row.name}
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span
-                        className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                          row.paymentMethod === "Bankë"
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-green-100 text-green-700"
-                        }`}
-                      >
-                        {row.paymentMethod}
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        €{row.rate.toFixed(2)}/orë
-                      </span>
+                      {canViewFinancials && (
+                        <>
+                          <span
+                            className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                              row.paymentMethod === "Bankë"
+                                ? "bg-blue-100 text-blue-700"
+                                : "bg-green-100 text-green-700"
+                            }`}
+                          >
+                            {row.paymentMethod}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            €{row.rate.toFixed(2)}/orë
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
 

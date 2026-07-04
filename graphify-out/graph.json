@@ -880,7 +880,7 @@
       "label": "handleArchive()",
       "file_type": "code",
       "source_file": "components/sections/EmployeesSection.tsx",
-      "source_location": "L192",
+      "source_location": "L195",
       "id": "sections_employeessection_handlearchive",
       "community": 0,
       "norm_label": "handlearchive()"
@@ -889,7 +889,7 @@
       "label": "handleRestore()",
       "file_type": "code",
       "source_file": "components/sections/EmployeesSection.tsx",
-      "source_location": "L204",
+      "source_location": "L207",
       "id": "sections_employeessection_handlerestore",
       "community": 0,
       "norm_label": "handlerestore()"
@@ -2037,9 +2037,9 @@
       "source_file": "middleware.ts",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "middleware_ts",
-      "target": "lib_roles_getrolefromemail",
-      "confidence_score": 1.0
+      "target": "lib_roles_getrolefromemail"
     },
     {
       "relation": "imports",
@@ -2048,9 +2048,9 @@
       "source_file": "middleware.ts",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "middleware_ts",
-      "target": "lib_roles_isstaffblockedpath",
-      "confidence_score": 1.0
+      "target": "lib_roles_isstaffblockedpath"
     },
     {
       "relation": "contains",
@@ -2122,9 +2122,9 @@
       "source_file": "app/page.tsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_page_tsx",
-      "target": "components_roleprovider_userole",
-      "confidence_score": 1.0
+      "target": "components_roleprovider_userole"
     },
     {
       "relation": "contains",
@@ -2520,9 +2520,9 @@
       "source_file": "app/profili/page.tsx",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_profili_page_tsx",
-      "target": "components_roleprovider_userole",
-      "confidence_score": 1.0
+      "target": "components_roleprovider_userole"
     },
     {
       "relation": "imports",
@@ -3032,9 +3032,9 @@
       "source_file": "components/BottomNav.tsx",
       "source_location": "L14",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_bottomnav_tsx",
-      "target": "components_roleprovider_userole",
-      "confidence_score": 1.0
+      "target": "components_roleprovider_userole"
     },
     {
       "relation": "imports",
@@ -3043,9 +3043,9 @@
       "source_file": "components/BottomNav.tsx",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_bottomnav_tsx",
-      "target": "lib_roles_navhrefallowedforrole",
-      "confidence_score": 1.0
+      "target": "lib_roles_navhrefallowedforrole"
     },
     {
       "relation": "imports",
@@ -3191,9 +3191,9 @@
       "source_file": "components/RoleProvider.tsx",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_roleprovider_tsx",
-      "target": "supabase_client_createclient",
-      "confidence_score": 1.0
+      "target": "supabase_client_createclient"
     },
     {
       "relation": "imports",
@@ -3202,9 +3202,9 @@
       "source_file": "components/RoleProvider.tsx",
       "source_location": "L12",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_roleprovider_tsx",
-      "target": "lib_roles_canviewfinancials",
-      "confidence_score": 1.0
+      "target": "lib_roles_canviewfinancials"
     },
     {
       "relation": "imports",
@@ -3213,9 +3213,9 @@
       "source_file": "components/RoleProvider.tsx",
       "source_location": "L12",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_roleprovider_tsx",
-      "target": "lib_roles_getrolefromemail",
-      "confidence_score": 1.0
+      "target": "lib_roles_getrolefromemail"
     },
     {
       "relation": "contains",
@@ -3223,9 +3223,9 @@
       "source_file": "components/RoleProvider.tsx",
       "source_location": "L36",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_roleprovider_tsx",
-      "target": "components_roleprovider_userole",
-      "confidence_score": 1.0
+      "target": "components_roleprovider_userole"
     },
     {
       "relation": "contains",
@@ -3233,9 +3233,9 @@
       "source_file": "components/RoleProvider.tsx",
       "source_location": "L40",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_roleprovider_tsx",
-      "target": "components_roleprovider_roleprovider",
-      "confidence_score": 1.0
+      "target": "components_roleprovider_roleprovider"
     },
     {
       "relation": "imports",
@@ -3244,9 +3244,9 @@
       "source_file": "components/sections/AttendanceSection.tsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_sections_attendancesection_tsx",
-      "target": "components_roleprovider_userole",
-      "confidence_score": 1.0
+      "target": "components_roleprovider_userole"
     },
     {
       "relation": "imports",
@@ -3255,9 +3255,9 @@
       "source_file": "components/sections/EmployeesSection.tsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_sections_employeessection_tsx",
-      "target": "components_roleprovider_userole",
-      "confidence_score": 1.0
+      "target": "components_roleprovider_userole"
     },
     {
       "relation": "contains",
@@ -5035,9 +5035,9 @@
       "source_file": "lib/roles.ts",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_roles_ts",
-      "target": "lib_roles_normalizeemail",
-      "confidence_score": 1.0
+      "target": "lib_roles_normalizeemail"
     },
     {
       "relation": "contains",
@@ -5045,9 +5045,9 @@
       "source_file": "lib/roles.ts",
       "source_location": "L17",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_roles_ts",
-      "target": "lib_roles_getrolefromemail",
-      "confidence_score": 1.0
+      "target": "lib_roles_getrolefromemail"
     },
     {
       "relation": "contains",
@@ -5055,9 +5055,9 @@
       "source_file": "lib/roles.ts",
       "source_location": "L25",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_roles_ts",
-      "target": "lib_roles_canviewfinancials",
-      "confidence_score": 1.0
+      "target": "lib_roles_canviewfinancials"
     },
     {
       "relation": "contains",
@@ -5065,9 +5065,9 @@
       "source_file": "lib/roles.ts",
       "source_location": "L29",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_roles_ts",
-      "target": "lib_roles_isstaffblockedpath",
-      "confidence_score": 1.0
+      "target": "lib_roles_isstaffblockedpath"
     },
     {
       "relation": "contains",
@@ -5075,9 +5075,9 @@
       "source_file": "lib/roles.ts",
       "source_location": "L35",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_roles_ts",
-      "target": "lib_roles_navhrefallowedforrole",
-      "confidence_score": 1.0
+      "target": "lib_roles_navhrefallowedforrole"
     },
     {
       "relation": "calls",
@@ -5086,9 +5086,9 @@
       "source_file": "lib/roles.ts",
       "source_location": "L18",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_roles_getrolefromemail",
-      "target": "lib_roles_normalizeemail",
-      "confidence_score": 1.0
+      "target": "lib_roles_normalizeemail"
     },
     {
       "relation": "contains",
@@ -5580,5 +5580,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "c9fd58132d384e460a2bf6a6c29b67c99907c012"
+  "built_at_commit": "b2d2cc709e3d6dbbf77456debbef8b15c3c752b9"
 }
