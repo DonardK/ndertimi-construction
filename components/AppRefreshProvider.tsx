@@ -124,7 +124,7 @@ function PullToRefresh({
     <>
       {showPullBar && (
         <div
-          className="fixed left-0 right-0 z-[60] mx-auto max-w-lg px-4 pointer-events-none"
+          className="fixed left-0 right-0 z-[60] mx-auto max-w-lg lg:max-w-none lg:left-56 px-4 pointer-events-none"
           style={{ top: "env(safe-area-inset-top, 0px)" }}
         >
           <div className="h-1 rounded-full bg-blue-100 overflow-hidden">
@@ -137,7 +137,7 @@ function PullToRefresh({
       )}
       {showSpinner && (
         <div
-          className="fixed left-0 right-0 z-[60] mx-auto max-w-lg flex h-12 items-center justify-center pointer-events-none"
+          className="fixed left-0 right-0 z-[60] mx-auto max-w-lg lg:max-w-none lg:left-56 flex h-12 items-center justify-center pointer-events-none"
           style={{ top: "env(safe-area-inset-top, 0px)" }}
           aria-live="polite"
           aria-busy

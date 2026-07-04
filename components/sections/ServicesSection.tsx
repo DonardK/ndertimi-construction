@@ -386,7 +386,7 @@ export default function ServicesSection() {
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => !ocrLoading && setShowForm(false)}
           />
-          <div className="relative bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto">
+          <div className="relative bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-lg lg:max-w-xl max-h-[92vh] overflow-y-auto">
             <div className="sticky top-0 bg-white z-10 px-6 pt-6 pb-4 border-b border-gray-100 flex items-center justify-between">
               <h2 className="text-xl font-extrabold text-gray-900">{t.services.addTitle}</h2>
               <button

@@ -20,7 +20,7 @@ export default function SegmentedTabs({
 }: SegmentedTabsProps) {
   return (
     <div
-      className={`flex rounded-2xl bg-gray-100 p-1 gap-0.5 ${className}`}
+      className={`flex rounded-2xl bg-gray-100 p-1 gap-0.5 lg:max-w-2xl ${className}`}
       role="tablist"
     >
       {tabs.map((tab) => (

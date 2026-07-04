@@ -502,7 +502,7 @@ function StokuContent() {
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowStockForm(false)}
           />
-          <div className="relative bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+          <div className="relative bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-lg lg:max-w-xl p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-extrabold">
                 {stockEditId !== null ? t.stoku.editItem : t.stoku.addItem}
@@ -575,7 +575,7 @@ function StokuContent() {
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => !ocrLoading && setShowExpForm(false)}
           />
-          <div className="relative bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto">
+          <div className="relative bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-lg lg:max-w-xl max-h-[92vh] overflow-y-auto">
             <div className="sticky top-0 bg-white px-6 pt-6 pb-4 border-b flex justify-between items-center z-10">
               <h2 className="text-xl font-extrabold">{t.stoku.addExpense}</h2>
               <button

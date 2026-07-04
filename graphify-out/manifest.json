@@ -8,8 +8,8 @@
     "hash": "ef6742de9df696c1dd6d5370af0cc705"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\next-env.d.ts": {
-    "mtime": 1779365302.1066957,
-    "hash": "d0f8375ae1199dc7acd3977fc33b78b8"
+    "mtime": 1783147515.1967313,
+    "hash": "2a74d3909800ca5467fa83b0ab4a4890"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\next.config.ts": {
     "mtime": 1779365601.0704615,
@@ -20,12 +20,12 @@
     "hash": "239f3ebf717465dc636818a1a619398d"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\app\\layout.tsx": {
-    "mtime": 1779433617.2723432,
-    "hash": "58c3daed2747882cd8e2c579af59a67f"
+    "mtime": 1783147394.7992334,
+    "hash": "a1f8bd3a7700407ffe30c7a2cafb54eb"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\app\\page.tsx": {
-    "mtime": 1779433648.5046408,
-    "hash": "1b692470d0fc809bc223160ded63c5ae"
+    "mtime": 1783147495.0577893,
+    "hash": "ee0b4d9737f5f908f6bf9809ce907e0c"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\app\\api\\ocr\\route.ts": {
     "mtime": 1779365601.0441883,
@@ -60,16 +60,20 @@
     "hash": "c73ab447c980fab69b3e32a8a2486e0a"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\app\\stoku\\page.tsx": {
-    "mtime": 1779433653.2932742,
-    "hash": "d3b421ee6380ddb68647b02e539e3531"
+    "mtime": 1783147506.9650896,
+    "hash": "56fdd9adc293c19d5e05a1a3035edff4"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\AppRefreshProvider.tsx": {
-    "mtime": 1779434499.4662862,
-    "hash": "8fc52fe0d04a0157613c551a3403684b"
+    "mtime": 1783147415.8401315,
+    "hash": "2378e42e828e9493e4b785a35af06020"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\AppShell.tsx": {
+    "mtime": 1783147392.4151456,
+    "hash": "c7cfe03f1011334cda2b20e9ffb6011a"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\BottomNav.tsx": {
-    "mtime": 1782114168.7792215,
-    "hash": "0a781b0727fdff2e071901f3fa93bf88"
+    "mtime": 1783147413.4233751,
+    "hash": "a56c8ec543ec0205258ee9226da00333"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\ConfirmDialog.tsx": {
     "mtime": 1779365110.916454,
@@ -88,32 +92,32 @@
     "hash": "7901a8643c66fcff98a6c98be350cd2f"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\SegmentedTabs.tsx": {
-    "mtime": 1779365601.056188,
-    "hash": "9a6be21a308f3cc0235e892f89fe97de"
+    "mtime": 1783147528.9144597,
+    "hash": "45a1c582e892b3f66de2e26e0aad161e"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\ServiceWorkerRegistration.tsx": {
     "mtime": 1779365113.8986225,
     "hash": "4ab5b69af4d2576320adf2e048fbd047"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\sections\\AttendanceSection.tsx": {
-    "mtime": 1779433629.0666728,
-    "hash": "dbe7d6dde5fadf0667e90b3000070a15"
+    "mtime": 1783147534.1846955,
+    "hash": "daeb92faa4553ac5331ff7b26a385ce6"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\sections\\DieselSection.tsx": {
-    "mtime": 1779434549.490211,
-    "hash": "1377762e4b7ead55e310ab46e68452fe"
+    "mtime": 1783147504.1348965,
+    "hash": "5795d29cd2236892e68df7e60a9eb798"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\sections\\EmployeesSection.tsx": {
-    "mtime": 1779433625.7324011,
-    "hash": "4d574c2106043bb7fc364bbc2b995e88"
+    "mtime": 1783147506.2155511,
+    "hash": "c75d3805dff2d82388b3da8b90891d62"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\sections\\ServicesSection.tsx": {
-    "mtime": 1779434552.447861,
-    "hash": "004b0c51d5f92fc5b6b1e793f83022e7"
+    "mtime": 1783147503.5781124,
+    "hash": "58e344666eb3270b7afe54b67892307c"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\sections\\VehiclesSection.tsx": {
-    "mtime": 1782114166.3303216,
-    "hash": "1ecbe4e523c50526e58545202039e5c4"
+    "mtime": 1783147503.0358343,
+    "hash": "c1b49503bf8729e2be42d3c2cf5ba8b9"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\lib\\auth-email.ts": {
     "mtime": 1779365601.0634573,
@@ -350,6 +354,10 @@
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\vercel-recovery\\2K6b37HEZ\\src\\utils\\supabase\\server.ts": {
     "mtime": 1779365131.7963402,
     "hash": "b151fbcd58b2d5d3cdfe5b8a51a7831f"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\AI_KNOWLEDGE_TRANSFER.md": {
+    "mtime": 1783147013.669453,
+    "hash": "cecb65cdb65d04a62fc9ce54bb1c461c"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\README.md": {
     "mtime": 1779365102.3082297,

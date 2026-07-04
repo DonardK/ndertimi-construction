@@ -1,16 +1,16 @@
-# Graph Report - ndertimi-construction  (2026-06-22)
+# Graph Report - ndertimi-construction  (2026-07-04)
 
 ## Corpus Check
-- 88 files · ~44,533 words
+- 89 files · ~48,624 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 212 nodes · 320 edges · 44 communities (35 shown, 9 thin omitted)
+- 216 nodes · 323 edges · 45 communities (36 shown, 9 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 4 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `7a44436c`
+- Built from commit: `2e4495ff`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -62,7 +62,7 @@
 - `handleArchive()` --calls--> `loadVehicles()`  [EXTRACTED]
   components/sections/VehiclesSection.tsx → vercel-recovery/2K6b37HEZ/src/components/sections/VehiclesSection.tsx
 
-## Communities (44 total, 9 thin omitted)
+## Communities (45 total, 9 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.25
@@ -70,7 +70,7 @@ Nodes (16): handleAddPayment(), handleArchive(), handleChange(), handleDelete(),
 
 ### Community 1 - "Community 1"
 Cohesion: 0.24
-Nodes (10): Select(), normalizeOfficeCategory(), loadAll(), onExpImage(), openStockAdd(), openStockEdit(), parseNum(), runExpenseOcr() (+2 more)
+Nodes (10): compressImage(), normalizeOfficeCategory(), loadAll(), onExpImage(), openStockAdd(), openStockEdit(), parseNum(), runExpenseOcr() (+2 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.3
@@ -85,16 +85,16 @@ Cohesion: 0.17
 Nodes (5): toAuthEmail(), getClient(), handleSubmit(), handleLogout(), createClient()
 
 ### Community 5 - "Community 5"
-Cohesion: 0.31
-Nodes (10): compressImage(), handleChange(), handleDelete(), handleImageFile(), handleSubmit(), loadData(), parseNum(), removePhoto() (+2 more)
+Cohesion: 0.22
+Nodes (9): applyCustom(), applyPreset(), escapeHtml(), eur(), exportVehiclesPdf(), exportWorkersPdf(), getPresetRange(), printReport() (+1 more)
 
 ### Community 6 - "Community 6"
-Cohesion: 0.25
-Nodes (9): applyToAll(), handleBulkSave(), handleDelete(), handleReportSave(), loadData(), openBulk(), setBulkHours(), toggleAll() (+1 more)
+Cohesion: 0.31
+Nodes (10): Select(), handleChange(), handleDelete(), handleImageFile(), handleSubmit(), loadData(), parseNum(), removePhoto() (+2 more)
 
 ### Community 7 - "Community 7"
-Cohesion: 0.27
-Nodes (9): applyCustom(), applyPreset(), escapeHtml(), eur(), exportVehiclesPdf(), exportWorkersPdf(), getPresetRange(), printReport() (+1 more)
+Cohesion: 0.25
+Nodes (9): applyToAll(), handleBulkSave(), handleDelete(), handleReportSave(), loadData(), openBulk(), setBulkHours(), toggleAll() (+1 more)
 
 ### Community 8 - "Community 8"
 Cohesion: 0.24
@@ -123,6 +123,6 @@ Nodes (4): getFileContents(), getJSON(), vfetch(), walk()
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `useAppRefreshVersion()` connect `Community 8` to `Community 0`, `Community 1`, `Community 2`, `Community 3`, `Community 4`, `Community 5`, `Community 6`, `Community 7`?**
-  _High betweenness centrality (0.374) - this node is a cross-community bridge._
+  _High betweenness centrality (0.371) - this node is a cross-community bridge._
 - **Why does `getClient()` connect `Community 4` to `Community 9`?**
-  _High betweenness centrality (0.065) - this node is a cross-community bridge._
+  _High betweenness centrality (0.064) - this node is a cross-community bridge._

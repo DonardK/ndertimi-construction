@@ -491,7 +491,7 @@ export default function EmployeesSection() {
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowForm(false)}
           />
-          <div className="relative bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-lg p-6">
+          <div className="relative bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-lg lg:max-w-xl p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-extrabold text-gray-900">
                 {editId !== null ? t.employees.editTitle : t.employees.addTitle}
@@ -620,7 +620,7 @@ export default function EmployeesSection() {
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => { setPaymentsEmployee(null); setShowPaymentForm(false); }}
           />
-          <div className="relative bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+          <div className="relative bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-lg lg:max-w-xl max-h-[90vh] flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 shrink-0">
               <div>

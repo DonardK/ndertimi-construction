@@ -15,8 +15,6 @@ import {
   Users as UsersIcon,
   CreditCard,
   Banknote,
-  ChevronDown,
-  Calendar,
   AlertCircle,
   FileDown,
   Euro,
@@ -28,23 +26,10 @@ import {
 import {
   startOfMonth,
   endOfMonth,
-  subMonths,
-  startOfYear,
-  endOfYear,
-  subYears,
   format,
   isWithinInterval,
   parseISO,
 } from "date-fns";
-
-type DatePreset =
-  | "thisMonth"
-  | "last3Months"
-  | "last6Months"
-  | "thisYear"
-  | "lastYear"
-  | "allTime"
-  | "custom";
 
 interface DateRange {
   from: string;
@@ -71,55 +56,20 @@ interface VehicleRow {
   total: number;
 }
 
-function getPresetRange(preset: DatePreset): DateRange {
-  const now = new Date();
-  switch (preset) {
-    case "thisMonth":
-      return {
-        from: format(startOfMonth(now), "yyyy-MM-dd"),
-        to: format(endOfMonth(now), "yyyy-MM-dd"),
-      };
-    case "last3Months":
-      return {
-        from: format(startOfMonth(subMonths(now, 2)), "yyyy-MM-dd"),
-        to: format(endOfMonth(now), "yyyy-MM-dd"),
-      };
-    case "last6Months":
-      return {
-        from: format(startOfMonth(subMonths(now, 5)), "yyyy-MM-dd"),
-        to: format(endOfMonth(now), "yyyy-MM-dd"),
-      };
-    case "thisYear":
-      return {
-        from: format(startOfYear(now), "yyyy-MM-dd"),
-        to: format(endOfYear(now), "yyyy-MM-dd"),
-      };
-    case "lastYear": {
-      const lastYear = subYears(now, 1);
-      return {
-        from: format(startOfYear(lastYear), "yyyy-MM-dd"),
-        to: format(endOfYear(lastYear), "yyyy-MM-dd"),
-      };
-    }
-    case "allTime":
-      return { from: "2000-01-01", to: "2099-12-31" };
-    default:
-      return {
-        from: format(startOfMonth(now), "yyyy-MM-dd"),
-        to: format(endOfMonth(now), "yyyy-MM-dd"),
-      };
-  }
+function getMonthRange(ym: string): DateRange {
+  const [year, month] = ym.split("-").map((n) => parseInt(n, 10));
+  const start = new Date(year, month - 1, 1);
+  return {
+    from: format(startOfMonth(start), "yyyy-MM-dd"),
+    to: format(endOfMonth(start), "yyyy-MM-dd"),
+  };
 }
 
-const presetLabels: Record<DatePreset, string> = {
-  thisMonth: t.dashboard.thisMonth,
-  last3Months: t.dashboard.last3Months,
-  last6Months: t.dashboard.last6Months,
-  thisYear: t.dashboard.thisYear,
-  lastYear: t.dashboard.lastYear,
-  allTime: t.dashboard.allTime,
-  custom: t.dashboard.custom,
-};
+function formatMonthLabel(ym: string): string {
+  const [year, month] = ym.split("-").map((n) => parseInt(n, 10));
+  const d = new Date(year, month - 1, 1);
+  return format(d, "MMMM yyyy");
+}
 
 function eur(n: number) {
   return `€${n.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -153,11 +103,8 @@ function StatCard({
 
 export default function DashboardPage() {
   const refreshVersion = useAppRefreshVersion();
-  const [preset, setPreset] = useState<DatePreset>("thisMonth");
-  const [dateRange, setDateRange] = useState<DateRange>(getPresetRange("thisMonth"));
-  const [showDateMenu, setShowDateMenu] = useState(false);
-  const [customFrom, setCustomFrom] = useState(dateRange.from);
-  const [customTo, setCustomTo] = useState(dateRange.to);
+  const [selectedMonth, setSelectedMonth] = useState(() => format(new Date(), "yyyy-MM"));
+  const dateRange = getMonthRange(selectedMonth);
   const [loading, setLoading] = useState(true);
 
   const [workerRows, setWorkerRows] = useState<WorkerRow[]>([]);
@@ -171,7 +118,6 @@ export default function DashboardPage() {
 
   // Reports state
   const [showReports, setShowReports] = useState(false);
-  const [reportsMonth, setReportsMonth] = useState(() => format(new Date(), "yyyy-MM"));
   const [reportsList, setReportsList] = useState<DailyReport[]>([]);
   const [reportsLoading, setReportsLoading] = useState(false);
   const [selectedReport, setSelectedReport] = useState<DailyReport | null>(null);
@@ -181,7 +127,6 @@ export default function DashboardPage() {
 
   const isInRange = useCallback(
     (dateStr: string) => {
-      if (preset === "allTime") return true;
       try {
         const d = parseISO(dateStr);
         return isWithinInterval(d, {
@@ -192,7 +137,7 @@ export default function DashboardPage() {
         return false;
       }
     },
-    [dateRange, preset]
+    [dateRange]
   );
 
   const loadStats = useCallback(async () => {
@@ -307,25 +252,7 @@ export default function DashboardPage() {
     loadStats();
   }, [loadStats, refreshVersion]);
 
-  const applyPreset = (p: DatePreset) => {
-    setPreset(p);
-    if (p !== "custom") setDateRange(getPresetRange(p));
-    setShowDateMenu(false);
-  };
-
-  const applyCustom = () => {
-    if (customFrom && customTo && customFrom <= customTo) {
-      setDateRange({ from: customFrom, to: customTo });
-      setShowDateMenu(false);
-    }
-  };
-
-  const periodLabel =
-    preset === "allTime"
-      ? t.dashboard.allTime
-      : preset === "custom"
-      ? `${format(parseISO(dateRange.from), "dd/MM/yy")} — ${format(parseISO(dateRange.to), "dd/MM/yy")}`
-      : `${format(parseISO(dateRange.from), "dd/MM/yy")} — ${format(parseISO(dateRange.to), "dd/MM/yy")}`;
+  const periodLabel = formatMonthLabel(selectedMonth);
 
   const exportWorkersPdf = async () => {
     const { default: jsPDF } = await import("jspdf");
@@ -525,14 +452,15 @@ export default function DashboardPage() {
   }, []);
 
   const openReports = () => {
+    setSelectedReport(null);
     setShowReports(true);
-    loadReports(reportsMonth);
   };
 
-  const changeReportsMonth = (ym: string) => {
-    setReportsMonth(ym);
-    loadReports(ym);
-  };
+  useEffect(() => {
+    if (showReports) {
+      loadReports(selectedMonth);
+    }
+  }, [showReports, selectedMonth, loadReports]);
 
   const escapeHtml = (s: string) =>
     s
@@ -588,80 +516,25 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="px-4 pt-6 pb-4">
+    <div className="px-4 pt-6 pb-4 lg:px-0">
       {/* Header */}
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-5 lg:mb-6">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900">{t.dashboard.title}</h1>
+          <h1 className="text-2xl lg:text-3xl font-extrabold text-gray-900">{t.dashboard.title}</h1>
           <p className="text-sm text-gray-500 mt-0.5">{periodLabel}</p>
         </div>
-        <div className="relative">
-          <button
-            onClick={() => setShowDateMenu(!showDateMenu)}
-            className="flex items-center gap-2 bg-white border-2 border-gray-200 rounded-xl px-3 h-11 font-semibold text-gray-700 hover:bg-gray-50 shadow-sm text-sm"
-          >
-            <Calendar className="w-4 h-4 text-blue-500" />
-            <span className="hidden sm:inline">{presetLabels[preset]}</span>
-            <ChevronDown className="w-4 h-4 text-gray-400" />
-          </button>
-
-          {showDateMenu && (
-            <div className="absolute right-0 top-12 bg-white rounded-2xl shadow-2xl border border-gray-100 z-30 w-64 overflow-hidden">
-              {(
-                [
-                  "thisMonth",
-                  "last3Months",
-                  "last6Months",
-                  "thisYear",
-                  "lastYear",
-                  "allTime",
-                ] as DatePreset[]
-              ).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => applyPreset(p)}
-                  className={`w-full text-left px-4 py-3 text-sm font-semibold transition-colors border-b border-gray-50
-                    ${preset === p ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"}`}
-                >
-                  {presetLabels[p]}
-                </button>
-              ))}
-              <div className="p-3">
-                <p className="text-xs font-bold text-gray-500 mb-2 uppercase">
-                  {t.dashboard.custom}
-                </p>
-                <div className="flex flex-col gap-2">
-                  <input
-                    type="date"
-                    value={customFrom}
-                    onChange={(e) => setCustomFrom(e.target.value)}
-                    className="w-full h-10 px-3 rounded-xl border-2 border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-blue-500"
-                  />
-                  <input
-                    type="date"
-                    value={customTo}
-                    onChange={(e) => setCustomTo(e.target.value)}
-                    className="w-full h-10 px-3 rounded-xl border-2 border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-blue-500"
-                  />
-                  <button
-                    onClick={() => {
-                      setPreset("custom");
-                      applyCustom();
-                    }}
-                    className="w-full h-10 bg-blue-600 text-white rounded-xl font-bold text-sm"
-                  >
-                    {t.dashboard.applyFilter}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+        <div className="w-full sm:w-auto sm:min-w-[220px]">
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+            {t.dashboard.selectMonth}
+          </label>
+          <input
+            type="month"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="w-full h-12 px-4 rounded-xl border-2 border-gray-300 text-base lg:text-lg font-medium text-gray-900 focus:outline-none focus:border-blue-500 bg-white"
+          />
         </div>
       </div>
-
-      {showDateMenu && (
-        <div className="fixed inset-0 z-20" onClick={() => setShowDateMenu(false)} />
-      )}
 
       {loading ? (
         <div className="flex justify-center py-20">
@@ -671,9 +544,9 @@ export default function DashboardPage() {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-5 lg:gap-6">
           {/* Summary cards */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
             <StatCard
               icon={<Fuel className="w-5 h-5 text-orange-600" />}
               label={t.dashboard.totalDieselCost}
@@ -700,6 +573,16 @@ export default function DashboardPage() {
             />
           </div>
 
+          {/* ── Raportet button ── */}
+          <button
+            onClick={openReports}
+            className="w-full sm:w-auto sm:self-start flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white font-bold h-14 px-8 rounded-2xl text-base transition-colors shadow-md"
+          >
+            <FileText className="w-5 h-5" />
+            {t.dashboard.reports}
+          </button>
+
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 lg:gap-6">
           {/* ── Workers table ── */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
@@ -871,15 +754,6 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* ── Raportet button ── */}
-          <button
-            onClick={openReports}
-            className="w-full flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white font-bold h-14 rounded-2xl text-base transition-colors shadow-md"
-          >
-            <FileText className="w-5 h-5" />
-            {t.dashboard.reports}
-          </button>
-
           {/* ── Vehicles / Nafta table ── */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
@@ -940,6 +814,7 @@ export default function DashboardPage() {
               </>
             )}
           </div>
+          </div>
         </div>
       )}
 
@@ -950,33 +825,24 @@ export default function DashboardPage() {
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowReports(false)}
           />
-          <div className="relative bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
+          <div className="relative bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-lg lg:max-w-xl max-h-[92vh] flex flex-col">
             <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 shrink-0">
-              <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-amber-600" />
-                {t.dashboard.reportsTitle}
-              </h2>
+              <div>
+                <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-amber-600" />
+                  {t.dashboard.reportsTitle}
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">{periodLabel}</p>
+              </div>
               <button
                 onClick={() => {
                   setShowReports(false);
                   setSelectedReport(null);
                 }}
-                className="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+                className="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center shrink-0"
               >
                 <X className="w-5 h-5 text-gray-600" />
               </button>
-            </div>
-
-            <div className="px-6 py-4 border-b border-gray-100 shrink-0">
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                {t.dashboard.selectMonth}
-              </label>
-              <input
-                type="month"
-                value={reportsMonth}
-                onChange={(e) => changeReportsMonth(e.target.value)}
-                className="w-full h-12 px-4 rounded-xl border-2 border-gray-300 text-lg font-medium text-gray-900 focus:outline-none focus:border-amber-500 bg-white"
-              />
             </div>
 
             {selectedReport ? (
