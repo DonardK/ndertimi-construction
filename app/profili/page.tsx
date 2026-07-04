@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useAppRefreshVersion } from "@/components/AppRefreshProvider";
+import { useState } from "react";
+import { useRole } from "@/components/RoleProvider";
 import { createClient } from "@/utils/supabase/client";
 import { t } from "@/lib/translations";
 import PageHeader from "@/components/PageHeader";
@@ -9,30 +9,8 @@ import { Loader2, LogOut } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function ProfiliPage() {
-  const refreshVersion = useAppRefreshVersion();
-  const [email, setEmail] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { email, role, loading } = useRole();
   const [signingOut, setSigningOut] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const supabase = createClient();
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!cancelled) setEmail(user?.email ?? null);
-      } catch {
-        if (!cancelled) toast.error(t.errors.loadError);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [refreshVersion]);
 
   const handleLogout = async () => {
     setSigningOut(true);
@@ -54,6 +32,9 @@ export default function ProfiliPage() {
     );
   }
 
+  const roleLabel =
+    role === "management" ? t.auth.roleManagement : t.auth.roleStaff;
+
   return (
     <div className="px-4 pt-6 pb-8">
       <PageHeader title={t.auth.profileTitle} />
@@ -65,6 +46,10 @@ export default function ProfiliPage() {
         <p className="text-base font-semibold text-gray-900 break-all">
           {email ?? "—"}
         </p>
+        <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mt-4 mb-1">
+          {t.auth.roleLabel}
+        </p>
+        <p className="text-base font-semibold text-gray-900">{roleLabel}</p>
         <button
           type="button"
           onClick={handleLogout}

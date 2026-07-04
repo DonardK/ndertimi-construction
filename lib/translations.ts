@@ -77,6 +77,9 @@ export const t = {
     logoutError: "Dështoi dalja. Provoni përsëri.",
     profileTitle: "Profili",
     loggedInAs: "I kyçur si",
+    roleLabel: "Roli",
+    roleManagement: "Menaxhment",
+    roleStaff: "Staf",
   },
 
   common: {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAppRefreshVersion } from "@/components/AppRefreshProvider";
+import { useRole } from "@/components/RoleProvider";
 import { db, type Employee, type WorkerPayment } from "@/lib/db";
 import { t } from "@/lib/translations";
 import { FormField, Input } from "@/components/FormField";
@@ -75,6 +76,7 @@ const emptyPaymentForm: PaymentFormData = {
 
 export default function EmployeesSection() {
   const refreshVersion = useAppRefreshVersion();
+  const { canViewFinancials } = useRole();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -117,10 +119,12 @@ export default function EmployeesSection() {
     if (!form.emri.trim()) newErrors.emri = t.errors.requiredField;
     if (!form.mbiemri.trim()) newErrors.mbiemri = t.errors.requiredField;
     const rate = parseNum(form.cmimiOre);
-    if (!form.cmimiOre.trim()) {
-      newErrors.cmimiOre = t.errors.requiredField;
-    } else if (isNaN(rate) || rate < 0) {
-      newErrors.cmimiOre = t.errors.invalidNumber;
+    if (canViewFinancials) {
+      if (!form.cmimiOre.trim()) {
+        newErrors.cmimiOre = t.errors.requiredField;
+      } else if (isNaN(rate) || rate < 0) {
+        newErrors.cmimiOre = t.errors.invalidNumber;
+      }
     }
     if (form.paymentMethod === "Bankë") {
       if (!form.emriBankes.trim()) newErrors.emriBankes = t.errors.requiredField;
@@ -140,20 +144,23 @@ export default function EmployeesSection() {
           : { emriBankes: "", llogariaBankes: "" };
 
       if (editId !== null) {
-        await db.employees.update(editId, {
+        const updates: Parameters<typeof db.employees.update>[1] = {
           emri: form.emri.trim(),
           mbiemri: form.mbiemri.trim(),
           paymentMethod: form.paymentMethod,
-          cmimiOre: parseNum(form.cmimiOre),
           ...bankPayload,
-        });
+        };
+        if (canViewFinancials) {
+          updates.cmimiOre = parseNum(form.cmimiOre);
+        }
+        await db.employees.update(editId, updates);
         toast.success(t.success.updated);
       } else {
         await db.employees.add({
           emri: form.emri.trim(),
           mbiemri: form.mbiemri.trim(),
           paymentMethod: form.paymentMethod,
-          cmimiOre: parseNum(form.cmimiOre),
+          cmimiOre: canViewFinancials ? parseNum(form.cmimiOre) : 0,
           ...bankPayload,
         });
         toast.success(t.success.saved);
@@ -368,10 +375,12 @@ export default function EmployeesSection() {
               )}
               {emp.paymentMethod}
             </span>
-            <span className="flex items-center gap-1 text-xs font-semibold text-gray-600 bg-gray-100 px-2.5 py-0.5 rounded-full">
-              <Euro className="w-3 h-3" />
-              {emp.cmimiOre.toFixed(2)}/orë
-            </span>
+            {canViewFinancials && (
+              <span className="flex items-center gap-1 text-xs font-semibold text-gray-600 bg-gray-100 px-2.5 py-0.5 rounded-full">
+                <Euro className="w-3 h-3" />
+                {emp.cmimiOre.toFixed(2)}/orë
+              </span>
+            )}
             {emp.paymentMethod === "Bankë" &&
               (emp.emriBankes || emp.llogariaBankes) && (
                 <span className="block w-full text-xs text-gray-500 mt-1 truncate">
@@ -393,13 +402,15 @@ export default function EmployeesSection() {
             </button>
           ) : (
             <>
-              <button
-                onClick={() => openPayments(emp)}
-                className="w-11 h-11 rounded-xl bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 text-emerald-600 flex items-center justify-center transition-colors"
-                aria-label={t.employees.payments}
-              >
-                <Wallet className="w-5 h-5" />
-              </button>
+              {canViewFinancials && (
+                <button
+                  onClick={() => openPayments(emp)}
+                  className="w-11 h-11 rounded-xl bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 text-emerald-600 flex items-center justify-center transition-colors"
+                  aria-label={t.employees.payments}
+                >
+                  <Wallet className="w-5 h-5" />
+                </button>
+              )}
               <button
                 onClick={() => handleEdit(emp)}
                 className="w-11 h-11 rounded-xl bg-amber-50 hover:bg-amber-100 active:bg-amber-200 text-amber-600 flex items-center justify-center transition-colors"
@@ -576,22 +587,24 @@ export default function EmployeesSection() {
                 </>
               )}
 
-              <FormField label={t.employees.cmimiOre} error={errors.cmimiOre} required>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-lg">
-                    €
-                  </span>
-                  <Input
-                    type="text"
-                    inputMode="decimal"
-                    value={form.cmimiOre}
-                    onChange={handleChange("cmimiOre")}
-                    placeholder={t.employees.cmimiOrePlaceholder}
-                    error={!!errors.cmimiOre}
-                    className="pl-8"
-                  />
-                </div>
-              </FormField>
+              {canViewFinancials && (
+                <FormField label={t.employees.cmimiOre} error={errors.cmimiOre} required>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-lg">
+                      €
+                    </span>
+                    <Input
+                      type="text"
+                      inputMode="decimal"
+                      value={form.cmimiOre}
+                      onChange={handleChange("cmimiOre")}
+                      placeholder={t.employees.cmimiOrePlaceholder}
+                      error={!!errors.cmimiOre}
+                      className="pl-8"
+                    />
+                  </div>
+                </FormField>
+              )}
 
               <div className="flex gap-3 mt-2">
                 <button
@@ -614,7 +627,7 @@ export default function EmployeesSection() {
       )}
 
       {/* ── PAYMENTS MODAL ── */}
-      {paymentsEmployee && (
+      {canViewFinancials && paymentsEmployee && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"

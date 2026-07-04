@@ -3,6 +3,7 @@ import "./globals.css";
 import BottomNav from "@/components/BottomNav";
 import AppShell from "@/components/AppShell";
 import AppRefreshProvider from "@/components/AppRefreshProvider";
+import RoleProvider from "@/components/RoleProvider";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import { Toaster } from "react-hot-toast";
 import { t } from "@/lib/translations";
@@ -48,10 +49,12 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-slate-50">
         <ServiceWorkerRegistration />
-        <AppRefreshProvider>
-          <AppShell>{children}</AppShell>
-          <BottomNav />
-        </AppRefreshProvider>
+        <RoleProvider>
+          <AppRefreshProvider>
+            <AppShell>{children}</AppShell>
+            <BottomNav />
+          </AppRefreshProvider>
+        </RoleProvider>
         <Toaster
           position="top-center"
           toastOptions={{

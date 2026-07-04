@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAppRefreshVersion } from "@/components/AppRefreshProvider";
+import { useRole } from "@/components/RoleProvider";
 import {
   db,
   type Employee,
@@ -50,6 +51,7 @@ const today = new Date().toISOString().split("T")[0];
 
 export default function AttendanceSection() {
   const refreshVersion = useAppRefreshVersion();
+  const { canViewFinancials } = useRole();
   const [records, setRecords] = useState<Attendance[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -370,7 +372,7 @@ export default function AttendanceSection() {
                       <MapPin className="w-3 h-3" />
                       {rec.location}
                     </span>
-                    {earned && (
+                    {canViewFinancials && earned && (
                       <span className="text-xs font-semibold text-gray-500">
                         €{earned}
                       </span>

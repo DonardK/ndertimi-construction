@@ -11,7 +11,9 @@ import {
   UserCircle,
 } from "lucide-react";
 import { useAppRefreshVersion } from "@/components/AppRefreshProvider";
+import { useRole } from "@/components/RoleProvider";
 import { db } from "@/lib/db";
+import { navHrefAllowedForRole } from "@/lib/roles";
 import { countExpiredRegistrations } from "@/lib/vehicleRegistration";
 import { t } from "@/lib/translations";
 
@@ -112,9 +114,17 @@ function NavLink({
 export default function BottomNav() {
   const pathname = usePathname();
   const refreshVersion = useAppRefreshVersion();
+  const { role, isManagement } = useRole();
   const [expiredRegistrationCount, setExpiredRegistrationCount] = useState(0);
 
+  const visibleNavItems =
+    role === null
+      ? navItems
+      : navItems.filter((item) => navHrefAllowedForRole(item.href, role));
+
   useEffect(() => {
+    if (!isManagement) return;
+
     let cancelled = false;
 
     const updateCount = async () => {
@@ -134,7 +144,7 @@ export default function BottomNav() {
       cancelled = true;
       window.removeEventListener("vehicles:updated", updateCount);
     };
-  }, [refreshVersion]);
+  }, [refreshVersion, isManagement]);
 
   if (pathname === "/login") {
     return null;
@@ -148,7 +158,7 @@ export default function BottomNav() {
           <p className="text-xs text-gray-500 mt-0.5 truncate">{t.appName}</p>
         </div>
         <div className="flex-1 flex flex-col gap-1 p-3 overflow-y-auto">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const badgeCount =
               "badgeKey" in item && item.badgeKey === "vehicles"
                 ? expiredRegistrationCount
@@ -170,7 +180,7 @@ export default function BottomNav() {
 
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t-2 border-gray-200 shadow-lg">
         <div className="flex items-stretch max-w-lg mx-auto">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const badgeCount =
               "badgeKey" in item && item.badgeKey === "vehicles"
                 ? expiredRegistrationCount

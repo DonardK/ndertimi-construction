@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAppRefreshVersion } from "@/components/AppRefreshProvider";
+import { useRole } from "@/components/RoleProvider";
 import {
   db,
   type DailyReport,
@@ -103,6 +104,7 @@ function StatCard({
 
 export default function DashboardPage() {
   const refreshVersion = useAppRefreshVersion();
+  const { canViewFinancials, loading: roleLoading } = useRole();
   const [selectedMonth, setSelectedMonth] = useState(() => format(new Date(), "yyyy-MM"));
   // Memoized: a fresh object each render would recreate isInRange/loadStats
   // and re-trigger the data-loading effect in an infinite loop.
@@ -142,6 +144,10 @@ export default function DashboardPage() {
   );
 
   const loadStats = useCallback(async () => {
+    if (!canViewFinancials) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const [dieselRecs, attRecs, emps, allPayments] = await Promise.all([
@@ -246,13 +252,15 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [isInRange]);
+  }, [isInRange, canViewFinancials]);
 
   useEffect(() => {
+    if (roleLoading) return;
     loadStats();
-  }, [loadStats, refreshVersion]);
+  }, [loadStats, refreshVersion, roleLoading]);
 
   const periodLabel = formatMonthLabel(selectedMonth);
+  const pageLoading = roleLoading || (canViewFinancials && loading);
 
   const exportWorkersPdf = async () => {
     const { default: jsPDF } = await import("jspdf");
@@ -453,10 +461,10 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    if (showReports) {
+    if (showReports || !canViewFinancials) {
       loadReports(selectedMonth);
     }
-  }, [showReports, selectedMonth, loadReports]);
+  }, [showReports, selectedMonth, loadReports, canViewFinancials, refreshVersion]);
 
   const escapeHtml = (s: string) =>
     s
@@ -535,11 +543,60 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {loading ? (
+      {pageLoading ? (
         <div className="flex justify-center py-20">
           <div className="flex flex-col items-center gap-3">
             <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
             <span className="text-gray-500 font-medium">{t.common.loading}</span>
+          </div>
+        </div>
+      ) : !canViewFinancials ? (
+        <div className="flex flex-col gap-5">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-100">
+              <h2 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-amber-600" />
+                {t.dashboard.reportsTitle}
+              </h2>
+            </div>
+            {reportsLoading ? (
+              <div className="flex justify-center py-12">
+                <div className="w-8 h-8 border-4 border-amber-600 border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : reportsList.length === 0 ? (
+              <div className="flex flex-col items-center justify-center gap-2 py-12 text-gray-400">
+                <AlertCircle className="w-8 h-8" />
+                <span className="text-sm">{t.dashboard.noReports}</span>
+              </div>
+            ) : (
+              <ul>
+                {reportsList.map((r) => (
+                  <li key={r.id ?? r.date}>
+                    <button
+                      onClick={() => {
+                        setSelectedReport(r);
+                        setShowReports(true);
+                      }}
+                      className="w-full flex items-center gap-3 px-6 py-3 border-b border-gray-100 hover:bg-amber-50 transition-colors text-left"
+                    >
+                      <div className="w-14 shrink-0 text-center">
+                        <p className="text-xs font-bold text-amber-700 uppercase">
+                          {format(parseISO(r.date), "MMM")}
+                        </p>
+                        <p className="text-xl font-extrabold text-gray-900 leading-none">
+                          {format(parseISO(r.date), "dd")}
+                        </p>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-gray-900 truncate">{r.title}</p>
+                        <p className="text-xs text-gray-500 truncate">{r.content}</p>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-gray-400 shrink-0" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       ) : (
