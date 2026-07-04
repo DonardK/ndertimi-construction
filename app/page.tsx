@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAppRefreshVersion } from "@/components/AppRefreshProvider";
 import {
   db,
-  type Employee,
   type DailyReport,
   WORK_LOCATION_LABELS,
   type WorkLocation,
 } from "@/lib/db";
 import { t } from "@/lib/translations";
+import toast from "react-hot-toast";
 import {
   Fuel,
   Users as UsersIcon,
@@ -104,7 +104,9 @@ function StatCard({
 export default function DashboardPage() {
   const refreshVersion = useAppRefreshVersion();
   const [selectedMonth, setSelectedMonth] = useState(() => format(new Date(), "yyyy-MM"));
-  const dateRange = getMonthRange(selectedMonth);
+  // Memoized: a fresh object each render would recreate isInRange/loadStats
+  // and re-trigger the data-loading effect in an infinite loop.
+  const dateRange = useMemo(() => getMonthRange(selectedMonth), [selectedMonth]);
   const [loading, setLoading] = useState(true);
 
   const [workerRows, setWorkerRows] = useState<WorkerRow[]>([]);
@@ -114,7 +116,6 @@ export default function DashboardPage() {
   const [workerCount, setWorkerCount] = useState(0);
   const [totalCashEur, setTotalCashEur] = useState(0);
   const [totalBankEur, setTotalBankEur] = useState(0);
-  const [employees, setEmployees] = useState<Employee[]>([]);
 
   // Reports state
   const [showReports, setShowReports] = useState(false);
@@ -149,7 +150,6 @@ export default function DashboardPage() {
         db.employees.getAll(),
         db.workerPayments.getAll(),
       ]);
-      setEmployees(emps);
 
       const filteredDiesel = dieselRecs.filter((r) => isInRange(r.date));
       const filteredAtt = attRecs.filter((r) => isInRange(r.date));
@@ -242,7 +242,7 @@ export default function DashboardPage() {
       setVehicleRows(vRows);
       setTotalDiesel(filteredDiesel.reduce((s, r) => s + r.totalPrice, 0));
     } catch {
-      // silently handle
+      toast.error(t.errors.loadError);
     } finally {
       setLoading(false);
     }
@@ -407,10 +407,6 @@ export default function DashboardPage() {
     doc.save(`nafta-${dateRange.from}-${dateRange.to}.pdf`);
   };
 
-  // suppress unused import
-  void employees;
-  void totalHours;
-
   // ── Reports ──
   const loadReports = useCallback(async (ym: string) => {
     if (!ym) return;
@@ -530,7 +526,10 @@ export default function DashboardPage() {
           <input
             type="month"
             value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
+            onChange={(e) => {
+              // Clearing the picker emits "" — would crash month parsing.
+              if (e.target.value) setSelectedMonth(e.target.value);
+            }}
             className="w-full h-12 px-4 rounded-xl border-2 border-gray-300 text-base lg:text-lg font-medium text-gray-900 focus:outline-none focus:border-blue-500 bg-white"
           />
         </div>
