@@ -250,7 +250,7 @@ export default function AttendanceSection() {
     setPendingSelected(selected);
     setReportError(null);
     try {
-      const existing = await db.dailyReports.getByDate(bulkDate);
+      const existing = await db.dailyReports.getByDate(bulkDate, selectedCompany);
       setReportTitle(existing?.title ?? "");
       setReportContent(existing?.content ?? "");
     } catch {
@@ -274,6 +274,7 @@ export default function AttendanceSection() {
         date: bulkDate,
         title: reportTitle.trim(),
         content: reportContent.trim(),
+        company: selectedCompany,
       });
       await db.attendance.addBatch(
         pendingSelected.map((r) => ({

@@ -1,16 +1,16 @@
 # Graph Report - ndertimi-construction  (2026-07-08)
 
 ## Corpus Check
-- 95 files · ~52,028 words
+- 96 files · ~52,110 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 245 nodes · 385 edges · 44 communities (36 shown, 8 thin omitted)
+- 246 nodes · 387 edges · 45 communities (36 shown, 9 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 8 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `5496f923`
+- Built from commit: `ef5e3151`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -37,6 +37,7 @@
 - [[_COMMUNITY_Community 19|Community 19]]
 - [[_COMMUNITY_Community 20|Community 20]]
 - [[_COMMUNITY_Community 21|Community 21]]
+- [[_COMMUNITY_Community 22|Community 22]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `useAppRefreshVersion()` - 10 edges
@@ -62,31 +63,31 @@
 - `ConfirmDialog()` --calls--> `useBodyScrollLock()`  [INFERRED]
   vercel-recovery/2K6b37HEZ/src/components/ConfirmDialog.tsx → lib/useBodyScrollLock.ts
 
-## Communities (44 total, 8 thin omitted)
+## Communities (45 total, 9 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.12
 Nodes (13): toAuthEmail(), mapAttendance(), mapDiesel(), mapEmployee(), mapOfficeExpense(), mapPayment(), mapStockItem(), mapVehicle() (+5 more)
 
 ### Community 1 - "Community 1"
-Cohesion: 0.14
-Nodes (11): applyCustom(), applyPreset(), escapeHtml(), eur(), exportVehiclesPdf(), exportWorkersPdf(), getPresetRange(), printReport() (+3 more)
-
-### Community 2 - "Community 2"
 Cohesion: 0.19
 Nodes (11): applyToAll(), buildBulkRows(), existingEmployeeIdsForDate(), handleBulkSave(), handleDelete(), handleReportSave(), loadData(), openBulk() (+3 more)
 
-### Community 3 - "Community 3"
+### Community 2 - "Community 2"
 Cohesion: 0.25
 Nodes (16): handleAddPayment(), handleArchive(), handleChange(), handleDelete(), handleDeletePayment(), handleEdit(), handleOpenAdd(), handlePaymentFieldChange() (+8 more)
 
+### Community 3 - "Community 3"
+Cohesion: 0.19
+Nodes (10): applyCustom(), applyPreset(), escapeHtml(), eur(), exportVehiclesPdf(), exportWorkersPdf(), getPresetRange(), printReport() (+2 more)
+
 ### Community 4 - "Community 4"
-Cohesion: 0.24
-Nodes (10): compressImage(), normalizeOfficeCategory(), loadAll(), onExpImage(), openStockAdd(), openStockEdit(), parseNum(), runExpenseOcr() (+2 more)
+Cohesion: 0.17
+Nodes (11): useAppRefreshVersion(), BottomNav(), updateCount(), useRole(), canViewFinancials(), getRoleFromEmail(), isStaffBlockedPath(), navHrefAllowedForRole() (+3 more)
 
 ### Community 5 - "Community 5"
-Cohesion: 0.18
-Nodes (10): BottomNav(), updateCount(), useRole(), canViewFinancials(), getRoleFromEmail(), isStaffBlockedPath(), navHrefAllowedForRole(), normalizeEmail() (+2 more)
+Cohesion: 0.24
+Nodes (10): compressImage(), normalizeOfficeCategory(), loadAll(), onExpImage(), openStockAdd(), openStockEdit(), parseNum(), runExpenseOcr() (+2 more)
 
 ### Community 6 - "Community 6"
 Cohesion: 0.3
@@ -101,8 +102,8 @@ Cohesion: 0.31
 Nodes (10): Select(), handleChange(), handleDelete(), handleImageFile(), handleSubmit(), loadData(), parseNum(), removePhoto() (+2 more)
 
 ### Community 9 - "Community 9"
-Cohesion: 0.24
-Nodes (7): useAppRefreshVersion(), buildAttendanceMatrix(), companyPdfLabel(), companySlug(), exportAttendanceMatrixPdf(), parseYearMonth(), handleExportAttendance()
+Cohesion: 0.27
+Nodes (6): buildAttendanceMatrix(), companyPdfLabel(), companySlug(), exportAttendanceMatrixPdf(), parseYearMonth(), handleExportAttendance()
 
 ### Community 10 - "Community 10"
 Cohesion: 0.5
@@ -116,23 +117,21 @@ Nodes (5): getSupabaseAnonKey(), getSupabaseUrl(), isSupabaseConfigured(), requi
 Cohesion: 0.73
 Nodes (4): maxTokensForMode(), POST(), promptForMode(), technicalDetail()
 
-### Community 13 - "Community 13"
+### Community 14 - "Community 14"
 Cohesion: 0.7
 Nodes (4): getFileContents(), getJSON(), vfetch(), walk()
 
 ## Knowledge Gaps
-- **8 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **9 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `useAppRefreshVersion()` connect `Community 9` to `Community 1`, `Community 2`, `Community 3`, `Community 4`, `Community 5`, `Community 6`, `Community 7`, `Community 8`, `Community 10`?**
+- **Why does `useAppRefreshVersion()` connect `Community 4` to `Community 1`, `Community 2`, `Community 3`, `Community 5`, `Community 6`, `Community 7`, `Community 8`, `Community 9`, `Community 10`?**
   _High betweenness centrality (0.264) - this node is a cross-community bridge._
-- **Why does `createClient()` connect `Community 0` to `Community 9`, `Community 5`?**
+- **Why does `createClient()` connect `Community 0` to `Community 9`, `Community 4`?**
   _High betweenness centrality (0.126) - this node is a cross-community bridge._
-- **Why does `useBodyScrollLock()` connect `Community 1` to `Community 2`, `Community 3`, `Community 4`, `Community 6`, `Community 7`, `Community 8`?**
-  _High betweenness centrality (0.103) - this node is a cross-community bridge._
+- **Why does `useBodyScrollLock()` connect `Community 13` to `Community 1`, `Community 2`, `Community 3`, `Community 5`, `Community 6`, `Community 7`, `Community 8`?**
+  _High betweenness centrality (0.104) - this node is a cross-community bridge._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.12 - nodes in this community are weakly interconnected._
-- **Should `Community 1` be split into smaller, more focused modules?**
-  _Cohesion score 0.14 - nodes in this community are weakly interconnected._

@@ -47,6 +47,7 @@ export interface DailyReport {
   date: string;
   title: string;
   content: string;
+  company: Company;
   createdAt?: string;
 }
 
@@ -162,6 +163,7 @@ function mapDailyReport(row: any): DailyReport {
     date: row.date,
     title: row.title,
     content: row.content,
+    company: (row.company as Company) ?? DEFAULT_COMPANY,
     createdAt: row.created_at,
   };
 }
@@ -394,11 +396,12 @@ export const db = {
       return (data ?? []).map(mapDailyReport);
     },
 
-    async getByDate(date: string): Promise<DailyReport | null> {
+    async getByDate(date: string, company: Company): Promise<DailyReport | null> {
       const { data, error } = await getClient()
         .from("daily_reports")
         .select("*")
         .eq("date", date)
+        .eq("company", company)
         .maybeSingle();
       if (error) throw error;
       return data ? mapDailyReport(data) : null;
@@ -408,8 +411,8 @@ export const db = {
       const { error } = await getClient()
         .from("daily_reports")
         .upsert(
-          { date: r.date, title: r.title, content: r.content },
-          { onConflict: "date" }
+          { date: r.date, title: r.title, content: r.content, company: r.company },
+          { onConflict: "date,company" }
         );
       if (error) throw error;
     },

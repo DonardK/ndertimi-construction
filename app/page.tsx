@@ -74,6 +74,10 @@ function matchesCompanyFilter(company: Company, filter: CompanyFilter): boolean 
   return filter === "all" || company === filter;
 }
 
+function reportBreakdownKey(date: string, company: Company): string {
+  return `${date}|${company}`;
+}
+
 function getMonthRange(ym: string): DateRange {
   const [year, month] = ym.split("-").map((n) => parseInt(n, 10));
   const start = new Date(year, month - 1, 1);
@@ -460,7 +464,10 @@ export default function DashboardPage() {
         db.dailyReports.getByMonth(year, month),
         db.attendance.getAll(),
       ]);
-      setReportsList(reports);
+      const filteredReports = reports.filter((r) =>
+        matchesCompanyFilter(r.company, companyFilter)
+      );
+      setReportsList(filteredReports);
 
       const mm = String(month).padStart(2, "0");
       const monthPrefix = `${year}-${mm}-`;
@@ -472,8 +479,9 @@ export default function DashboardPage() {
             matchesCompanyFilter(a.company, companyFilter)
         )
         .forEach((a) => {
-          if (!breakdown[a.date]) breakdown[a.date] = [];
-          const rows = breakdown[a.date];
+          const key = reportBreakdownKey(a.date, a.company);
+          if (!breakdown[key]) breakdown[key] = [];
+          const rows = breakdown[key];
           const existing = rows.find(
             (r) =>
               r.employeeId === a.employeeId &&
@@ -530,17 +538,13 @@ export default function DashboardPage() {
       .replace(/"/g, "&quot;");
 
   const printReport = (r: DailyReport) => {
-    const workers = reportLocations[r.date] ?? [];
+    const workers =
+      reportLocations[reportBreakdownKey(r.date, r.company)] ?? [];
     const dateLabel = format(parseISO(r.date), "dd/MM/yyyy");
-    const showCompanyCol = selectedCompanyFilter === "all";
     const rows = workers
       .map(
         (w) =>
-          `<tr><td>${escapeHtml(w.name)}</td>${
-            showCompanyCol
-              ? `<td style="text-align:center">${escapeHtml(w.company)}</td>`
-              : ""
-          }<td style="text-align:center">${
+          `<tr><td>${escapeHtml(w.name)}</td><td style="text-align:center">${
             w.location
           } — ${escapeHtml(WORK_LOCATION_LABELS[w.location])}</td><td style="text-align:right">${
             w.hours
@@ -548,9 +552,7 @@ export default function DashboardPage() {
       )
       .join("");
     const totalH = workers.reduce((s, w) => s + w.hours, 0);
-    const companyMeta = companyLabel
-      ? `<div class="meta">Kompania: <b>${escapeHtml(companyLabel)}</b></div>`
-      : "";
+    const companyMeta = `<div class="meta">Kompania: <b>${escapeHtml(r.company)}</b></div>`;
     const html = `<!doctype html>
 <html lang="sq"><head><meta charset="utf-8"><title>Raport ${escapeHtml(r.title)} — ${dateLabel}</title>
 <style>
@@ -572,11 +574,9 @@ export default function DashboardPage() {
   <div class="content">${escapeHtml(r.content)}</div>
   <h2>Punonjësit (${workers.length})</h2>
   <table>
-    <thead><tr><th>Punonjësi</th>${
-      showCompanyCol ? `<th style="text-align:center">Kompania</th>` : ""
-    }<th style="text-align:center">Vendi</th><th style="text-align:right">Orët</th></tr></thead>
-    <tbody>${rows || `<tr><td colspan="${showCompanyCol ? 4 : 3}" style="text-align:center;color:#888">—</td></tr>`}</tbody>
-    <tfoot><tr><td colspan="${showCompanyCol ? 3 : 2}">Totali</td><td style="text-align:right">${totalH} orë</td></tr></tfoot>
+    <thead><tr><th>Punonjësi</th><th style="text-align:center">Vendi</th><th style="text-align:right">Orët</th></tr></thead>
+    <tbody>${rows || `<tr><td colspan="3" style="text-align:center;color:#888">—</td></tr>`}</tbody>
+    <tfoot><tr><td colspan="2">Totali</td><td style="text-align:right">${totalH} orë</td></tr></tfoot>
   </table>
   <script>window.onload=()=>{window.print();}</script>
 </body></html>`;
@@ -1021,9 +1021,14 @@ export default function DashboardPage() {
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">
                     {format(parseISO(selectedReport.date), "dd/MM/yyyy")}
                   </p>
-                  <h3 className="text-lg font-extrabold text-gray-900 mt-1">
-                    {selectedReport.title}
-                  </h3>
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                    <h3 className="text-lg font-extrabold text-gray-900">
+                      {selectedReport.title}
+                    </h3>
+                    <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-violet-100 text-violet-700">
+                      {selectedReport.company}
+                    </span>
+                  </div>
                   <div className="mt-3 bg-gray-50 rounded-xl p-3 border border-gray-200 whitespace-pre-wrap text-sm text-gray-800 leading-relaxed">
                     {selectedReport.content}
                   </div>
@@ -1031,36 +1036,34 @@ export default function DashboardPage() {
                   <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide mt-5 mb-2">
                     Punonjësit
                   </h4>
-                  {(reportLocations[selectedReport.date] ?? []).length === 0 ? (
+                  {(reportLocations[
+                    reportBreakdownKey(
+                      selectedReport.date,
+                      selectedReport.company
+                    )
+                  ] ?? []).length === 0 ? (
                     <p className="text-sm text-gray-400 italic">—</p>
                   ) : (
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
                           <th className="text-left px-2 py-2 font-semibold">Emri</th>
-                          {selectedCompanyFilter === "all" && (
-                            <th className="text-center px-2 py-2 font-semibold">
-                              {t.dashboard.filterCompany}
-                            </th>
-                          )}
                           <th className="text-center px-2 py-2 font-semibold">{t.dashboard.locationCol}</th>
                           <th className="text-right px-2 py-2 font-semibold">Orë</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {(reportLocations[selectedReport.date] ?? []).map((w) => (
+                        {(reportLocations[
+                          reportBreakdownKey(
+                            selectedReport.date,
+                            selectedReport.company
+                          )
+                        ] ?? []).map((w) => (
                           <tr
                             key={`${w.employeeId}-${w.location}-${w.company}`}
                             className="border-t border-gray-100"
                           >
                             <td className="px-2 py-2 font-semibold text-gray-900">{w.name}</td>
-                            {selectedCompanyFilter === "all" && (
-                              <td className="px-2 py-2 text-center">
-                                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-violet-100 text-violet-700">
-                                  {w.company}
-                                </span>
-                              </td>
-                            )}
                             <td className="px-2 py-2 text-center">
                               <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
                                 {w.location}
@@ -1090,7 +1093,7 @@ export default function DashboardPage() {
                 ) : (
                   <ul>
                     {reportsList.map((r) => (
-                      <li key={r.id ?? r.date}>
+                      <li key={r.id ?? `${r.date}-${r.company}`}>
                         <button
                           onClick={() => setSelectedReport(r)}
                           className="w-full flex items-center gap-3 px-6 py-3 border-b border-gray-100 hover:bg-amber-50 transition-colors text-left"
@@ -1110,6 +1113,9 @@ export default function DashboardPage() {
                             <p className="text-xs text-gray-500 truncate">
                               {r.content}
                             </p>
+                            <span className="inline-block mt-1 text-xs font-bold px-2 py-0.5 rounded-full bg-violet-100 text-violet-700">
+                              {r.company}
+                            </span>
                           </div>
                           <ChevronRight className="w-5 h-5 text-gray-400 shrink-0" />
                         </button>

@@ -24,8 +24,8 @@
     "hash": "8c1d45ac644a1bfbfcdc4cbfa04d33e1"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\app\\page.tsx": {
-    "mtime": 1783496898.4449787,
-    "hash": "89dba0cfa7f04bbac7449d1c18f96890"
+    "mtime": 1783498273.1572793,
+    "hash": "b80a333780a8f30215d56871a1828bef"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\app\\api\\ocr\\route.ts": {
     "mtime": 1779365601.0441883,
@@ -104,8 +104,8 @@
     "hash": "4ab5b69af4d2576320adf2e048fbd047"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\sections\\AttendanceSection.tsx": {
-    "mtime": 1783496831.20464,
-    "hash": "96f0da1b547ffa096495557025581b9d"
+    "mtime": 1783498230.4085517,
+    "hash": "9faf15876569ab2b0bef6af25eecbfda"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\components\\sections\\DieselSection.tsx": {
     "mtime": 1783496869.1003628,
@@ -132,8 +132,8 @@
     "hash": "aa72165a607538d218091602ff67293c"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\lib\\db.ts": {
-    "mtime": 1783496797.5172825,
-    "hash": "40ad1e3cbed558f68b26dfaa4c962dde"
+    "mtime": 1783498226.8702364,
+    "hash": "b18d91be89253eb3521bcb8bbce0e202"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\lib\\imageCompress.ts": {
     "mtime": 1779365601.0664618,
@@ -200,12 +200,16 @@
     "hash": "125e7d6d6e8aa5149f2a7e8d0b2a5990"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\supabase\\migrations\\006_role_based_rls.sql": {
-    "mtime": 1783495346.4320233,
+    "mtime": 1783497370.1994708,
     "hash": "63282bed6fbe659dc16d3cb26210bc8d"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\supabase\\migrations\\007_attendance_company.sql": {
     "mtime": 1783496434.6729858,
     "hash": "b94bd5ee148902f59473c399a1df32e4"
+  },
+  "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\supabase\\migrations\\008_daily_reports_company.sql": {
+    "mtime": 1783498219.0223553,
+    "hash": "71a9655d1c4b779aff43bb029366377e"
   },
   "C:\\Users\\donar\\Documents\\DesktopFolder\\CursorPrograms\\ndertimi-construction\\supabase\\migrations\\20250324_feature_tables.sql": {
     "mtime": 1779365601.0737336,
