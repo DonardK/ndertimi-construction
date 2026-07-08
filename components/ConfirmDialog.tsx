@@ -1,6 +1,7 @@
 "use client";
 
 import { t } from "@/lib/translations";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import { AlertTriangle } from "lucide-react";
 
 interface ConfirmDialogProps {
@@ -22,10 +23,15 @@ export default function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  useBodyScrollLock(open);
+
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      data-no-pull-refresh
+    >
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onCancel}

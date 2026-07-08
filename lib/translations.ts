@@ -65,6 +65,19 @@ export const t = {
     deleteExpenseConfirm: "A doni ta fshini këtë shpenzim?",
   },
 
+  profile: {
+    exportAttendanceTitle: "Eksporto Pjesëmarrjen",
+    selectMonth: "Zgjidh muajin",
+    filterCompany: "Kompania",
+    allCompanies: "Të gjitha",
+    exportButton: "Eksporto PDF",
+    noAttendanceData: "Nuk ka pjesëmarrje për këtë periudhë.",
+    workerColumn: "Punonjësi",
+    totalColumn: "Total",
+    pdfTitle: "Pjesëmarrja",
+    allCompaniesLabel: "Të gjitha kompanitë",
+  },
+
   auth: {
     loginTitle: "Hyni për të vazhduar",
     usernameLabel: "Përdoruesi",
@@ -186,6 +199,9 @@ export const t = {
     noEmployeesWarning: "Duhet të shtoni punonjës para se të regjistroni pjesëmarrje.",
     goToEmployees: "Shko te Punonjësit",
     autoPayment: "Pagesa sipas profilit të punonjësit",
+    company: "Kompania",
+    filterAllCompanies: "Të gjitha",
+    selectCompany: "Zgjidh kompaninë për hyrje të reja",
   },
 
   vehicles: {
@@ -314,6 +330,8 @@ export const t = {
     noReports: "Nuk ka raporte për këtë muaj.",
     print: "Printo",
     viewReport: "Shiko raportin",
+    filterCompany: "Kompania",
+    allCompanies: "Të gjitha",
   },
 } as const;
 

@@ -11,6 +11,7 @@ import {
 import { t } from "@/lib/translations";
 import { FormField, Input, Select } from "@/components/FormField";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
 import toast from "react-hot-toast";
@@ -61,6 +62,8 @@ export default function ServicesSection() {
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  useBodyScrollLock(showForm);
 
   const parseNum = (val: string) => parseFloat(val.replace(",", "."));
   const activeVehicles = vehicles.filter((v) => !v.archivedAt);
@@ -350,7 +353,7 @@ export default function ServicesSection() {
                     <div className="mt-3 pt-3 border-t border-gray-100 space-y-2">
                       {rec.items.map((it, i) => (
                         <div
-                          key={i}
+                          key={`${it.description}-${it.amount}-${i}`}
                           className="flex justify-between gap-2 text-sm bg-gray-50 rounded-xl px-3 py-2"
                         >
                           <span className="text-gray-800 font-medium">{it.description}</span>
@@ -381,7 +384,10 @@ export default function ServicesSection() {
       )}
 
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+          data-no-pull-refresh
+        >
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => !ocrLoading && setShowForm(false)}

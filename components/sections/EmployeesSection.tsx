@@ -7,6 +7,7 @@ import { db, type Employee, type WorkerPayment } from "@/lib/db";
 import { t } from "@/lib/translations";
 import { FormField, Input } from "@/components/FormField";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
 import toast from "react-hot-toast";
@@ -95,6 +96,8 @@ export default function EmployeesSection() {
   const [paymentForm, setPaymentForm] = useState<PaymentFormData>(emptyPaymentForm);
   const [paymentErrors, setPaymentErrors] = useState<PaymentFormErrors>({});
   const [deletePaymentId, setDeletePaymentId] = useState<number | null>(null);
+
+  useBodyScrollLock(showForm || !!paymentsEmployee);
 
   const loadEmployees = async () => {
     try {
@@ -502,7 +505,10 @@ export default function EmployeesSection() {
 
       {/* ── ADD/EDIT EMPLOYEE MODAL ── */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+          data-no-pull-refresh
+        >
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowForm(false)}
@@ -637,7 +643,10 @@ export default function EmployeesSection() {
 
       {/* ── PAYMENTS MODAL ── */}
       {canViewFinancials && paymentsEmployee && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+          data-no-pull-refresh
+        >
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => { setPaymentsEmployee(null); setShowPaymentForm(false); }}

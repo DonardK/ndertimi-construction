@@ -13,6 +13,7 @@ import {
 import SegmentedTabs from "@/components/SegmentedTabs";
 import { FormField, Input, Select } from "@/components/FormField";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
 import toast from "react-hot-toast";
@@ -93,6 +94,8 @@ function StokuContent() {
   const [deleteExpId, setDeleteExpId] = useState<number | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const camRef = useRef<HTMLInputElement>(null);
+
+  useBodyScrollLock(showStockForm || showExpForm);
 
   const parseNum = (v: string) => parseFloat(v.replace(",", "."));
 
@@ -497,7 +500,10 @@ function StokuContent() {
 
       {/* Stock modal */}
       {showStockForm && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+          data-no-pull-refresh
+        >
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowStockForm(false)}
@@ -570,7 +576,10 @@ function StokuContent() {
 
       {/* Expense modal */}
       {showExpForm && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+          data-no-pull-refresh
+        >
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => !ocrLoading && setShowExpForm(false)}

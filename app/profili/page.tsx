@@ -1,16 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import { format } from "date-fns";
 import { useRole } from "@/components/RoleProvider";
 import { createClient } from "@/utils/supabase/client";
+import { db, COMPANIES } from "@/lib/db";
+import { exportAttendanceMatrixPdf, type CompanyFilter } from "@/lib/attendanceExport";
 import { t } from "@/lib/translations";
 import PageHeader from "@/components/PageHeader";
-import { Loader2, LogOut } from "lucide-react";
+import { FileDown, Loader2, LogOut } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function ProfiliPage() {
   const { email, role, loading } = useRole();
   const [signingOut, setSigningOut] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(() => format(new Date(), "yyyy-MM"));
+  const [companyFilter, setCompanyFilter] = useState<CompanyFilter>("all");
+  const [exporting, setExporting] = useState(false);
 
   const handleLogout = async () => {
     setSigningOut(true);
@@ -21,6 +27,31 @@ export default function ProfiliPage() {
     } catch {
       toast.error(t.auth.logoutError);
       setSigningOut(false);
+    }
+  };
+
+  const handleExportAttendance = async () => {
+    setExporting(true);
+    try {
+      const attendance = await db.attendance.getAll();
+      const ok = await exportAttendanceMatrixPdf(
+        attendance,
+        selectedMonth,
+        companyFilter,
+        {
+          workerColumn: t.profile.workerColumn,
+          totalColumn: t.profile.totalColumn,
+          pdfTitle: t.profile.pdfTitle,
+          allCompaniesLabel: t.profile.allCompaniesLabel,
+        }
+      );
+      if (!ok) {
+        toast.error(t.profile.noAttendanceData);
+      }
+    } catch {
+      toast.error(t.errors.loadError);
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -62,6 +93,57 @@ export default function ProfiliPage() {
             <LogOut className="w-5 h-5" />
           )}
           {t.auth.signOut}
+        </button>
+      </div>
+
+      <div className="mt-5 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        <h2 className="text-base font-extrabold text-gray-900 mb-4">
+          {t.profile.exportAttendanceTitle}
+        </h2>
+        <div className="flex flex-col sm:flex-row gap-4 mb-4">
+          <div className="flex-1">
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              {t.profile.filterCompany}
+            </label>
+            <select
+              value={companyFilter}
+              onChange={(e) => setCompanyFilter(e.target.value as CompanyFilter)}
+              className="w-full h-12 px-4 rounded-xl border-2 border-gray-300 text-base font-medium text-gray-900 focus:outline-none focus:border-blue-500 bg-white"
+            >
+              <option value="all">{t.profile.allCompanies}</option>
+              {COMPANIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex-1">
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              {t.profile.selectMonth}
+            </label>
+            <input
+              type="month"
+              value={selectedMonth}
+              onChange={(e) => {
+                if (e.target.value) setSelectedMonth(e.target.value);
+              }}
+              className="w-full h-12 px-4 rounded-xl border-2 border-gray-300 text-base font-medium text-gray-900 focus:outline-none focus:border-blue-500 bg-white"
+            />
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={handleExportAttendance}
+          disabled={exporting}
+          className="w-full h-12 rounded-xl bg-green-600 text-white font-bold flex items-center justify-center gap-2 hover:bg-green-700 disabled:opacity-50"
+        >
+          {exporting ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <FileDown className="w-5 h-5" />
+          )}
+          {t.profile.exportButton}
         </button>
       </div>
     </div>

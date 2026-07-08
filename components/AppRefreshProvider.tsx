@@ -27,6 +27,32 @@ export function useAppRefreshVersion(): number {
   return useContext(AppRefreshContext)?.version ?? 0;
 }
 
+function getPageScrollTop(): number {
+  const el = document.scrollingElement ?? document.documentElement;
+  return Math.max(window.scrollY, el.scrollTop);
+}
+
+function isPageAtTop(): boolean {
+  return getPageScrollTop() <= 1;
+}
+
+function isInsideScrollableNotAtTop(target: Element | null): boolean {
+  let el = target;
+  while (el && el !== document.body && el !== document.documentElement) {
+    const style = window.getComputedStyle(el);
+    const overflowY = style.overflowY;
+    const canScrollY =
+      overflowY === "auto" ||
+      overflowY === "scroll" ||
+      overflowY === "overlay";
+    if (canScrollY && el.scrollHeight > el.clientHeight + 1 && el.scrollTop > 0) {
+      return true;
+    }
+    el = el.parentElement;
+  }
+  return false;
+}
+
 function PullToRefresh({
   children,
   onRefresh,
@@ -42,16 +68,16 @@ function PullToRefresh({
   const refreshingRef = useRef(false);
   const isDraggingRef = useRef(false);
   const touchActiveRef = useRef(false);
+  const gestureStartedAtTopRef = useRef(false);
 
   useEffect(() => {
     refreshingRef.current = refreshing;
   }, [refreshing]);
 
   useEffect(() => {
-    const isAtTop = () => window.scrollY <= 1;
-
     const resetPull = () => {
       touchActiveRef.current = false;
+      gestureStartedAtTopRef.current = false;
       isDraggingRef.current = false;
       setIsDragging(false);
       pullRef.current = 0;
@@ -59,10 +85,13 @@ function PullToRefresh({
     };
 
     const onStart = (e: TouchEvent) => {
-      if (refreshingRef.current || !isAtTop()) return;
+      if (refreshingRef.current) return;
       const target = e.target as Element | null;
       if (target?.closest("[data-no-pull-refresh]")) return;
+      if (!isPageAtTop() || isInsideScrollableNotAtTop(target)) return;
+
       touchActiveRef.current = true;
+      gestureStartedAtTopRef.current = true;
       startY.current = e.touches[0].clientY;
       pullRef.current = 0;
       setPull(0);
@@ -70,8 +99,19 @@ function PullToRefresh({
 
     const onMove = (e: TouchEvent) => {
       if (!touchActiveRef.current || refreshingRef.current) return;
+      if (!gestureStartedAtTopRef.current || !isPageAtTop()) {
+        resetPull();
+        return;
+      }
+
+      const target = e.target as Element | null;
+      if (isInsideScrollableNotAtTop(target)) {
+        resetPull();
+        return;
+      }
+
       const dy = e.touches[0].clientY - startY.current;
-      if (dy > 0 && isAtTop()) {
+      if (dy > 0) {
         const next = Math.min(dy * 0.45, MAX_PULL);
         pullRef.current = next;
         setPull(next);
@@ -90,7 +130,11 @@ function PullToRefresh({
       if (refreshingRef.current) return;
       isDraggingRef.current = false;
       setIsDragging(false);
-      const shouldRefresh = pullRef.current >= PULL_THRESHOLD;
+      const shouldRefresh =
+        gestureStartedAtTopRef.current &&
+        isPageAtTop() &&
+        pullRef.current >= PULL_THRESHOLD;
+      gestureStartedAtTopRef.current = false;
       if (shouldRefresh) {
         setRefreshing(true);
         setPull(0);

@@ -23,6 +23,12 @@ export const WORK_LOCATION_LABELS: Record<WorkLocation, string> = {
   M: "Malishevë",
 };
 
+export type Company = "Etna Group" | "Dervisholli";
+
+export const COMPANIES: Company[] = ["Etna Group", "Dervisholli"];
+
+export const DEFAULT_COMPANY: Company = "Etna Group";
+
 export interface Attendance {
   id?: number;
   employeeId: number;
@@ -32,6 +38,7 @@ export interface Attendance {
   paymentMethod: "Cash" | "Bankë";
   hoursWorked: number;
   location: WorkLocation;
+  company: Company;
   createdAt?: string;
 }
 
@@ -143,6 +150,7 @@ function mapAttendance(row: any): Attendance {
     paymentMethod: row.payment_method,
     hoursWorked: Number(row.hours_worked),
     location: (row.location as WorkLocation) ?? "Pr",
+    company: (row.company as Company) ?? DEFAULT_COMPANY,
     createdAt: row.created_at,
   };
 }
@@ -333,7 +341,25 @@ export const db = {
         payment_method: att.paymentMethod,
         hours_worked: att.hoursWorked,
         location: att.location,
+        company: att.company,
       });
+      if (error) throw error;
+    },
+
+    async addBatch(atts: Omit<Attendance, "id" | "createdAt">[]): Promise<void> {
+      if (atts.length === 0) return;
+      const { error } = await getClient().from("attendance").insert(
+        atts.map((att) => ({
+          employee_id: att.employeeId,
+          emri: att.emri,
+          mbiemri: att.mbiemri,
+          date: att.date,
+          payment_method: att.paymentMethod,
+          hours_worked: att.hoursWorked,
+          location: att.location,
+          company: att.company,
+        }))
+      );
       if (error) throw error;
     },
 

@@ -6,6 +6,7 @@ import { db, type Vehicle } from "@/lib/db";
 import { t } from "@/lib/translations";
 import { FormField, Input } from "@/components/FormField";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
 import toast from "react-hot-toast";
@@ -43,6 +44,8 @@ export default function VehiclesSection() {
   const [form, setForm] = useState<FormData>(emptyForm);
   const [errors, setErrors] = useState<FormErrors>({});
   const [deleteId, setDeleteId] = useState<number | null>(null);
+
+  useBodyScrollLock(showForm);
 
   const loadVehicles = async () => {
     try {

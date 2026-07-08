@@ -6,6 +6,7 @@ import { db, type Vehicle, type DieselEntry } from "@/lib/db";
 import { t } from "@/lib/translations";
 import { FormField, Input, Select } from "@/components/FormField";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
 import toast from "react-hot-toast";
@@ -66,6 +67,8 @@ export default function DieselSection() {
   const [photoPreview, setPhotoPreview] = useState<string | undefined>();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  useBodyScrollLock(showForm);
 
   const parseNum = (val: string) => parseFloat(val.replace(",", "."));
   const activeVehicles = vehicles.filter((v) => !v.archivedAt);
@@ -392,7 +395,10 @@ export default function DieselSection() {
 
       {/* Add Modal */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+          data-no-pull-refresh
+        >
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => !ocrLoading && setShowForm(false)}

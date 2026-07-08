@@ -6,6 +6,8 @@ import { useRole } from "@/components/RoleProvider";
 import {
   db,
   type DailyReport,
+  type Company,
+  COMPANIES,
   WORK_LOCATION_LABELS,
   type WorkLocation,
 } from "@/lib/db";
@@ -31,6 +33,7 @@ import {
   isWithinInterval,
   parseISO,
 } from "date-fns";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 interface DateRange {
   from: string;
@@ -55,6 +58,20 @@ interface VehicleRow {
   liters: number;
   avgPricePerLiter: number;
   total: number;
+}
+
+type CompanyFilter = "all" | Company;
+
+interface ReportWorkerRow {
+  employeeId: number;
+  name: string;
+  location: WorkLocation;
+  hours: number;
+  company: Company;
+}
+
+function matchesCompanyFilter(company: Company, filter: CompanyFilter): boolean {
+  return filter === "all" || company === filter;
 }
 
 function getMonthRange(ym: string): DateRange {
@@ -106,6 +123,7 @@ export default function DashboardPage() {
   const refreshVersion = useAppRefreshVersion();
   const { canViewFinancials, loading: roleLoading } = useRole();
   const [selectedMonth, setSelectedMonth] = useState(() => format(new Date(), "yyyy-MM"));
+  const [selectedCompanyFilter, setSelectedCompanyFilter] = useState<CompanyFilter>("all");
   // Memoized: a fresh object each render would recreate isInRange/loadStats
   // and re-trigger the data-loading effect in an infinite loop.
   const dateRange = useMemo(() => getMonthRange(selectedMonth), [selectedMonth]);
@@ -125,8 +143,10 @@ export default function DashboardPage() {
   const [reportsLoading, setReportsLoading] = useState(false);
   const [selectedReport, setSelectedReport] = useState<DailyReport | null>(null);
   const [reportLocations, setReportLocations] = useState<
-    Record<string, { name: string; location: WorkLocation; hours: number }[]>
+    Record<string, ReportWorkerRow[]>
   >({});
+
+  useBodyScrollLock(showReports);
 
   const isInRange = useCallback(
     (dateStr: string) => {
@@ -158,7 +178,9 @@ export default function DashboardPage() {
       ]);
 
       const filteredDiesel = dieselRecs.filter((r) => isInRange(r.date));
-      const filteredAtt = attRecs.filter((r) => isInRange(r.date));
+      const filteredAtt = attRecs.filter(
+        (r) => isInRange(r.date) && matchesCompanyFilter(r.company, selectedCompanyFilter)
+      );
 
       // Build employee rate lookup
       const rateMap: Record<
@@ -252,7 +274,7 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [isInRange, canViewFinancials]);
+  }, [isInRange, canViewFinancials, selectedCompanyFilter]);
 
   useEffect(() => {
     if (roleLoading) return;
@@ -260,6 +282,8 @@ export default function DashboardPage() {
   }, [loadStats, refreshVersion, roleLoading]);
 
   const periodLabel = formatMonthLabel(selectedMonth);
+  const companyLabel =
+    selectedCompanyFilter === "all" ? null : selectedCompanyFilter;
   const pageLoading = roleLoading || (canViewFinancials && loading);
 
   const exportWorkersPdf = async () => {
@@ -268,10 +292,17 @@ export default function DashboardPage() {
     const useLandscape = workerRows.some((r) => r.paymentMethod === "Bankë");
     const doc = new jsPDF(useLandscape ? { orientation: "landscape" } : {});
 
+    const pdfTitle =
+      selectedCompanyFilter === "all"
+        ? "Punonjësit — Detajet"
+        : `Punonjësit — ${selectedCompanyFilter}`;
     doc.setFontSize(16);
-    doc.text("Punonjësit — Detajet", 14, 18);
+    doc.text(pdfTitle, 14, 18);
     doc.setFontSize(10);
     doc.text(`Periudha: ${periodLabel}`, 14, 26);
+    if (companyLabel) {
+      doc.text(`Kompania: ${companyLabel}`, 14, 32);
+    }
 
     const cashWorkers = workerRows.filter((r) => r.paymentMethod === "Cash");
     const bankWorkers = workerRows.filter((r) => r.paymentMethod === "Bankë");
@@ -286,7 +317,7 @@ export default function DashboardPage() {
         `€${r.net.toFixed(2)}`,
       ]);
 
-    let finalY = 30;
+    let finalY = companyLabel ? 36 : 30;
 
     if (cashWorkers.length > 0) {
       doc.setFontSize(11);
@@ -377,7 +408,11 @@ export default function DashboardPage() {
       bodyStyles: { fontStyle: "bold", fontSize: 12, fillColor: [243, 244, 246] },
     });
 
-    doc.save(`punonjesit-${dateRange.from}-${dateRange.to}.pdf`);
+    const pdfSuffix =
+      selectedCompanyFilter === "all"
+        ? ""
+        : `-${selectedCompanyFilter.replace(/\s+/g, "-").toLowerCase()}`;
+    doc.save(`punonjesit-${dateRange.from}-${dateRange.to}${pdfSuffix}.pdf`);
   };
 
   const exportVehiclesPdf = async () => {
@@ -416,7 +451,7 @@ export default function DashboardPage() {
   };
 
   // ── Reports ──
-  const loadReports = useCallback(async (ym: string) => {
+  const loadReports = useCallback(async (ym: string, companyFilter: CompanyFilter) => {
     if (!ym) return;
     setReportsLoading(true);
     try {
@@ -429,19 +464,33 @@ export default function DashboardPage() {
 
       const mm = String(month).padStart(2, "0");
       const monthPrefix = `${year}-${mm}-`;
-      const breakdown: Record<
-        string,
-        { name: string; location: WorkLocation; hours: number }[]
-      > = {};
+      const breakdown: Record<string, ReportWorkerRow[]> = {};
       atts
-        .filter((a) => a.date.startsWith(monthPrefix))
+        .filter(
+          (a) =>
+            a.date.startsWith(monthPrefix) &&
+            matchesCompanyFilter(a.company, companyFilter)
+        )
         .forEach((a) => {
           if (!breakdown[a.date]) breakdown[a.date] = [];
-          breakdown[a.date].push({
-            name: `${a.emri} ${a.mbiemri}`,
-            location: a.location,
-            hours: a.hoursWorked,
-          });
+          const rows = breakdown[a.date];
+          const existing = rows.find(
+            (r) =>
+              r.employeeId === a.employeeId &&
+              r.location === a.location &&
+              r.company === a.company
+          );
+          if (existing) {
+            existing.hours += a.hoursWorked;
+          } else {
+            rows.push({
+              employeeId: a.employeeId,
+              name: `${a.emri} ${a.mbiemri}`,
+              location: a.location,
+              hours: a.hoursWorked,
+              company: a.company,
+            });
+          }
         });
       Object.keys(breakdown).forEach((d) => {
         breakdown[d].sort((a, b) => a.name.localeCompare(b.name));
@@ -462,9 +511,16 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (showReports || !canViewFinancials) {
-      loadReports(selectedMonth);
+      loadReports(selectedMonth, selectedCompanyFilter);
     }
-  }, [showReports, selectedMonth, loadReports, canViewFinancials, refreshVersion]);
+  }, [
+    showReports,
+    selectedMonth,
+    selectedCompanyFilter,
+    loadReports,
+    canViewFinancials,
+    refreshVersion,
+  ]);
 
   const escapeHtml = (s: string) =>
     s
@@ -476,10 +532,15 @@ export default function DashboardPage() {
   const printReport = (r: DailyReport) => {
     const workers = reportLocations[r.date] ?? [];
     const dateLabel = format(parseISO(r.date), "dd/MM/yyyy");
+    const showCompanyCol = selectedCompanyFilter === "all";
     const rows = workers
       .map(
         (w) =>
-          `<tr><td>${escapeHtml(w.name)}</td><td style="text-align:center">${
+          `<tr><td>${escapeHtml(w.name)}</td>${
+            showCompanyCol
+              ? `<td style="text-align:center">${escapeHtml(w.company)}</td>`
+              : ""
+          }<td style="text-align:center">${
             w.location
           } — ${escapeHtml(WORK_LOCATION_LABELS[w.location])}</td><td style="text-align:right">${
             w.hours
@@ -487,6 +548,9 @@ export default function DashboardPage() {
       )
       .join("");
     const totalH = workers.reduce((s, w) => s + w.hours, 0);
+    const companyMeta = companyLabel
+      ? `<div class="meta">Kompania: <b>${escapeHtml(companyLabel)}</b></div>`
+      : "";
     const html = `<!doctype html>
 <html lang="sq"><head><meta charset="utf-8"><title>Raport ${escapeHtml(r.title)} — ${dateLabel}</title>
 <style>
@@ -503,13 +567,16 @@ export default function DashboardPage() {
 </style></head><body>
   <h1>${escapeHtml(r.title)}</h1>
   <div class="meta">Data: <b>${dateLabel}</b></div>
+  ${companyMeta}
   <h2>Përshkrimi</h2>
   <div class="content">${escapeHtml(r.content)}</div>
   <h2>Punonjësit (${workers.length})</h2>
   <table>
-    <thead><tr><th>Punonjësi</th><th style="text-align:center">Vendi</th><th style="text-align:right">Orët</th></tr></thead>
-    <tbody>${rows || `<tr><td colspan="3" style="text-align:center;color:#888">—</td></tr>`}</tbody>
-    <tfoot><tr><td colspan="2">Totali</td><td style="text-align:right">${totalH} orë</td></tr></tfoot>
+    <thead><tr><th>Punonjësi</th>${
+      showCompanyCol ? `<th style="text-align:center">Kompania</th>` : ""
+    }<th style="text-align:center">Vendi</th><th style="text-align:right">Orët</th></tr></thead>
+    <tbody>${rows || `<tr><td colspan="${showCompanyCol ? 4 : 3}" style="text-align:center;color:#888">—</td></tr>`}</tbody>
+    <tfoot><tr><td colspan="${showCompanyCol ? 3 : 2}">Totali</td><td style="text-align:right">${totalH} orë</td></tr></tfoot>
   </table>
   <script>window.onload=()=>{window.print();}</script>
 </body></html>`;
@@ -520,14 +587,37 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="px-4 pt-6 pb-4 lg:px-0">
+    <div className="px-4 pt-6 pb-4 lg:px-0 min-w-0">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-5 lg:mb-6">
         <div>
           <h1 className="text-2xl lg:text-3xl font-extrabold text-gray-900">{t.dashboard.title}</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{periodLabel}</p>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {periodLabel}
+            {companyLabel ? ` · ${companyLabel}` : ""}
+          </p>
         </div>
-        <div className="w-full sm:w-auto sm:min-w-[220px]">
+        <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-3 sm:min-w-[220px]">
+          <div className="w-full sm:min-w-[200px]">
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              {t.dashboard.filterCompany}
+            </label>
+            <select
+              value={selectedCompanyFilter}
+              onChange={(e) =>
+                setSelectedCompanyFilter(e.target.value as CompanyFilter)
+              }
+              className="w-full h-12 px-4 rounded-xl border-2 border-gray-300 text-base lg:text-lg font-medium text-gray-900 focus:outline-none focus:border-blue-500 bg-white"
+            >
+              <option value="all">{t.dashboard.allCompanies}</option>
+              {COMPANIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="w-full sm:min-w-[220px]">
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">
             {t.dashboard.selectMonth}
           </label>
@@ -540,6 +630,7 @@ export default function DashboardPage() {
             }}
             className="w-full h-12 px-4 rounded-xl border-2 border-gray-300 text-base lg:text-lg font-medium text-gray-900 focus:outline-none focus:border-blue-500 bg-white"
           />
+          </div>
         </div>
       </div>
 
@@ -638,9 +729,9 @@ export default function DashboardPage() {
             {t.dashboard.reports}
           </button>
 
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 lg:gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 lg:gap-6 min-w-0">
           {/* ── Workers table ── */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-w-0">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
               <h2 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
                 <Euro className="w-4 h-4 text-blue-500" />
@@ -811,7 +902,7 @@ export default function DashboardPage() {
           </div>
 
           {/* ── Vehicles / Nafta table ── */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-w-0">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
               <h2 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
                 <Fuel className="w-4 h-4 text-orange-500" />
@@ -835,6 +926,7 @@ export default function DashboardPage() {
               </div>
             ) : (
               <>
+                <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
@@ -867,6 +959,7 @@ export default function DashboardPage() {
                     </tr>
                   </tfoot>
                 </table>
+                </div>
               </>
             )}
           </div>
@@ -876,7 +969,10 @@ export default function DashboardPage() {
 
       {/* ── REPORTS MODAL ── */}
       {showReports && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+          data-no-pull-refresh
+        >
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowReports(false)}
@@ -888,7 +984,10 @@ export default function DashboardPage() {
                   <FileText className="w-5 h-5 text-amber-600" />
                   {t.dashboard.reportsTitle}
                 </h2>
-                <p className="text-sm text-gray-500 mt-1">{periodLabel}</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  {periodLabel}
+                  {companyLabel ? ` · ${companyLabel}` : ""}
+                </p>
               </div>
               <button
                 onClick={() => {
@@ -939,14 +1038,29 @@ export default function DashboardPage() {
                       <thead>
                         <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
                           <th className="text-left px-2 py-2 font-semibold">Emri</th>
+                          {selectedCompanyFilter === "all" && (
+                            <th className="text-center px-2 py-2 font-semibold">
+                              {t.dashboard.filterCompany}
+                            </th>
+                          )}
                           <th className="text-center px-2 py-2 font-semibold">{t.dashboard.locationCol}</th>
                           <th className="text-right px-2 py-2 font-semibold">Orë</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {(reportLocations[selectedReport.date] ?? []).map((w, i) => (
-                          <tr key={i} className="border-t border-gray-100">
+                        {(reportLocations[selectedReport.date] ?? []).map((w) => (
+                          <tr
+                            key={`${w.employeeId}-${w.location}-${w.company}`}
+                            className="border-t border-gray-100"
+                          >
                             <td className="px-2 py-2 font-semibold text-gray-900">{w.name}</td>
+                            {selectedCompanyFilter === "all" && (
+                              <td className="px-2 py-2 text-center">
+                                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-violet-100 text-violet-700">
+                                  {w.company}
+                                </span>
+                              </td>
+                            )}
                             <td className="px-2 py-2 text-center">
                               <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
                                 {w.location}

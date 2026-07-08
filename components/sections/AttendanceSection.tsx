@@ -8,12 +8,16 @@ import {
   type Employee,
   type Attendance,
   type WorkLocation,
+  type Company,
+  COMPANIES,
+  DEFAULT_COMPANY,
   WORK_LOCATION_LABELS,
 } from "@/lib/db";
 import { t } from "@/lib/translations";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
+import SegmentedTabs from "@/components/SegmentedTabs";
 import toast from "react-hot-toast";
 import {
   Plus,
@@ -33,18 +37,63 @@ import {
   FileText,
 } from "lucide-react";
 import Link from "next/link";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 const LOCATIONS: WorkLocation[] = ["Pr", "Pz", "M"];
+const COMPANY_STORAGE_KEY = "ndertimi-attendance-company";
+
+type CompanyFilter = "all" | Company;
+
+function loadStoredCompany(): Company {
+  if (typeof window === "undefined") return DEFAULT_COMPANY;
+  const stored = localStorage.getItem(COMPANY_STORAGE_KEY);
+  if (stored && COMPANIES.includes(stored as Company)) return stored as Company;
+  return DEFAULT_COMPANY;
+}
 
 interface BulkRow {
   employeeId: number;
-  name: string;
+  emri: string;
+  mbiemri: string;
   paymentMethod: "Cash" | "Bankë";
   rate: number;
   hours: string;
   location: WorkLocation;
   checked: boolean;
+  alreadyRecorded: boolean;
   error?: string;
+}
+
+function existingEmployeeIdsForDate(
+  records: Attendance[],
+  date: string,
+  company: Company
+): Set<number> {
+  return new Set(
+    records
+      .filter((r) => r.date === date && r.company === company)
+      .map((r) => r.employeeId)
+  );
+}
+
+function buildBulkRows(
+  employees: Employee[],
+  date: string,
+  company: Company,
+  records: Attendance[]
+): BulkRow[] {
+  const existing = existingEmployeeIdsForDate(records, date, company);
+  return employees.map((e) => ({
+    employeeId: e.id!,
+    emri: e.emri,
+    mbiemri: e.mbiemri,
+    paymentMethod: e.paymentMethod,
+    rate: e.cmimiOre,
+    hours: "",
+    location: "Pr" as WorkLocation,
+    checked: false,
+    alreadyRecorded: existing.has(e.id!),
+  }));
 }
 
 const today = new Date().toISOString().split("T")[0];
@@ -72,6 +121,19 @@ export default function AttendanceSection() {
 
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [filterDate, setFilterDate] = useState(today);
+  const [selectedCompany, setSelectedCompany] = useState<Company>(DEFAULT_COMPANY);
+  const [filterCompany, setFilterCompany] = useState<CompanyFilter>("all");
+
+  useBodyScrollLock(showBulk || showReportModal);
+
+  useEffect(() => {
+    setSelectedCompany(loadStoredCompany());
+  }, []);
+
+  const handleCompanyChange = (company: Company) => {
+    setSelectedCompany(company);
+    localStorage.setItem(COMPANY_STORAGE_KEY, company);
+  };
 
   const loadData = async () => {
     try {
@@ -100,31 +162,35 @@ export default function AttendanceSection() {
     setReportError(null);
     setReportTitle("");
     setReportContent("");
-    setBulkRows(
-      activeEmployees.map((e) => ({
-        employeeId: e.id!,
-        name: `${e.emri} ${e.mbiemri}`,
-        paymentMethod: e.paymentMethod,
-        rate: e.cmimiOre,
-        hours: "",
-        location: "Pr",
-        checked: false,
-      }))
-    );
+    setBulkRows(buildBulkRows(activeEmployees, filterDate, selectedCompany, records));
     setShowBulk(true);
   };
 
   const handleBulkDateChange = (newDate: string) => {
     setBulkDate(newDate);
+    setBulkRows((rows) =>
+      rows.map((row) => {
+        const existing = existingEmployeeIdsForDate(records, newDate, selectedCompany);
+        return {
+          ...row,
+          alreadyRecorded: existing.has(row.employeeId),
+          checked: existing.has(row.employeeId) ? false : row.checked,
+        };
+      })
+    );
   };
 
   const toggleAll = (checked: boolean) => {
-    setBulkRows((rows) => rows.map((r) => ({ ...r, checked })));
+    setBulkRows((rows) =>
+      rows.map((r) => ({ ...r, checked: r.alreadyRecorded ? false : checked }))
+    );
   };
 
   const toggleRow = (idx: number) => {
     setBulkRows((rows) =>
-      rows.map((r, i) => (i === idx ? { ...r, checked: !r.checked } : r))
+      rows.map((r, i) =>
+        i === idx && !r.alreadyRecorded ? { ...r, checked: !r.checked } : r
+      )
     );
   };
 
@@ -161,7 +227,7 @@ export default function AttendanceSection() {
 
   // Step 1: validate hours, then open report dialog
   const handleBulkSave = async () => {
-    const selected = bulkRows.filter((r) => r.checked);
+    const selected = bulkRows.filter((r) => r.checked && !r.alreadyRecorded);
     if (selected.length === 0) {
       toast.error(t.dashboard.bulkNoEmployees);
       return;
@@ -204,24 +270,23 @@ export default function AttendanceSection() {
 
     setBulkSaving(true);
     try {
-      await Promise.all(
-        pendingSelected.map((r) =>
-          db.attendance.add({
-            employeeId: r.employeeId,
-            emri: r.name.split(" ")[0],
-            mbiemri: r.name.split(" ").slice(1).join(" "),
-            date: bulkDate,
-            paymentMethod: r.paymentMethod,
-            hoursWorked: parseFloat(r.hours),
-            location: r.location,
-          })
-        )
-      );
       await db.dailyReports.upsert({
         date: bulkDate,
         title: reportTitle.trim(),
         content: reportContent.trim(),
       });
+      await db.attendance.addBatch(
+        pendingSelected.map((r) => ({
+          employeeId: r.employeeId,
+          emri: r.emri,
+          mbiemri: r.mbiemri,
+          date: bulkDate,
+          paymentMethod: r.paymentMethod,
+          hoursWorked: parseFloat(r.hours),
+          location: r.location,
+          company: selectedCompany,
+        }))
+      );
       toast.success(`${pendingSelected.length} regjistrime u ruajtën!`);
       setShowReportModal(false);
       setShowBulk(false);
@@ -230,6 +295,7 @@ export default function AttendanceSection() {
       await loadData();
     } catch {
       toast.error(t.errors.saveError);
+      await loadData();
     } finally {
       setBulkSaving(false);
     }
@@ -247,12 +313,19 @@ export default function AttendanceSection() {
     }
   };
 
-  const filteredRecords = records.filter((r) => r.date === filterDate);
+  const filteredRecords = records.filter(
+    (r) =>
+      r.date === filterDate &&
+      (filterCompany === "all" || r.company === filterCompany)
+  );
   const totalHours = filteredRecords.reduce((sum, r) => sum + r.hoursWorked, 0);
   const activeEmployees = employees.filter((e) => !e.archivedAt);
 
-  const allChecked = bulkRows.length > 0 && bulkRows.every((r) => r.checked);
-  const checkedCount = bulkRows.filter((r) => r.checked).length;
+  const allChecked =
+    bulkRows.filter((r) => !r.alreadyRecorded).length > 0 &&
+    bulkRows.filter((r) => !r.alreadyRecorded).every((r) => r.checked);
+  const checkedCount = bulkRows.filter((r) => r.checked && !r.alreadyRecorded).length;
+  const duplicateCount = bulkRows.filter((r) => r.alreadyRecorded).length;
 
   return (
     <div className="px-4 pt-6">
@@ -260,18 +333,27 @@ export default function AttendanceSection() {
         title={t.attendance.title}
         action={
           activeEmployees.length > 0 ? (
-            <button
-              onClick={openBulk}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold px-5 h-12 rounded-xl text-base transition-colors shadow-md"
-            >
-              <Plus className="w-5 h-5" />
-              {t.dashboard.addMultiple}
-            </button>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <div className="sm:max-w-[300px]" title={t.attendance.selectCompany}>
+                <SegmentedTabs
+                  tabs={COMPANIES.map((c) => ({ id: c, label: c }))}
+                  active={selectedCompany}
+                  onChange={(id) => handleCompanyChange(id as Company)}
+                />
+              </div>
+              <button
+                onClick={openBulk}
+                className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold px-5 h-12 rounded-xl text-base transition-colors shadow-md"
+              >
+                <Plus className="w-5 h-5" />
+                {t.dashboard.addMultiple}
+              </button>
+            </div>
           ) : null
         }
       />
 
-      {/* Date filter */}
+      {/* Date + company filter */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-5">
         <label className="block text-sm font-semibold text-gray-600 mb-1.5">
           {t.attendance.date}
@@ -282,6 +364,21 @@ export default function AttendanceSection() {
           onChange={(e) => setFilterDate(e.target.value)}
           className="w-full h-12 px-4 rounded-xl border-2 border-gray-300 text-lg font-medium text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white"
         />
+        <label className="block text-sm font-semibold text-gray-600 mb-1.5 mt-3">
+          {t.attendance.company}
+        </label>
+        <select
+          value={filterCompany}
+          onChange={(e) => setFilterCompany(e.target.value as CompanyFilter)}
+          className="w-full h-12 px-4 rounded-xl border-2 border-gray-300 text-base font-medium text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white"
+        >
+          <option value="all">{t.attendance.filterAllCompanies}</option>
+          {COMPANIES.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
         {filteredRecords.length > 0 && (
           <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
             <Clock className="w-4 h-4 text-blue-600" />
@@ -368,6 +465,11 @@ export default function AttendanceSection() {
                       </span>
                     )}
                     <span
+                      className="flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-violet-100 text-violet-700"
+                    >
+                      {rec.company}
+                    </span>
+                    <span
                       className="flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700"
                       title={WORK_LOCATION_LABELS[rec.location]}
                     >
@@ -396,7 +498,10 @@ export default function AttendanceSection() {
 
       {/* ── BULK MODAL ── */}
       {showBulk && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+          data-no-pull-refresh
+        >
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => !bulkSaving && setShowBulk(false)}
@@ -505,9 +610,15 @@ export default function AttendanceSection() {
                 {allChecked ? t.dashboard.bulkDeselectAll : t.dashboard.bulkSelectAll}
               </button>
               <span className="text-xs font-semibold text-gray-500">
-                {checkedCount} / {bulkRows.length} zgjedhur
+                {checkedCount} / {bulkRows.filter((r) => !r.alreadyRecorded).length} zgjedhur
               </span>
             </div>
+
+            {duplicateCount > 0 && (
+              <div className="px-6 py-2 bg-amber-50 border-b border-amber-100 text-xs font-semibold text-amber-800 shrink-0">
+                {duplicateCount} punonjës kanë regjistrim për këtë datë dhe kompani — përjashtuar automatikisht.
+              </div>
+            )}
 
             {/* Employee list */}
             <div className="overflow-y-auto flex-1">
@@ -515,16 +626,23 @@ export default function AttendanceSection() {
                 <div
                   key={row.employeeId}
                   className={`flex items-center gap-3 px-4 py-3 border-b border-gray-50 transition-colors ${
-                    row.checked ? "bg-blue-50/50" : ""
+                    row.alreadyRecorded
+                      ? "bg-gray-50 opacity-60"
+                      : row.checked
+                        ? "bg-blue-50/50"
+                        : ""
                   }`}
                 >
                   {/* Checkbox */}
                   <button
                     onClick={() => toggleRow(idx)}
                     className="shrink-0"
-                    aria-label={row.name}
+                    disabled={row.alreadyRecorded}
+                    aria-label={`${row.emri} ${row.mbiemri}`}
                   >
-                    {row.checked ? (
+                    {row.alreadyRecorded ? (
+                      <CheckSquare className="w-5 h-5 text-gray-300" />
+                    ) : row.checked ? (
                       <CheckSquare className="w-5 h-5 text-blue-600" />
                     ) : (
                       <Square className="w-5 h-5 text-gray-300" />
@@ -534,9 +652,14 @@ export default function AttendanceSection() {
                   {/* Name + badge */}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-gray-900 truncate">
-                      {row.name}
+                      {row.emri} {row.mbiemri}
                     </p>
-                    <div className="flex items-center gap-2 mt-0.5">
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      {row.alreadyRecorded && (
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                          Tashmë regjistruar
+                        </span>
+                      )}
                       {canViewFinancials && (
                         <>
                           <span
@@ -561,7 +684,7 @@ export default function AttendanceSection() {
                     <select
                       value={row.location}
                       onChange={(e) => setBulkLocation(idx, e.target.value as WorkLocation)}
-                      disabled={!row.checked}
+                      disabled={!row.checked || row.alreadyRecorded}
                       title={WORK_LOCATION_LABELS[row.location]}
                       className={`w-full h-11 px-2 rounded-xl border-2 text-sm font-bold text-center transition-colors focus:outline-none
                         ${
@@ -586,7 +709,7 @@ export default function AttendanceSection() {
                       value={row.hours}
                       onChange={(e) => setBulkHours(idx, e.target.value)}
                       placeholder="orë"
-                      disabled={!row.checked}
+                      disabled={!row.checked || row.alreadyRecorded}
                       className={`w-full h-11 px-3 rounded-xl border-2 text-base font-bold text-center transition-colors focus:outline-none
                         ${
                           row.error
@@ -635,7 +758,10 @@ export default function AttendanceSection() {
 
       {/* ── REPORT MODAL (opens after Ruaj) ── */}
       {showReportModal && (
-        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div
+          className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4"
+          data-no-pull-refresh
+        >
           <div
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => !bulkSaving && setShowReportModal(false)}
@@ -657,7 +783,7 @@ export default function AttendanceSection() {
 
             <div className="px-6 py-4 flex-1 overflow-y-auto">
               <p className="text-sm text-gray-600 mb-3">
-                {pendingSelected.length} punonjës · {bulkDate}
+                {pendingSelected.length} punonjës · {bulkDate} · {selectedCompany}
               </p>
 
               <div className="mb-4 rounded-xl border-2 border-amber-200 bg-amber-50 overflow-hidden">
@@ -675,7 +801,7 @@ export default function AttendanceSection() {
                       className="flex items-center justify-between px-3 py-2 text-sm"
                     >
                       <span className="font-semibold text-gray-900 truncate pr-2">
-                        {row.name}
+                        {row.emri} {row.mbiemri}
                       </span>
                       <span className="flex items-center gap-3 shrink-0">
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-amber-300 text-amber-800 font-bold text-xs">
