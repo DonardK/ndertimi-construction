@@ -81,43 +81,43 @@
       "source_file": "app/page.tsx",
       "source_location": "L1",
       "id": "app_page_tsx",
-      "community": 3,
+      "community": 1,
       "norm_label": "page.tsx"
     },
     {
       "label": "matchesCompanyFilter()",
       "file_type": "code",
       "source_file": "app/page.tsx",
-      "source_location": "L73",
+      "source_location": "L78",
       "id": "app_page_matchescompanyfilter",
-      "community": 3,
+      "community": 1,
       "norm_label": "matchescompanyfilter()"
     },
     {
       "label": "reportBreakdownKey()",
       "file_type": "code",
       "source_file": "app/page.tsx",
-      "source_location": "L77",
+      "source_location": "L82",
       "id": "app_page_reportbreakdownkey",
-      "community": 3,
+      "community": 1,
       "norm_label": "reportbreakdownkey()"
     },
     {
       "label": "getMonthRange()",
       "file_type": "code",
       "source_file": "app/page.tsx",
-      "source_location": "L81",
+      "source_location": "L86",
       "id": "app_page_getmonthrange",
-      "community": 3,
+      "community": 1,
       "norm_label": "getmonthrange()"
     },
     {
       "label": "formatMonthLabel()",
       "file_type": "code",
       "source_file": "app/page.tsx",
-      "source_location": "L90",
+      "source_location": "L95",
       "id": "app_page_formatmonthlabel",
-      "community": 3,
+      "community": 1,
       "norm_label": "formatmonthlabel()"
     },
     {
@@ -126,7 +126,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/app/page.tsx",
       "source_location": "L113",
       "id": "app_page_eur",
-      "community": 3,
+      "community": 1,
       "norm_label": "eur()"
     },
     {
@@ -135,7 +135,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/app/page.tsx",
       "source_location": "L117",
       "id": "app_page_statcard",
-      "community": 3,
+      "community": 1,
       "norm_label": "statcard()"
     },
     {
@@ -144,7 +144,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/app/page.tsx",
       "source_location": "L306",
       "id": "app_page_exportworkerspdf",
-      "community": 3,
+      "community": 1,
       "norm_label": "exportworkerspdf()"
     },
     {
@@ -153,34 +153,88 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/app/page.tsx",
       "source_location": "L424",
       "id": "app_page_exportvehiclespdf",
-      "community": 3,
+      "community": 1,
       "norm_label": "exportvehiclespdf()"
     },
     {
       "label": "openReports()",
       "file_type": "code",
       "source_file": "app/page.tsx",
-      "source_location": "L515",
+      "source_location": "L531",
       "id": "app_page_openreports",
-      "community": 3,
+      "community": 1,
       "norm_label": "openreports()"
+    },
+    {
+      "label": "closeReports()",
+      "file_type": "code",
+      "source_file": "app/page.tsx",
+      "source_location": "L537",
+      "id": "app_page_closereports",
+      "community": 1,
+      "norm_label": "closereports()"
+    },
+    {
+      "label": "defaultReportDate()",
+      "file_type": "code",
+      "source_file": "app/page.tsx",
+      "source_location": "L544",
+      "id": "app_page_defaultreportdate",
+      "community": 1,
+      "norm_label": "defaultreportdate()"
+    },
+    {
+      "label": "openCreateReport()",
+      "file_type": "code",
+      "source_file": "app/page.tsx",
+      "source_location": "L549",
+      "id": "app_page_opencreatereport",
+      "community": 1,
+      "norm_label": "opencreatereport()"
+    },
+    {
+      "label": "openEditReport()",
+      "file_type": "code",
+      "source_file": "app/page.tsx",
+      "source_location": "L562",
+      "id": "app_page_openeditreport",
+      "community": 1,
+      "norm_label": "openeditreport()"
+    },
+    {
+      "label": "handleReportFormSave()",
+      "file_type": "code",
+      "source_file": "app/page.tsx",
+      "source_location": "L573",
+      "id": "app_page_handlereportformsave",
+      "community": 1,
+      "norm_label": "handlereportformsave()"
+    },
+    {
+      "label": "handleDeleteReport()",
+      "file_type": "code",
+      "source_file": "app/page.tsx",
+      "source_location": "L621",
+      "id": "app_page_handledeletereport",
+      "community": 1,
+      "norm_label": "handledeletereport()"
     },
     {
       "label": "escapeHtml()",
       "file_type": "code",
       "source_file": "app/page.tsx",
-      "source_location": "L533",
+      "source_location": "L647",
       "id": "app_page_escapehtml",
-      "community": 3,
+      "community": 1,
       "norm_label": "escapehtml()"
     },
     {
       "label": "printReport()",
       "file_type": "code",
       "source_file": "app/page.tsx",
-      "source_location": "L540",
+      "source_location": "L654",
       "id": "app_page_printreport",
-      "community": 3,
+      "community": 1,
       "norm_label": "printreport()"
     },
     {
@@ -306,7 +360,7 @@
       "source_file": "app/profili/page.tsx",
       "source_location": "L1",
       "id": "app_profili_page_tsx",
-      "community": 9,
+      "community": 8,
       "norm_label": "page.tsx"
     },
     {
@@ -315,7 +369,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/app/profili/page.tsx",
       "source_location": "L35",
       "id": "profili_page_handlelogout",
-      "community": 0,
+      "community": 8,
       "norm_label": "handlelogout()"
     },
     {
@@ -324,7 +378,7 @@
       "source_file": "app/profili/page.tsx",
       "source_location": "L33",
       "id": "profili_page_handleexportattendance",
-      "community": 9,
+      "community": 8,
       "norm_label": "handleexportattendance()"
     },
     {
@@ -441,7 +495,7 @@
       "source_file": "components/AppRefreshProvider.tsx",
       "source_location": "L26",
       "id": "components_apprefreshprovider_useapprefreshversion",
-      "community": 4,
+      "community": 8,
       "norm_label": "useapprefreshversion()"
     },
     {
@@ -549,7 +603,7 @@
       "source_file": "components/ConfirmDialog.tsx",
       "source_location": "L1",
       "id": "components_confirmdialog_tsx",
-      "community": 13,
+      "community": 14,
       "norm_label": "confirmdialog.tsx"
     },
     {
@@ -558,7 +612,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/ConfirmDialog.tsx",
       "source_location": "L16",
       "id": "components_confirmdialog_confirmdialog",
-      "community": 13,
+      "community": 14,
       "norm_label": "confirmdialog()"
     },
     {
@@ -576,7 +630,7 @@
       "source_file": "components/FormField.tsx",
       "source_location": "L1",
       "id": "components_formfield_tsx",
-      "community": 8,
+      "community": 5,
       "norm_label": "formfield.tsx"
     },
     {
@@ -585,7 +639,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/FormField.tsx",
       "source_location": "L60",
       "id": "components_formfield_select",
-      "community": 8,
+      "community": 5,
       "norm_label": "select()"
     },
     {
@@ -666,43 +720,43 @@
       "source_file": "components/sections/AttendanceSection.tsx",
       "source_location": "L1",
       "id": "components_sections_attendancesection_tsx",
-      "community": 1,
+      "community": 2,
       "norm_label": "attendancesection.tsx"
     },
     {
       "label": "loadStoredCompany()",
       "file_type": "code",
       "source_file": "components/sections/AttendanceSection.tsx",
-      "source_location": "L47",
+      "source_location": "L48",
       "id": "sections_attendancesection_loadstoredcompany",
-      "community": 1,
+      "community": 2,
       "norm_label": "loadstoredcompany()"
     },
     {
       "label": "existingEmployeeIdsForDate()",
       "file_type": "code",
       "source_file": "components/sections/AttendanceSection.tsx",
-      "source_location": "L67",
+      "source_location": "L68",
       "id": "sections_attendancesection_existingemployeeidsfordate",
-      "community": 1,
+      "community": 2,
       "norm_label": "existingemployeeidsfordate()"
     },
     {
       "label": "buildBulkRows()",
       "file_type": "code",
       "source_file": "components/sections/AttendanceSection.tsx",
-      "source_location": "L79",
+      "source_location": "L80",
       "id": "sections_attendancesection_buildbulkrows",
-      "community": 1,
+      "community": 2,
       "norm_label": "buildbulkrows()"
     },
     {
       "label": "handleCompanyChange()",
       "file_type": "code",
       "source_file": "components/sections/AttendanceSection.tsx",
-      "source_location": "L133",
+      "source_location": "L137",
       "id": "sections_attendancesection_handlecompanychange",
-      "community": 1,
+      "community": 2,
       "norm_label": "handlecompanychange()"
     },
     {
@@ -711,7 +765,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/AttendanceSection.tsx",
       "source_location": "L53",
       "id": "sections_attendancesection_loaddata",
-      "community": 1,
+      "community": 2,
       "norm_label": "loaddata()"
     },
     {
@@ -720,16 +774,16 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/AttendanceSection.tsx",
       "source_location": "L73",
       "id": "sections_attendancesection_openbulk",
-      "community": 1,
+      "community": 2,
       "norm_label": "openbulk()"
     },
     {
       "label": "handleBulkDateChange()",
       "file_type": "code",
       "source_file": "components/sections/AttendanceSection.tsx",
-      "source_location": "L169",
+      "source_location": "L178",
       "id": "sections_attendancesection_handlebulkdatechange",
-      "community": 1,
+      "community": 2,
       "norm_label": "handlebulkdatechange()"
     },
     {
@@ -738,7 +792,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/AttendanceSection.tsx",
       "source_location": "L89",
       "id": "sections_attendancesection_toggleall",
-      "community": 1,
+      "community": 2,
       "norm_label": "toggleall()"
     },
     {
@@ -747,7 +801,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/AttendanceSection.tsx",
       "source_location": "L93",
       "id": "sections_attendancesection_togglerow",
-      "community": 1,
+      "community": 2,
       "norm_label": "togglerow()"
     },
     {
@@ -756,16 +810,16 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/AttendanceSection.tsx",
       "source_location": "L99",
       "id": "sections_attendancesection_setbulkhours",
-      "community": 1,
+      "community": 2,
       "norm_label": "setbulkhours()"
     },
     {
       "label": "setBulkLocation()",
       "file_type": "code",
       "source_file": "components/sections/AttendanceSection.tsx",
-      "source_location": "L206",
+      "source_location": "L215",
       "id": "sections_attendancesection_setbulklocation",
-      "community": 1,
+      "community": 2,
       "norm_label": "setbulklocation()"
     },
     {
@@ -774,16 +828,16 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/AttendanceSection.tsx",
       "source_location": "L109",
       "id": "sections_attendancesection_applytoall",
-      "community": 1,
+      "community": 2,
       "norm_label": "applytoall()"
     },
     {
       "label": "applyLocationToAll()",
       "file_type": "code",
       "source_file": "components/sections/AttendanceSection.tsx",
-      "source_location": "L222",
+      "source_location": "L231",
       "id": "sections_attendancesection_applylocationtoall",
-      "community": 1,
+      "community": 2,
       "norm_label": "applylocationtoall()"
     },
     {
@@ -792,16 +846,16 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/AttendanceSection.tsx",
       "source_location": "L118",
       "id": "sections_attendancesection_handlebulksave",
-      "community": 1,
+      "community": 2,
       "norm_label": "handlebulksave()"
     },
     {
       "label": "handleReportSave()",
       "file_type": "code",
       "source_file": "components/sections/AttendanceSection.tsx",
-      "source_location": "L264",
+      "source_location": "L273",
       "id": "sections_attendancesection_handlereportsave",
-      "community": 1,
+      "community": 2,
       "norm_label": "handlereportsave()"
     },
     {
@@ -810,7 +864,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/AttendanceSection.tsx",
       "source_location": "L164",
       "id": "sections_attendancesection_handledelete",
-      "community": 1,
+      "community": 2,
       "norm_label": "handledelete()"
     },
     {
@@ -819,7 +873,7 @@
       "source_file": "components/sections/DieselSection.tsx",
       "source_location": "L1",
       "id": "components_sections_dieselsection_tsx",
-      "community": 8,
+      "community": 9,
       "norm_label": "dieselsection.tsx"
     },
     {
@@ -828,7 +882,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/DieselSection.tsx",
       "source_location": "L68",
       "id": "sections_dieselsection_parsenum",
-      "community": 8,
+      "community": 9,
       "norm_label": "parsenum()"
     },
     {
@@ -837,7 +891,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/DieselSection.tsx",
       "source_location": "L76",
       "id": "sections_dieselsection_loaddata",
-      "community": 8,
+      "community": 9,
       "norm_label": "loaddata()"
     },
     {
@@ -846,7 +900,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/DieselSection.tsx",
       "source_location": "L95",
       "id": "sections_dieselsection_validate",
-      "community": 8,
+      "community": 9,
       "norm_label": "validate()"
     },
     {
@@ -855,7 +909,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/DieselSection.tsx",
       "source_location": "L115",
       "id": "sections_dieselsection_handlesubmit",
-      "community": 8,
+      "community": 9,
       "norm_label": "handlesubmit()"
     },
     {
@@ -864,7 +918,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/DieselSection.tsx",
       "source_location": "L146",
       "id": "sections_dieselsection_handledelete",
-      "community": 8,
+      "community": 9,
       "norm_label": "handledelete()"
     },
     {
@@ -873,7 +927,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/DieselSection.tsx",
       "source_location": "L158",
       "id": "sections_dieselsection_handleimagefile",
-      "community": 8,
+      "community": 9,
       "norm_label": "handleimagefile()"
     },
     {
@@ -882,7 +936,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/DieselSection.tsx",
       "source_location": "L174",
       "id": "sections_dieselsection_runocr",
-      "community": 8,
+      "community": 9,
       "norm_label": "runocr()"
     },
     {
@@ -891,7 +945,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/DieselSection.tsx",
       "source_location": "L237",
       "id": "sections_dieselsection_handlechange",
-      "community": 8,
+      "community": 9,
       "norm_label": "handlechange()"
     },
     {
@@ -900,7 +954,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/DieselSection.tsx",
       "source_location": "L247",
       "id": "sections_dieselsection_removephoto",
-      "community": 8,
+      "community": 9,
       "norm_label": "removephoto()"
     },
     {
@@ -909,7 +963,7 @@
       "source_file": "components/sections/EmployeesSection.tsx",
       "source_location": "L1",
       "id": "components_sections_employeessection_tsx",
-      "community": 2,
+      "community": 3,
       "norm_label": "employeessection.tsx"
     },
     {
@@ -918,7 +972,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/EmployeesSection.tsx",
       "source_location": "L94",
       "id": "sections_employeessection_loademployees",
-      "community": 2,
+      "community": 3,
       "norm_label": "loademployees()"
     },
     {
@@ -927,7 +981,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/EmployeesSection.tsx",
       "source_location": "L109",
       "id": "sections_employeessection_parsenum",
-      "community": 2,
+      "community": 3,
       "norm_label": "parsenum()"
     },
     {
@@ -936,7 +990,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/EmployeesSection.tsx",
       "source_location": "L112",
       "id": "sections_employeessection_validate",
-      "community": 2,
+      "community": 3,
       "norm_label": "validate()"
     },
     {
@@ -945,7 +999,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/EmployeesSection.tsx",
       "source_location": "L130",
       "id": "sections_employeessection_handlesubmit",
-      "community": 2,
+      "community": 3,
       "norm_label": "handlesubmit()"
     },
     {
@@ -954,7 +1008,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/EmployeesSection.tsx",
       "source_location": "L168",
       "id": "sections_employeessection_handleedit",
-      "community": 2,
+      "community": 3,
       "norm_label": "handleedit()"
     },
     {
@@ -963,7 +1017,7 @@
       "source_file": "components/sections/EmployeesSection.tsx",
       "source_location": "L198",
       "id": "sections_employeessection_handlearchive",
-      "community": 2,
+      "community": 3,
       "norm_label": "handlearchive()"
     },
     {
@@ -972,7 +1026,7 @@
       "source_file": "components/sections/EmployeesSection.tsx",
       "source_location": "L210",
       "id": "sections_employeessection_handlerestore",
-      "community": 2,
+      "community": 3,
       "norm_label": "handlerestore()"
     },
     {
@@ -981,7 +1035,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/EmployeesSection.tsx",
       "source_location": "L194",
       "id": "sections_employeessection_handleopenadd",
-      "community": 2,
+      "community": 3,
       "norm_label": "handleopenadd()"
     },
     {
@@ -990,7 +1044,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/EmployeesSection.tsx",
       "source_location": "L201",
       "id": "sections_employeessection_handlechange",
-      "community": 2,
+      "community": 3,
       "norm_label": "handlechange()"
     },
     {
@@ -999,7 +1053,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/EmployeesSection.tsx",
       "source_location": "L216",
       "id": "sections_employeessection_setpaymentmethod",
-      "community": 2,
+      "community": 3,
       "norm_label": "setpaymentmethod()"
     },
     {
@@ -1008,7 +1062,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/EmployeesSection.tsx",
       "source_location": "L230",
       "id": "sections_employeessection_openpayments",
-      "community": 2,
+      "community": 3,
       "norm_label": "openpayments()"
     },
     {
@@ -1017,7 +1071,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/EmployeesSection.tsx",
       "source_location": "L246",
       "id": "sections_employeessection_validatepayment",
-      "community": 2,
+      "community": 3,
       "norm_label": "validatepayment()"
     },
     {
@@ -1026,7 +1080,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/EmployeesSection.tsx",
       "source_location": "L260",
       "id": "sections_employeessection_handleaddpayment",
-      "community": 2,
+      "community": 3,
       "norm_label": "handleaddpayment()"
     },
     {
@@ -1035,7 +1089,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/EmployeesSection.tsx",
       "source_location": "L283",
       "id": "sections_employeessection_handledeletepayment",
-      "community": 2,
+      "community": 3,
       "norm_label": "handledeletepayment()"
     },
     {
@@ -1044,7 +1098,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/EmployeesSection.tsx",
       "source_location": "L296",
       "id": "sections_employeessection_handlepaymentfieldchange",
-      "community": 2,
+      "community": 3,
       "norm_label": "handlepaymentfieldchange()"
     },
     {
@@ -1053,7 +1107,7 @@
       "source_file": "components/sections/ServicesSection.tsx",
       "source_location": "L1",
       "id": "components_sections_servicessection_tsx",
-      "community": 6,
+      "community": 7,
       "norm_label": "servicessection.tsx"
     },
     {
@@ -1062,7 +1116,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/ServicesSection.tsx",
       "source_location": "L37",
       "id": "sections_servicessection_emptyline",
-      "community": 6,
+      "community": 7,
       "norm_label": "emptyline()"
     },
     {
@@ -1071,7 +1125,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/ServicesSection.tsx",
       "source_location": "L63",
       "id": "sections_servicessection_parsenum",
-      "community": 6,
+      "community": 7,
       "norm_label": "parsenum()"
     },
     {
@@ -1080,7 +1134,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/ServicesSection.tsx",
       "source_location": "L67",
       "id": "sections_servicessection_loaddata",
-      "community": 6,
+      "community": 7,
       "norm_label": "loaddata()"
     },
     {
@@ -1089,7 +1143,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/ServicesSection.tsx",
       "source_location": "L86",
       "id": "sections_servicessection_resetform",
-      "community": 6,
+      "community": 7,
       "norm_label": "resetform()"
     },
     {
@@ -1098,7 +1152,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/ServicesSection.tsx",
       "source_location": "L96",
       "id": "sections_servicessection_validate",
-      "community": 6,
+      "community": 7,
       "norm_label": "validate()"
     },
     {
@@ -1107,7 +1161,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/ServicesSection.tsx",
       "source_location": "L108",
       "id": "sections_servicessection_handlesubmit",
-      "community": 6,
+      "community": 7,
       "norm_label": "handlesubmit()"
     },
     {
@@ -1116,7 +1170,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/ServicesSection.tsx",
       "source_location": "L139",
       "id": "sections_servicessection_handledelete",
-      "community": 6,
+      "community": 7,
       "norm_label": "handledelete()"
     },
     {
@@ -1125,7 +1179,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/ServicesSection.tsx",
       "source_location": "L151",
       "id": "sections_servicessection_runocr",
-      "community": 6,
+      "community": 7,
       "norm_label": "runocr()"
     },
     {
@@ -1134,7 +1188,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/ServicesSection.tsx",
       "source_location": "L207",
       "id": "sections_servicessection_handleimagefile",
-      "community": 6,
+      "community": 7,
       "norm_label": "handleimagefile()"
     },
     {
@@ -1143,7 +1197,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/ServicesSection.tsx",
       "source_location": "L222",
       "id": "sections_servicessection_updateline",
-      "community": 6,
+      "community": 7,
       "norm_label": "updateline()"
     },
     {
@@ -1152,7 +1206,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/ServicesSection.tsx",
       "source_location": "L235",
       "id": "sections_servicessection_addline",
-      "community": 6,
+      "community": 7,
       "norm_label": "addline()"
     },
     {
@@ -1161,7 +1215,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/ServicesSection.tsx",
       "source_location": "L236",
       "id": "sections_servicessection_removeline",
-      "community": 6,
+      "community": 7,
       "norm_label": "removeline()"
     },
     {
@@ -1170,7 +1224,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/ServicesSection.tsx",
       "source_location": "L239",
       "id": "sections_servicessection_toggleexpand",
-      "community": 6,
+      "community": 7,
       "norm_label": "toggleexpand()"
     },
     {
@@ -1179,7 +1233,7 @@
       "source_file": "components/sections/VehiclesSection.tsx",
       "source_location": "L1",
       "id": "components_sections_vehiclessection_tsx",
-      "community": 7,
+      "community": 6,
       "norm_label": "vehiclessection.tsx"
     },
     {
@@ -1188,7 +1242,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/VehiclesSection.tsx",
       "source_location": "L34",
       "id": "sections_vehiclessection_loadvehicles",
-      "community": 7,
+      "community": 6,
       "norm_label": "loadvehicles()"
     },
     {
@@ -1197,7 +1251,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/VehiclesSection.tsx",
       "source_location": "L49",
       "id": "sections_vehiclessection_validate",
-      "community": 7,
+      "community": 6,
       "norm_label": "validate()"
     },
     {
@@ -1206,7 +1260,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/VehiclesSection.tsx",
       "source_location": "L57",
       "id": "sections_vehiclessection_handlesubmit",
-      "community": 7,
+      "community": 6,
       "norm_label": "handlesubmit()"
     },
     {
@@ -1215,7 +1269,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/VehiclesSection.tsx",
       "source_location": "L85",
       "id": "sections_vehiclessection_handleedit",
-      "community": 7,
+      "community": 6,
       "norm_label": "handleedit()"
     },
     {
@@ -1224,7 +1278,7 @@
       "source_file": "components/sections/VehiclesSection.tsx",
       "source_location": "L115",
       "id": "sections_vehiclessection_handlearchive",
-      "community": 7,
+      "community": 6,
       "norm_label": "handlearchive()"
     },
     {
@@ -1233,7 +1287,7 @@
       "source_file": "components/sections/VehiclesSection.tsx",
       "source_location": "L128",
       "id": "sections_vehiclessection_handlerestore",
-      "community": 7,
+      "community": 6,
       "norm_label": "handlerestore()"
     },
     {
@@ -1242,7 +1296,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/VehiclesSection.tsx",
       "source_location": "L104",
       "id": "sections_vehiclessection_handleopenadd",
-      "community": 7,
+      "community": 6,
       "norm_label": "handleopenadd()"
     },
     {
@@ -1251,7 +1305,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/VehiclesSection.tsx",
       "source_location": "L111",
       "id": "sections_vehiclessection_handlechange",
-      "community": 7,
+      "community": 6,
       "norm_label": "handlechange()"
     },
     {
@@ -1260,7 +1314,7 @@
       "source_file": "components/sections/VehiclesSection.tsx",
       "source_location": "L156",
       "id": "sections_vehiclessection_renderregistrationbadge",
-      "community": 7,
+      "community": 6,
       "norm_label": "renderregistrationbadge()"
     },
     {
@@ -1269,7 +1323,7 @@
       "source_file": "lib/attendanceExport.ts",
       "source_location": "L1",
       "id": "lib_attendanceexport_ts",
-      "community": 9,
+      "community": 8,
       "norm_label": "attendanceexport.ts"
     },
     {
@@ -1278,7 +1332,7 @@
       "source_file": "lib/attendanceExport.ts",
       "source_location": "L46",
       "id": "lib_attendanceexport_parseyearmonth",
-      "community": 9,
+      "community": 8,
       "norm_label": "parseyearmonth()"
     },
     {
@@ -1287,7 +1341,7 @@
       "source_file": "lib/attendanceExport.ts",
       "source_location": "L51",
       "id": "lib_attendanceexport_matchescompanyfilter",
-      "community": 9,
+      "community": 8,
       "norm_label": "matchescompanyfilter()"
     },
     {
@@ -1296,7 +1350,7 @@
       "source_file": "lib/attendanceExport.ts",
       "source_location": "L55",
       "id": "lib_attendanceexport_dayheader",
-      "community": 9,
+      "community": 8,
       "norm_label": "dayheader()"
     },
     {
@@ -1305,7 +1359,7 @@
       "source_file": "lib/attendanceExport.ts",
       "source_location": "L60",
       "id": "lib_attendanceexport_formathours",
-      "community": 9,
+      "community": 8,
       "norm_label": "formathours()"
     },
     {
@@ -1314,7 +1368,7 @@
       "source_file": "lib/attendanceExport.ts",
       "source_location": "L64",
       "id": "lib_attendanceexport_companyslug",
-      "community": 9,
+      "community": 8,
       "norm_label": "companyslug()"
     },
     {
@@ -1323,7 +1377,7 @@
       "source_file": "lib/attendanceExport.ts",
       "source_location": "L69",
       "id": "lib_attendanceexport_companypdflabel",
-      "community": 9,
+      "community": 8,
       "norm_label": "companypdflabel()"
     },
     {
@@ -1332,7 +1386,7 @@
       "source_file": "lib/attendanceExport.ts",
       "source_location": "L74",
       "id": "lib_attendanceexport_buildattendancematrix",
-      "community": 9,
+      "community": 8,
       "norm_label": "buildattendancematrix()"
     },
     {
@@ -1341,7 +1395,7 @@
       "source_file": "lib/attendanceExport.ts",
       "source_location": "L140",
       "id": "lib_attendanceexport_exportattendancematrixpdf",
-      "community": 9,
+      "community": 8,
       "norm_label": "exportattendancematrixpdf()"
     },
     {
@@ -1372,6 +1426,24 @@
       "norm_label": "db.ts"
     },
     {
+      "label": "defaultLocationForCompany()",
+      "file_type": "code",
+      "source_file": "lib/db.ts",
+      "source_location": "L39",
+      "id": "lib_db_defaultlocationforcompany",
+      "community": 2,
+      "norm_label": "defaultlocationforcompany()"
+    },
+    {
+      "label": "workLocationLabel()",
+      "file_type": "code",
+      "source_file": "lib/db.ts",
+      "source_location": "L43",
+      "id": "lib_db_worklocationlabel",
+      "community": 2,
+      "norm_label": "worklocationlabel()"
+    },
+    {
       "label": "mapEmployee()",
       "file_type": "code",
       "source_file": "vercel-recovery/2K6b37HEZ/src/lib/db.ts",
@@ -1393,7 +1465,7 @@
       "label": "mapDailyReport()",
       "file_type": "code",
       "source_file": "lib/db.ts",
-      "source_location": "L160",
+      "source_location": "L175",
       "id": "lib_db_mapdailyreport",
       "community": 0,
       "norm_label": "mapdailyreport()"
@@ -1458,7 +1530,7 @@
       "source_file": "lib/imageCompress.ts",
       "source_location": "L1",
       "id": "lib_imagecompress_ts",
-      "community": 5,
+      "community": 9,
       "norm_label": "imagecompress.ts"
     },
     {
@@ -1467,7 +1539,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/lib/imageCompress.ts",
       "source_location": "L2",
       "id": "lib_imagecompress_compressimage",
-      "community": 5,
+      "community": 9,
       "norm_label": "compressimage()"
     },
     {
@@ -1620,7 +1692,7 @@
       "source_file": "lib/useBodyScrollLock.ts",
       "source_location": "L1",
       "id": "lib_usebodyscrolllock_ts",
-      "community": 13,
+      "community": 14,
       "norm_label": "usebodyscrolllock.ts"
     },
     {
@@ -1629,7 +1701,7 @@
       "source_file": "lib/useBodyScrollLock.ts",
       "source_location": "L9",
       "id": "lib_usebodyscrolllock_usebodyscrolllock",
-      "community": 13,
+      "community": 14,
       "norm_label": "usebodyscrolllock()"
     },
     {
@@ -1638,7 +1710,7 @@
       "source_file": "lib/vehicleRegistration.ts",
       "source_location": "L1",
       "id": "lib_vehicleregistration_ts",
-      "community": 7,
+      "community": 6,
       "norm_label": "vehicleregistration.ts"
     },
     {
@@ -1647,7 +1719,7 @@
       "source_file": "lib/vehicleRegistration.ts",
       "source_location": "L6",
       "id": "lib_vehicleregistration_getregistrationstatus",
-      "community": 7,
+      "community": 6,
       "norm_label": "getregistrationstatus()"
     },
     {
@@ -1656,7 +1728,7 @@
       "source_file": "lib/vehicleRegistration.ts",
       "source_location": "L23",
       "id": "lib_vehicleregistration_formatregistrationdate",
-      "community": 7,
+      "community": 6,
       "norm_label": "formatregistrationdate()"
     },
     {
@@ -1701,7 +1773,7 @@
       "source_file": "scripts/vercel-recover.mjs",
       "source_location": "L1",
       "id": "scripts_vercel_recover_mjs",
-      "community": 14,
+      "community": 13,
       "norm_label": "vercel-recover.mjs"
     },
     {
@@ -1710,7 +1782,7 @@
       "source_file": "scripts/vercel-recover.mjs",
       "source_location": "L37",
       "id": "scripts_vercel_recover_vfetch",
-      "community": 14,
+      "community": 13,
       "norm_label": "vfetch()"
     },
     {
@@ -1719,7 +1791,7 @@
       "source_file": "scripts/vercel-recover.mjs",
       "source_location": "L48",
       "id": "scripts_vercel_recover_getjson",
-      "community": 14,
+      "community": 13,
       "norm_label": "getjson()"
     },
     {
@@ -1728,7 +1800,7 @@
       "source_file": "scripts/vercel-recover.mjs",
       "source_location": "L53",
       "id": "scripts_vercel_recover_getfilecontents",
-      "community": 14,
+      "community": 13,
       "norm_label": "getfilecontents()"
     },
     {
@@ -1737,7 +1809,7 @@
       "source_file": "scripts/vercel-recover.mjs",
       "source_location": "L66",
       "id": "scripts_vercel_recover_walk",
-      "community": 14,
+      "community": 13,
       "norm_label": "walk()"
     },
     {
@@ -1863,7 +1935,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/app/page.tsx",
       "source_location": "L1",
       "id": "vercel_recovery_2k6b37hez_src_app_page_tsx",
-      "community": 3,
+      "community": 1,
       "norm_label": "page.tsx"
     },
     {
@@ -1872,7 +1944,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/app/page.tsx",
       "source_location": "L63",
       "id": "app_page_getpresetrange",
-      "community": 3,
+      "community": 1,
       "norm_label": "getpresetrange()"
     },
     {
@@ -1881,7 +1953,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/app/page.tsx",
       "source_location": "L286",
       "id": "app_page_applypreset",
-      "community": 3,
+      "community": 1,
       "norm_label": "applypreset()"
     },
     {
@@ -1890,7 +1962,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/app/page.tsx",
       "source_location": "L292",
       "id": "app_page_applycustom",
-      "community": 3,
+      "community": 1,
       "norm_label": "applycustom()"
     },
     {
@@ -1953,7 +2025,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/app/profili/page.tsx",
       "source_location": "L1",
       "id": "vercel_recovery_2k6b37hez_src_app_profili_page_tsx",
-      "community": 0,
+      "community": 8,
       "norm_label": "page.tsx"
     },
     {
@@ -1998,7 +2070,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/ConfirmDialog.tsx",
       "source_location": "L1",
       "id": "vercel_recovery_2k6b37hez_src_components_confirmdialog_tsx",
-      "community": 13,
+      "community": 14,
       "norm_label": "confirmdialog.tsx"
     },
     {
@@ -2016,7 +2088,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/FormField.tsx",
       "source_location": "L1",
       "id": "vercel_recovery_2k6b37hez_src_components_formfield_tsx",
-      "community": 8,
+      "community": 5,
       "norm_label": "formfield.tsx"
     },
     {
@@ -2052,7 +2124,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/AttendanceSection.tsx",
       "source_location": "L1",
       "id": "vercel_recovery_2k6b37hez_src_components_sections_attendancesection_tsx",
-      "community": 1,
+      "community": 2,
       "norm_label": "attendancesection.tsx"
     },
     {
@@ -2061,7 +2133,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/DieselSection.tsx",
       "source_location": "L1",
       "id": "vercel_recovery_2k6b37hez_src_components_sections_dieselsection_tsx",
-      "community": 8,
+      "community": 9,
       "norm_label": "dieselsection.tsx"
     },
     {
@@ -2070,7 +2142,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/EmployeesSection.tsx",
       "source_location": "L1",
       "id": "vercel_recovery_2k6b37hez_src_components_sections_employeessection_tsx",
-      "community": 2,
+      "community": 3,
       "norm_label": "employeessection.tsx"
     },
     {
@@ -2079,7 +2151,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/EmployeesSection.tsx",
       "source_location": "L182",
       "id": "sections_employeessection_handledelete",
-      "community": 2,
+      "community": 3,
       "norm_label": "handledelete()"
     },
     {
@@ -2088,7 +2160,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/ServicesSection.tsx",
       "source_location": "L1",
       "id": "vercel_recovery_2k6b37hez_src_components_sections_servicessection_tsx",
-      "community": 6,
+      "community": 7,
       "norm_label": "servicessection.tsx"
     },
     {
@@ -2097,7 +2169,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/VehiclesSection.tsx",
       "source_location": "L1",
       "id": "vercel_recovery_2k6b37hez_src_components_sections_vehiclessection_tsx",
-      "community": 7,
+      "community": 6,
       "norm_label": "vehiclessection.tsx"
     },
     {
@@ -2106,7 +2178,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/components/sections/VehiclesSection.tsx",
       "source_location": "L92",
       "id": "sections_vehiclessection_handledelete",
-      "community": 7,
+      "community": 6,
       "norm_label": "handledelete()"
     },
     {
@@ -2133,7 +2205,7 @@
       "source_file": "vercel-recovery/2K6b37HEZ/src/lib/imageCompress.ts",
       "source_location": "L1",
       "id": "vercel_recovery_2k6b37hez_src_lib_imagecompress_ts",
-      "community": 5,
+      "community": 9,
       "norm_label": "imagecompress.ts"
     },
     {
@@ -2213,7 +2285,7 @@
       "file_type": "code",
       "source_file": "app/page.tsx",
       "source_location": "L532",
-      "community": 3,
+      "community": 1,
       "norm_label": "changereportsmonth()",
       "id": "app_page_changereportsmonth"
     }
@@ -2320,6 +2392,17 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/page.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_page_tsx",
+      "target": "lib_db_worklocationlabel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/page.tsx",
       "source_location": "L36",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -2342,9 +2425,9 @@
       "source_file": "app/page.tsx",
       "source_location": "L77",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_page_tsx",
-      "target": "app_page_reportbreakdownkey",
-      "confidence_score": 1.0
+      "target": "app_page_reportbreakdownkey"
     },
     {
       "relation": "contains",
@@ -2420,6 +2503,66 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/page.tsx",
+      "source_location": "L537",
+      "weight": 1.0,
+      "source": "app_page_tsx",
+      "target": "app_page_closereports",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/page.tsx",
+      "source_location": "L544",
+      "weight": 1.0,
+      "source": "app_page_tsx",
+      "target": "app_page_defaultreportdate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/page.tsx",
+      "source_location": "L549",
+      "weight": 1.0,
+      "source": "app_page_tsx",
+      "target": "app_page_opencreatereport",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/page.tsx",
+      "source_location": "L562",
+      "weight": 1.0,
+      "source": "app_page_tsx",
+      "target": "app_page_openeditreport",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/page.tsx",
+      "source_location": "L573",
+      "weight": 1.0,
+      "source": "app_page_tsx",
+      "target": "app_page_handlereportformsave",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/page.tsx",
+      "source_location": "L621",
+      "weight": 1.0,
+      "source": "app_page_tsx",
+      "target": "app_page_handledeletereport",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/page.tsx",
       "source_location": "L535",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -2483,9 +2626,9 @@
       "source_file": "app/page.tsx",
       "source_location": "L542",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_page_printreport",
-      "target": "app_page_reportbreakdownkey",
-      "confidence_score": 1.0
+      "target": "app_page_reportbreakdownkey"
     },
     {
       "relation": "calls",
@@ -2537,6 +2680,17 @@
       "confidence_score": 1.0,
       "source": "vercel_recovery_2k6b37hez_src_app_page_tsx",
       "target": "app_page_exportvehiclespdf"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/page.tsx",
+      "source_location": "L552",
+      "weight": 1.0,
+      "source": "app_page_opencreatereport",
+      "target": "app_page_defaultreportdate",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -3696,6 +3850,28 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "components/sections/AttendanceSection.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "components_sections_attendancesection_tsx",
+      "target": "lib_db_defaultlocationforcompany",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/sections/AttendanceSection.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "components_sections_attendancesection_tsx",
+      "target": "lib_db_worklocationlabel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/sections/AttendanceSection.tsx",
       "source_location": "L40",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -3878,11 +4054,44 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "components/sections/AttendanceSection.tsx",
+      "source_location": "L143",
+      "weight": 1.0,
+      "source": "sections_attendancesection_handlecompanychange",
+      "target": "sections_attendancesection_buildbulkrows",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "components/sections/AttendanceSection.tsx",
       "source_location": "L165",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "sections_attendancesection_openbulk",
       "target": "sections_attendancesection_buildbulkrows"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "components/sections/AttendanceSection.tsx",
+      "source_location": "L87",
+      "weight": 1.0,
+      "source": "sections_attendancesection_buildbulkrows",
+      "target": "lib_db_defaultlocationforcompany"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "components/sections/AttendanceSection.tsx",
+      "source_location": "L140",
+      "weight": 1.0,
+      "source": "sections_attendancesection_handlecompanychange",
+      "target": "lib_db_defaultlocationforcompany"
     },
     {
       "relation": "calls",
@@ -3936,6 +4145,17 @@
       "confidence_score": 1.0,
       "source": "vercel_recovery_2k6b37hez_src_components_sections_attendancesection_tsx",
       "target": "sections_attendancesection_openbulk"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "components/sections/AttendanceSection.tsx",
+      "source_location": "L170",
+      "weight": 1.0,
+      "source": "sections_attendancesection_openbulk",
+      "target": "lib_db_defaultlocationforcompany"
     },
     {
       "relation": "contains",
@@ -5443,6 +5663,26 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "lib/db.ts",
+      "source_location": "L39",
+      "weight": 1.0,
+      "source": "lib_db_ts",
+      "target": "lib_db_defaultlocationforcompany",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lib/db.ts",
+      "source_location": "L43",
+      "weight": 1.0,
+      "source": "lib_db_ts",
+      "target": "lib_db_worklocationlabel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lib/db.ts",
       "source_location": "L117",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -6223,5 +6463,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "ef5e3151388c834b482ad1ed94d4075c4b0da5f9"
+  "built_at_commit": "fd7716fa5e6e502c5772bcc64f1b88d8e71df127"
 }

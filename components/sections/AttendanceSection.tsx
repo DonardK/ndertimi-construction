@@ -11,7 +11,9 @@ import {
   type Company,
   COMPANIES,
   DEFAULT_COMPANY,
-  WORK_LOCATION_LABELS,
+  COMPANY_LOCATIONS,
+  defaultLocationForCompany,
+  workLocationLabel,
 } from "@/lib/db";
 import { t } from "@/lib/translations";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -39,7 +41,6 @@ import {
 import Link from "next/link";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
-const LOCATIONS: WorkLocation[] = ["Pr", "Pz", "M"];
 const COMPANY_STORAGE_KEY = "ndertimi-attendance-company";
 
 type CompanyFilter = "all" | Company;
@@ -83,6 +84,7 @@ function buildBulkRows(
   records: Attendance[]
 ): BulkRow[] {
   const existing = existingEmployeeIdsForDate(records, date, company);
+  const location = defaultLocationForCompany(company);
   return employees.map((e) => ({
     employeeId: e.id!,
     emri: e.emri,
@@ -90,7 +92,7 @@ function buildBulkRows(
     paymentMethod: e.paymentMethod,
     rate: e.cmimiOre,
     hours: "",
-    location: "Pr" as WorkLocation,
+    location,
     checked: false,
     alreadyRecorded: existing.has(e.id!),
   }));
@@ -110,7 +112,9 @@ export default function AttendanceSection() {
   const [bulkRows, setBulkRows] = useState<BulkRow[]>([]);
   const [bulkSaving, setBulkSaving] = useState(false);
   const [sameHours, setSameHours] = useState("");
-  const [sameLocation, setSameLocation] = useState<WorkLocation>("Pr");
+  const [sameLocation, setSameLocation] = useState<WorkLocation>(
+    defaultLocationForCompany(DEFAULT_COMPANY)
+  );
 
   // Report dialog (opens after Ruaj)
   const [showReportModal, setShowReportModal] = useState(false);
@@ -133,6 +137,11 @@ export default function AttendanceSection() {
   const handleCompanyChange = (company: Company) => {
     setSelectedCompany(company);
     localStorage.setItem(COMPANY_STORAGE_KEY, company);
+    const loc = defaultLocationForCompany(company);
+    setSameLocation(loc);
+    if (showBulk) {
+      setBulkRows(buildBulkRows(activeEmployees, bulkDate, company, records));
+    }
   };
 
   const loadData = async () => {
@@ -158,7 +167,7 @@ export default function AttendanceSection() {
   const openBulk = () => {
     setBulkDate(filterDate);
     setSameHours("");
-    setSameLocation("Pr");
+    setSameLocation(defaultLocationForCompany(selectedCompany));
     setReportError(null);
     setReportTitle("");
     setReportContent("");
@@ -319,6 +328,7 @@ export default function AttendanceSection() {
       r.date === filterDate &&
       (filterCompany === "all" || r.company === filterCompany)
   );
+  const companyLocations = COMPANY_LOCATIONS[selectedCompany];
   const totalHours = filteredRecords.reduce((sum, r) => sum + r.hoursWorked, 0);
   const activeEmployees = employees.filter((e) => !e.archivedAt);
 
@@ -472,10 +482,10 @@ export default function AttendanceSection() {
                     </span>
                     <span
                       className="flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700"
-                      title={WORK_LOCATION_LABELS[rec.location]}
+                      title={workLocationLabel(rec.location)}
                     >
                       <MapPin className="w-3 h-3" />
-                      {rec.location}
+                      {workLocationLabel(rec.location)}
                     </span>
                     {canViewFinancials && earned && (
                       <span className="text-xs font-semibold text-gray-500">
@@ -578,9 +588,9 @@ export default function AttendanceSection() {
                     onChange={(e) => setSameLocation(e.target.value as WorkLocation)}
                     className="flex-1 h-11 px-3 rounded-xl border-2 border-indigo-300 text-base font-bold text-gray-900 focus:outline-none focus:border-indigo-600 bg-white"
                   >
-                    {LOCATIONS.map((loc) => (
+                    {companyLocations.map((loc) => (
                       <option key={loc} value={loc}>
-                        {loc} — {WORK_LOCATION_LABELS[loc]}
+                        {workLocationLabel(loc)}
                       </option>
                     ))}
                   </select>
@@ -681,22 +691,22 @@ export default function AttendanceSection() {
                   </div>
 
                   {/* Location selector */}
-                  <div className="shrink-0 w-16">
+                  <div className="shrink-0 w-28">
                     <select
                       value={row.location}
                       onChange={(e) => setBulkLocation(idx, e.target.value as WorkLocation)}
                       disabled={!row.checked || row.alreadyRecorded}
-                      title={WORK_LOCATION_LABELS[row.location]}
-                      className={`w-full h-11 px-2 rounded-xl border-2 text-sm font-bold text-center transition-colors focus:outline-none
+                      title={workLocationLabel(row.location)}
+                      className={`w-full h-11 px-2 rounded-xl border-2 text-xs font-bold text-center transition-colors focus:outline-none
                         ${
                           row.checked
                             ? "border-indigo-300 bg-white text-indigo-700 focus:border-indigo-600"
                             : "border-gray-200 bg-gray-50 text-gray-400"
                         }`}
                     >
-                      {LOCATIONS.map((loc) => (
+                      {companyLocations.map((loc) => (
                         <option key={loc} value={loc}>
-                          {loc}
+                          {workLocationLabel(loc)}
                         </option>
                       ))}
                     </select>
@@ -807,7 +817,7 @@ export default function AttendanceSection() {
                       <span className="flex items-center gap-3 shrink-0">
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-amber-300 text-amber-800 font-bold text-xs">
                           <MapPin className="w-3 h-3" />
-                          {WORK_LOCATION_LABELS[row.location]}
+                          {workLocationLabel(row.location)}
                         </span>
                         <span className="font-extrabold text-gray-900 tabular-nums w-10 text-right">
                           {row.hours}h

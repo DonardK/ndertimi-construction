@@ -8,11 +8,13 @@ import {
   type DailyReport,
   type Company,
   COMPANIES,
-  WORK_LOCATION_LABELS,
+  DEFAULT_COMPANY,
+  workLocationLabel,
   type WorkLocation,
 } from "@/lib/db";
 import { t } from "@/lib/translations";
 import toast from "react-hot-toast";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import {
   Fuel,
   Users as UsersIcon,
@@ -25,6 +27,9 @@ import {
   X,
   Printer,
   ChevronRight,
+  Plus,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import {
   startOfMonth,
@@ -149,6 +154,17 @@ export default function DashboardPage() {
   const [reportLocations, setReportLocations] = useState<
     Record<string, ReportWorkerRow[]>
   >({});
+  const [reportFormMode, setReportFormMode] = useState<"create" | "edit" | null>(
+    null
+  );
+  const [reportFormDate, setReportFormDate] = useState("");
+  const [reportFormCompany, setReportFormCompany] =
+    useState<Company>(DEFAULT_COMPANY);
+  const [reportFormTitle, setReportFormTitle] = useState("");
+  const [reportFormContent, setReportFormContent] = useState("");
+  const [reportFormError, setReportFormError] = useState<string | null>(null);
+  const [reportFormSaving, setReportFormSaving] = useState(false);
+  const [deleteReportId, setDeleteReportId] = useState<number | null>(null);
 
   useBodyScrollLock(showReports);
 
@@ -514,7 +530,105 @@ export default function DashboardPage() {
 
   const openReports = () => {
     setSelectedReport(null);
+    setReportFormMode(null);
     setShowReports(true);
+  };
+
+  const closeReports = () => {
+    setShowReports(false);
+    setSelectedReport(null);
+    setReportFormMode(null);
+    setReportFormError(null);
+  };
+
+  const defaultReportDate = (ym: string) => {
+    const today = format(new Date(), "yyyy-MM-dd");
+    return today.startsWith(`${ym}-`) ? today : `${ym}-01`;
+  };
+
+  const openCreateReport = () => {
+    setSelectedReport(null);
+    setReportFormError(null);
+    setReportFormDate(defaultReportDate(selectedMonth));
+    setReportFormCompany(
+      selectedCompanyFilter === "all" ? DEFAULT_COMPANY : selectedCompanyFilter
+    );
+    setReportFormTitle("");
+    setReportFormContent("");
+    setReportFormMode("create");
+    setShowReports(true);
+  };
+
+  const openEditReport = (r: DailyReport) => {
+    setReportFormError(null);
+    setReportFormDate(r.date);
+    setReportFormCompany(r.company);
+    setReportFormTitle(r.title);
+    setReportFormContent(r.content);
+    setReportFormMode("edit");
+    setSelectedReport(r);
+    setShowReports(true);
+  };
+
+  const handleReportFormSave = async () => {
+    if (!reportFormDate || !reportFormTitle.trim() || !reportFormContent.trim()) {
+      setReportFormError(t.dashboard.reportRequired);
+      return;
+    }
+    setReportFormError(null);
+    setReportFormSaving(true);
+    const payload = {
+      date: reportFormDate,
+      title: reportFormTitle.trim(),
+      content: reportFormContent.trim(),
+      company: reportFormCompany,
+    };
+    try {
+      if (reportFormMode === "create") {
+        const existing = await db.dailyReports.getByDate(
+          payload.date,
+          payload.company
+        );
+        if (existing) {
+          setReportFormError(t.dashboard.reportExists);
+          return;
+        }
+        await db.dailyReports.upsert(payload);
+        toast.success(t.success.saved);
+      } else if (reportFormMode === "edit" && selectedReport?.id != null) {
+        const existing = await db.dailyReports.getByDate(
+          payload.date,
+          payload.company
+        );
+        if (existing && existing.id !== selectedReport.id) {
+          setReportFormError(t.dashboard.reportExists);
+          return;
+        }
+        await db.dailyReports.update(selectedReport.id, payload);
+        toast.success(t.success.updated);
+      }
+      setReportFormMode(null);
+      await loadReports(selectedMonth, selectedCompanyFilter);
+      const saved = await db.dailyReports.getByDate(payload.date, payload.company);
+      setSelectedReport(saved);
+    } catch {
+      toast.error(t.errors.saveError);
+    } finally {
+      setReportFormSaving(false);
+    }
+  };
+
+  const handleDeleteReport = async () => {
+    if (deleteReportId == null) return;
+    try {
+      await db.dailyReports.delete(deleteReportId);
+      toast.success(t.success.deleted);
+      setDeleteReportId(null);
+      setSelectedReport(null);
+      await loadReports(selectedMonth, selectedCompanyFilter);
+    } catch {
+      toast.error(t.errors.deleteError);
+    }
   };
 
   useEffect(() => {
@@ -544,9 +658,9 @@ export default function DashboardPage() {
     const rows = workers
       .map(
         (w) =>
-          `<tr><td>${escapeHtml(w.name)}</td><td style="text-align:center">${
-            w.location
-          } — ${escapeHtml(WORK_LOCATION_LABELS[w.location])}</td><td style="text-align:right">${
+          `<tr><td>${escapeHtml(w.name)}</td><td style="text-align:center">${escapeHtml(
+            workLocationLabel(w.location)
+          )}</td><td style="text-align:right">${
             w.hours
           } orë</td></tr>`
       )
@@ -644,28 +758,42 @@ export default function DashboardPage() {
       ) : !canViewFinancials ? (
         <div className="flex flex-col gap-5">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100">
+            <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between gap-2">
               <h2 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
                 <FileText className="w-4 h-4 text-amber-600" />
                 {t.dashboard.reportsTitle}
               </h2>
+              <button
+                onClick={openCreateReport}
+                className="flex items-center gap-1.5 text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 px-3 py-1.5 rounded-lg transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                {t.dashboard.addReport}
+              </button>
             </div>
             {reportsLoading ? (
               <div className="flex justify-center py-12">
                 <div className="w-8 h-8 border-4 border-amber-600 border-t-transparent rounded-full animate-spin" />
               </div>
             ) : reportsList.length === 0 ? (
-              <div className="flex flex-col items-center justify-center gap-2 py-12 text-gray-400">
+              <div className="flex flex-col items-center justify-center gap-3 py-12 text-gray-400">
                 <AlertCircle className="w-8 h-8" />
                 <span className="text-sm">{t.dashboard.noReports}</span>
+                <button
+                  onClick={openCreateReport}
+                  className="text-sm font-bold text-amber-700 hover:text-amber-900"
+                >
+                  {t.dashboard.addReport}
+                </button>
               </div>
             ) : (
               <ul>
                 {reportsList.map((r) => (
-                  <li key={r.id ?? r.date}>
+                  <li key={r.id ?? `${r.date}-${r.company}`}>
                     <button
                       onClick={() => {
                         setSelectedReport(r);
+                        setReportFormMode(null);
                         setShowReports(true);
                       }}
                       className="w-full flex items-center gap-3 px-6 py-3 border-b border-gray-100 hover:bg-amber-50 transition-colors text-left"
@@ -681,6 +809,9 @@ export default function DashboardPage() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-gray-900 truncate">{r.title}</p>
                         <p className="text-xs text-gray-500 truncate">{r.content}</p>
+                        <span className="inline-block mt-1 text-xs font-bold px-2 py-0.5 rounded-full bg-violet-100 text-violet-700">
+                          {r.company}
+                        </span>
                       </div>
                       <ChevronRight className="w-5 h-5 text-gray-400 shrink-0" />
                     </button>
@@ -975,32 +1106,134 @@ export default function DashboardPage() {
         >
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setShowReports(false)}
+            onClick={closeReports}
           />
           <div className="relative bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-lg lg:max-w-xl max-h-[92vh] flex flex-col">
             <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 shrink-0">
               <div>
                 <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
                   <FileText className="w-5 h-5 text-amber-600" />
-                  {t.dashboard.reportsTitle}
+                  {reportFormMode === "create"
+                    ? t.dashboard.addReport
+                    : reportFormMode === "edit"
+                      ? t.dashboard.editReport
+                      : t.dashboard.reportsTitle}
                 </h2>
                 <p className="text-sm text-gray-500 mt-1">
                   {periodLabel}
                   {companyLabel ? ` · ${companyLabel}` : ""}
                 </p>
               </div>
-              <button
-                onClick={() => {
-                  setShowReports(false);
-                  setSelectedReport(null);
-                }}
-                className="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center shrink-0"
-              >
-                <X className="w-5 h-5 text-gray-600" />
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                {!reportFormMode && !selectedReport && (
+                  <button
+                    onClick={openCreateReport}
+                    className="flex items-center gap-1.5 text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {t.common.add}
+                  </button>
+                )}
+                <button
+                  onClick={closeReports}
+                  className="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+                >
+                  <X className="w-5 h-5 text-gray-600" />
+                </button>
+              </div>
             </div>
 
-            {selectedReport ? (
+            {reportFormMode ? (
+              <div className="flex-1 overflow-y-auto px-6 py-4">
+                <div className="flex flex-col gap-3">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                      {t.dashboard.reportDate}
+                    </label>
+                    <input
+                      type="date"
+                      value={reportFormDate}
+                      onChange={(e) => setReportFormDate(e.target.value)}
+                      className="w-full h-12 px-4 rounded-xl border-2 border-gray-300 text-base font-medium text-gray-900 focus:outline-none focus:border-amber-500 bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                      {t.dashboard.filterCompany}
+                    </label>
+                    <select
+                      value={reportFormCompany}
+                      onChange={(e) =>
+                        setReportFormCompany(e.target.value as Company)
+                      }
+                      className="w-full h-12 px-4 rounded-xl border-2 border-gray-300 text-base font-medium text-gray-900 focus:outline-none focus:border-amber-500 bg-white"
+                    >
+                      {COMPANIES.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                      {t.dashboard.reportTitle} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={reportFormTitle}
+                      onChange={(e) => setReportFormTitle(e.target.value)}
+                      placeholder={t.dashboard.reportTitlePlaceholder}
+                      className={`w-full h-12 px-4 rounded-xl border-2 text-base font-medium text-gray-900 focus:outline-none bg-white ${
+                        reportFormError && !reportFormTitle.trim()
+                          ? "border-red-400"
+                          : "border-gray-300 focus:border-amber-500"
+                      }`}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                      {t.dashboard.reportContent} <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      value={reportFormContent}
+                      onChange={(e) => setReportFormContent(e.target.value)}
+                      placeholder={t.dashboard.reportContentPlaceholder}
+                      rows={6}
+                      className={`w-full px-4 py-3 rounded-xl border-2 text-base text-gray-900 focus:outline-none bg-white resize-y ${
+                        reportFormError && !reportFormContent.trim()
+                          ? "border-red-400"
+                          : "border-gray-300 focus:border-amber-500"
+                      }`}
+                    />
+                  </div>
+                  {reportFormError && (
+                    <p className="text-sm font-semibold text-red-600">{reportFormError}</p>
+                  )}
+                </div>
+                <div className="flex gap-3 mt-5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setReportFormMode(null);
+                      setReportFormError(null);
+                    }}
+                    disabled={reportFormSaving}
+                    className="flex-1 h-12 rounded-xl border-2 border-gray-300 text-gray-700 font-bold hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    {t.common.cancel}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleReportFormSave}
+                    disabled={reportFormSaving}
+                    className="flex-1 h-12 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold disabled:opacity-50"
+                  >
+                    {reportFormSaving ? t.common.loading : t.common.save}
+                  </button>
+                </div>
+              </div>
+            ) : selectedReport ? (
               <div className="flex-1 overflow-y-auto">
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3 bg-amber-50">
                   <button
@@ -1009,13 +1242,32 @@ export default function DashboardPage() {
                   >
                     ← {t.common.back}
                   </button>
-                  <button
-                    onClick={() => printReport(selectedReport)}
-                    className="flex items-center gap-1.5 text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 px-3 py-1.5 rounded-lg transition-colors"
-                  >
-                    <Printer className="w-4 h-4" />
-                    {t.dashboard.print}
-                  </button>
+                  <div className="flex items-center gap-2 flex-wrap justify-end">
+                    <button
+                      onClick={() => openEditReport(selectedReport)}
+                      className="flex items-center gap-1.5 text-sm font-bold text-amber-800 bg-white hover:bg-amber-100 px-3 py-1.5 rounded-lg border border-amber-200 transition-colors"
+                    >
+                      <Pencil className="w-4 h-4" />
+                      {t.common.edit}
+                    </button>
+                    <button
+                      onClick={() =>
+                        selectedReport.id != null &&
+                        setDeleteReportId(selectedReport.id)
+                      }
+                      className="flex items-center gap-1.5 text-sm font-bold text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      {t.common.delete}
+                    </button>
+                    <button
+                      onClick={() => printReport(selectedReport)}
+                      className="flex items-center gap-1.5 text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      <Printer className="w-4 h-4" />
+                      {t.dashboard.print}
+                    </button>
+                  </div>
                 </div>
                 <div className="px-6 py-4">
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">
@@ -1066,7 +1318,7 @@ export default function DashboardPage() {
                             <td className="px-2 py-2 font-semibold text-gray-900">{w.name}</td>
                             <td className="px-2 py-2 text-center">
                               <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
-                                {w.location}
+                                {workLocationLabel(w.location)}
                               </span>
                             </td>
                             <td className="px-2 py-2 text-right font-bold text-gray-700">
@@ -1086,9 +1338,15 @@ export default function DashboardPage() {
                     <div className="w-8 h-8 border-4 border-amber-600 border-t-transparent rounded-full animate-spin" />
                   </div>
                 ) : reportsList.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center gap-2 py-12 text-gray-400">
+                  <div className="flex flex-col items-center justify-center gap-3 py-12 text-gray-400">
                     <AlertCircle className="w-8 h-8" />
                     <span className="text-sm">{t.dashboard.noReports}</span>
+                    <button
+                      onClick={openCreateReport}
+                      className="text-sm font-bold text-amber-700 hover:text-amber-900"
+                    >
+                      {t.dashboard.addReport}
+                    </button>
                   </div>
                 ) : (
                   <ul>
@@ -1128,6 +1386,13 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={deleteReportId !== null}
+        message={t.dashboard.deleteReportConfirm}
+        onConfirm={handleDeleteReport}
+        onCancel={() => setDeleteReportId(null)}
+      />
     </div>
   );
 }

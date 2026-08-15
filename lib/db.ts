@@ -15,12 +15,14 @@ export interface Employee {
   createdAt?: string;
 }
 
-export type WorkLocation = "Pr" | "Pz" | "M";
+export type WorkLocation = "Pr" | "Pz" | "M" | "R8" | "R10";
 
 export const WORK_LOCATION_LABELS: Record<WorkLocation, string> = {
   Pr: "Prishtinë",
   Pz: "Prizren",
   M: "Malishevë",
+  R8: "Residio 8",
+  R10: "Residio 10",
 };
 
 export type Company = "Etna Group" | "Dervisholli";
@@ -28,6 +30,19 @@ export type Company = "Etna Group" | "Dervisholli";
 export const COMPANIES: Company[] = ["Etna Group", "Dervisholli"];
 
 export const DEFAULT_COMPANY: Company = "Etna Group";
+
+export const COMPANY_LOCATIONS: Record<Company, WorkLocation[]> = {
+  "Etna Group": ["Pr", "Pz", "M"],
+  Dervisholli: ["R8", "R10"],
+};
+
+export function defaultLocationForCompany(company: Company): WorkLocation {
+  return COMPANY_LOCATIONS[company][0];
+}
+
+export function workLocationLabel(loc: string): string {
+  return WORK_LOCATION_LABELS[loc as WorkLocation] ?? loc;
+}
 
 export interface Attendance {
   id?: number;
@@ -414,6 +429,19 @@ export const db = {
           { date: r.date, title: r.title, content: r.content, company: r.company },
           { onConflict: "date,company" }
         );
+      if (error) throw error;
+    },
+
+    async update(id: number, r: Omit<DailyReport, "id" | "createdAt">): Promise<void> {
+      const { error } = await getClient()
+        .from("daily_reports")
+        .update({
+          date: r.date,
+          title: r.title,
+          content: r.content,
+          company: r.company,
+        })
+        .eq("id", id);
       if (error) throw error;
     },
 

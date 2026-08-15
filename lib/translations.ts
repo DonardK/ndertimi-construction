@@ -332,6 +332,11 @@ export const t = {
     viewReport: "Shiko raportin",
     filterCompany: "Kompania",
     allCompanies: "Të gjitha",
+    addReport: "Shto Raport",
+    editReport: "Ndrysho raportin",
+    deleteReportConfirm: "A doni ta fshini këtë raport?",
+    reportExists: "Ekziston tashmë një raport për këtë datë dhe kompani.",
+    reportDate: "Data e raportit",
   },
 } as const;
 
