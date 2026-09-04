@@ -5,7 +5,9 @@ export interface Employee {
   emri: string;
   mbiemri: string;
   paymentMethod: "Cash" | "Bankë";
+  salaryType?: "hourly" | "fixed";
   cmimiOre: number;
+  fixedSalary?: number | null;
   /** Bank name — used when paymentMethod is Bankë */
   emriBankes: string;
   /** Bank account (IBAN / account no.) — used when paymentMethod is Bankë */
@@ -147,7 +149,9 @@ function mapEmployee(row: any): Employee {
     emri: row.emri,
     mbiemri: row.mbiemri,
     paymentMethod: row.payment_method,
-    cmimiOre: Number(row.cmimi_ore),
+    salaryType: row.salary_type === "fixed" ? "fixed" : "hourly",
+    cmimiOre: Number(row.cmimi_ore || 0),
+    fixedSalary: row.fixed_salary != null ? Number(row.fixed_salary) : null,
     emriBankes: row.emri_bankes ?? "",
     llogariaBankes: row.llogaria_bankes ?? "",
     archivedAt: row.archived_at ?? null,
@@ -299,11 +303,14 @@ export const db = {
     },
 
     async add(emp: Omit<Employee, "id" | "createdAt">): Promise<void> {
+      const isFixed = emp.salaryType === "fixed";
       const { error } = await getClient().from("employees").insert({
         emri: emp.emri,
         mbiemri: emp.mbiemri,
         payment_method: emp.paymentMethod,
-        cmimi_ore: emp.cmimiOre,
+        salary_type: isFixed ? "fixed" : "hourly",
+        cmimi_ore: isFixed ? 0 : emp.cmimiOre,
+        fixed_salary: isFixed ? (emp.fixedSalary ?? null) : null,
         emri_bankes: emp.paymentMethod === "Bankë" ? emp.emriBankes.trim() || null : null,
         llogaria_bankes: emp.paymentMethod === "Bankë" ? emp.llogariaBankes.trim() || null : null,
       });
@@ -315,7 +322,19 @@ export const db = {
       if (emp.emri !== undefined) updates.emri = emp.emri;
       if (emp.mbiemri !== undefined) updates.mbiemri = emp.mbiemri;
       if (emp.paymentMethod !== undefined) updates.payment_method = emp.paymentMethod;
-      if (emp.cmimiOre !== undefined) updates.cmimi_ore = emp.cmimiOre;
+      if (emp.salaryType !== undefined) {
+        updates.salary_type = emp.salaryType;
+        if (emp.salaryType === "fixed") {
+          updates.cmimi_ore = 0;
+          if (emp.fixedSalary !== undefined) updates.fixed_salary = emp.fixedSalary;
+        } else {
+          updates.fixed_salary = null;
+          if (emp.cmimiOre !== undefined) updates.cmimi_ore = emp.cmimiOre;
+        }
+      } else {
+        if (emp.cmimiOre !== undefined) updates.cmimi_ore = emp.cmimiOre;
+        if (emp.fixedSalary !== undefined) updates.fixed_salary = emp.fixedSalary;
+      }
       if (emp.emriBankes !== undefined) updates.emri_bankes = emp.emriBankes.trim() || null;
       if (emp.llogariaBankes !== undefined) updates.llogaria_bankes = emp.llogariaBankes.trim() || null;
       const { error } = await getClient().from("employees").update(updates).eq("id", id);

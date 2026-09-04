@@ -50,6 +50,6 @@ try {
     writeFileSync(outPath, buf);
     console.log(`Generated ${size}x${size} icon`);
   }
-} catch (e) {
+} catch {
   console.log("canvas module not available, using placeholder icons");
 }

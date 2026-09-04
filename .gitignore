@@ -39,6 +39,9 @@ yarn-error.log*
 # Vercel deployment source recovery (transient)
 vercel-recovery/
 
+# graphify cache
+graphify-out/cache/
+
 # vercel
 .vercel
 

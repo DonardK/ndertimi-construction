@@ -37,9 +37,11 @@ import {
   ArrowRight,
   MapPin,
   FileText,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
+import AiDailyReportModal from "@/components/AiDailyReportModal";
 
 const COMPANY_STORAGE_KEY = "ndertimi-attendance-company";
 
@@ -57,7 +59,9 @@ interface BulkRow {
   emri: string;
   mbiemri: string;
   paymentMethod: "Cash" | "Bankë";
+  salaryType: "hourly" | "fixed";
   rate: number;
+  fixedSalary: number | null;
   hours: string;
   location: WorkLocation;
   checked: boolean;
@@ -90,7 +94,9 @@ function buildBulkRows(
     emri: e.emri,
     mbiemri: e.mbiemri,
     paymentMethod: e.paymentMethod,
+    salaryType: e.salaryType ?? "hourly",
     rate: e.cmimiOre,
+    fixedSalary: e.fixedSalary ?? null,
     hours: "",
     location,
     checked: false,
@@ -127,6 +133,7 @@ export default function AttendanceSection() {
   const [filterDate, setFilterDate] = useState(today);
   const [selectedCompany, setSelectedCompany] = useState<Company>(DEFAULT_COMPANY);
   const [filterCompany, setFilterCompany] = useState<CompanyFilter>("all");
+  const [showAiModal, setShowAiModal] = useState(false);
 
   useBodyScrollLock(showBulk || showReportModal);
 
@@ -353,6 +360,14 @@ export default function AttendanceSection() {
                 />
               </div>
               <button
+                type="button"
+                onClick={() => setShowAiModal(true)}
+                className="flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold px-4 h-12 rounded-xl text-sm transition-all shadow-md active:scale-[0.98]"
+              >
+                <Sparkles className="w-4 h-4 text-amber-300" />
+                <span>Regjistro me AI</span>
+              </button>
+              <button
                 onClick={openBulk}
                 className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold px-5 h-12 rounded-xl text-base transition-colors shadow-md"
               >
@@ -428,13 +443,23 @@ export default function AttendanceSection() {
           message={t.attendance.noAttendance}
           icon={<CalendarCheck className="w-10 h-10" />}
           action={
-            <button
-              onClick={openBulk}
-              className="flex items-center gap-2 bg-blue-600 text-white font-bold px-6 h-12 rounded-xl text-base"
-            >
-              <Users className="w-5 h-5" />
-              {t.dashboard.addMultiple}
-            </button>
+            <div className="flex flex-col sm:flex-row gap-2.5">
+              <button
+                type="button"
+                onClick={() => setShowAiModal(true)}
+                className="flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 text-white font-bold px-5 h-12 rounded-xl text-sm shadow-md transition-all active:scale-[0.98]"
+              >
+                <Sparkles className="w-4 h-4 text-amber-300" />
+                <span>Regjistro me AI</span>
+              </button>
+              <button
+                onClick={openBulk}
+                className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 h-12 rounded-xl text-base transition-colors shadow-sm"
+              >
+                <Users className="w-5 h-5" />
+                {t.dashboard.addMultiple}
+              </button>
+            </div>
           }
         />
       ) : (
@@ -487,9 +512,15 @@ export default function AttendanceSection() {
                       <MapPin className="w-3 h-3" />
                       {workLocationLabel(rec.location)}
                     </span>
-                    {canViewFinancials && earned && (
+                    {canViewFinancials && (
                       <span className="text-xs font-semibold text-gray-500">
-                        €{earned}
+                        {emp?.salaryType === "fixed" ? (
+                          <span className="text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full font-bold">
+                            {t.employees.fixedBadge}
+                          </span>
+                        ) : earned ? (
+                          `€${earned}`
+                        ) : null}
                       </span>
                     )}
                   </div>
@@ -683,7 +714,11 @@ export default function AttendanceSection() {
                             {row.paymentMethod}
                           </span>
                           <span className="text-xs text-gray-400">
-                            €{row.rate.toFixed(2)}/orë
+                            {row.salaryType === "fixed" ? (
+                              <span className="text-purple-600 font-semibold">{t.employees.fixedBadge}</span>
+                            ) : (
+                              `€${row.rate.toFixed(2)}/orë`
+                            )}
                           </span>
                         </>
                       )}
@@ -735,7 +770,11 @@ export default function AttendanceSection() {
                     )}
                     {row.checked && row.hours && !row.error && (
                       <p className="text-xs text-gray-400 mt-0.5 text-center">
-                        €{(parseFloat(row.hours) * row.rate).toFixed(2)}
+                        {row.salaryType === "fixed" ? (
+                          <span className="text-purple-600 font-bold">{t.employees.fixedBadge}</span>
+                        ) : (
+                          `€${(parseFloat(row.hours) * row.rate).toFixed(2)}`
+                        )}
                       </p>
                     )}
                   </div>
@@ -908,6 +947,15 @@ export default function AttendanceSection() {
         message={t.attendance.deleteConfirm}
         onConfirm={handleDelete}
         onCancel={() => setDeleteId(null)}
+      />
+
+      <AiDailyReportModal
+        open={showAiModal}
+        initialDate={filterDate}
+        initialCompany={selectedCompany}
+        employees={employees}
+        onClose={() => setShowAiModal(false)}
+        onSuccess={() => loadData()}
       />
     </div>
   );

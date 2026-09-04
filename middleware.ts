@@ -1,11 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 import { getRoleFromEmail, isStaffBlockedPath } from "@/lib/roles";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/supabase-env";
 
 export async function middleware(request: NextRequest) {
+  const supabaseUrl = getSupabaseUrl();
+  const supabaseKey = getSupabaseAnonKey();
+
   if (!supabaseUrl || !supabaseKey) {
     return NextResponse.next({ request: { headers: request.headers } });
   }

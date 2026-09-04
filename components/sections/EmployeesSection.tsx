@@ -26,6 +26,7 @@ import {
   FileText,
   ChevronRight,
   RotateCcw,
+  Clock,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -33,7 +34,9 @@ interface FormData {
   emri: string;
   mbiemri: string;
   paymentMethod: "Cash" | "Bankë";
+  salaryType: "hourly" | "fixed";
   cmimiOre: string;
+  fixedSalary: string;
   emriBankes: string;
   llogariaBankes: string;
 }
@@ -42,6 +45,7 @@ interface FormErrors {
   emri?: string;
   mbiemri?: string;
   cmimiOre?: string;
+  fixedSalary?: string;
   emriBankes?: string;
   llogariaBankes?: string;
 }
@@ -64,7 +68,9 @@ const emptyForm: FormData = {
   emri: "",
   mbiemri: "",
   paymentMethod: "Cash",
+  salaryType: "hourly",
   cmimiOre: "",
+  fixedSalary: "",
   emriBankes: "",
   llogariaBankes: "",
 };
@@ -121,12 +127,21 @@ export default function EmployeesSection() {
     const newErrors: FormErrors = {};
     if (!form.emri.trim()) newErrors.emri = t.errors.requiredField;
     if (!form.mbiemri.trim()) newErrors.mbiemri = t.errors.requiredField;
-    const rate = parseNum(form.cmimiOre);
     if (canViewFinancials) {
-      if (!form.cmimiOre.trim()) {
-        newErrors.cmimiOre = t.errors.requiredField;
-      } else if (isNaN(rate) || rate < 0) {
-        newErrors.cmimiOre = t.errors.invalidNumber;
+      if (form.salaryType === "fixed") {
+        const fixedAmt = parseNum(form.fixedSalary);
+        if (!form.fixedSalary.trim()) {
+          newErrors.fixedSalary = t.errors.requiredField;
+        } else if (isNaN(fixedAmt) || fixedAmt < 0) {
+          newErrors.fixedSalary = t.errors.invalidNumber;
+        }
+      } else {
+        const rate = parseNum(form.cmimiOre);
+        if (!form.cmimiOre.trim()) {
+          newErrors.cmimiOre = t.errors.requiredField;
+        } else if (isNaN(rate) || rate < 0) {
+          newErrors.cmimiOre = t.errors.invalidNumber;
+        }
       }
     }
     if (canViewFinancials && form.paymentMethod === "Bankë") {
@@ -155,16 +170,26 @@ export default function EmployeesSection() {
         };
         if (canViewFinancials) {
           updates.paymentMethod = form.paymentMethod;
-          updates.cmimiOre = parseNum(form.cmimiOre);
+          updates.salaryType = form.salaryType;
+          if (form.salaryType === "fixed") {
+            updates.fixedSalary = parseNum(form.fixedSalary);
+            updates.cmimiOre = 0;
+          } else {
+            updates.cmimiOre = parseNum(form.cmimiOre);
+            updates.fixedSalary = null;
+          }
         }
         await db.employees.update(editId, updates);
         toast.success(t.success.updated);
       } else {
+        const isFixed = form.salaryType === "fixed";
         await db.employees.add({
           emri: form.emri.trim(),
           mbiemri: form.mbiemri.trim(),
           paymentMethod: canViewFinancials ? form.paymentMethod : "Cash",
-          cmimiOre: canViewFinancials ? parseNum(form.cmimiOre) : 0,
+          salaryType: canViewFinancials ? form.salaryType : "hourly",
+          cmimiOre: canViewFinancials && !isFixed ? parseNum(form.cmimiOre) : 0,
+          fixedSalary: canViewFinancials && isFixed ? parseNum(form.fixedSalary) : null,
           emriBankes: canViewFinancials && form.paymentMethod === "Bankë" ? form.emriBankes.trim() : "",
           llogariaBankes:
             canViewFinancials && form.paymentMethod === "Bankë" ? form.llogariaBankes.trim() : "",
@@ -186,7 +211,9 @@ export default function EmployeesSection() {
       emri: emp.emri,
       mbiemri: emp.mbiemri,
       paymentMethod: emp.paymentMethod,
-      cmimiOre: String(emp.cmimiOre),
+      salaryType: emp.salaryType ?? "hourly",
+      cmimiOre: emp.cmimiOre ? String(emp.cmimiOre) : "",
+      fixedSalary: emp.fixedSalary ? String(emp.fixedSalary) : "",
       emriBankes: emp.emriBankes ?? "",
       llogariaBankes: emp.llogariaBankes ?? "",
     });
@@ -228,16 +255,25 @@ export default function EmployeesSection() {
     (
       field: keyof Pick<
         FormData,
-        "emri" | "mbiemri" | "cmimiOre" | "emriBankes" | "llogariaBankes"
+        "emri" | "mbiemri" | "cmimiOre" | "fixedSalary" | "emriBankes" | "llogariaBankes"
       >
     ) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
       let value = e.target.value;
-      if (field === "cmimiOre") value = value.replace(",", ".");
+      if (field === "cmimiOre" || field === "fixedSalary") value = value.replace(",", ".");
       setForm((prev) => ({ ...prev, [field]: value }));
       if (errors[field as keyof FormErrors])
         setErrors((prev) => ({ ...prev, [field]: undefined }));
     };
+
+  const setSalaryType = (salaryType: "hourly" | "fixed") => {
+    setForm((prev) => ({ ...prev, salaryType }));
+    setErrors((prev) => ({
+      ...prev,
+      cmimiOre: undefined,
+      fixedSalary: undefined,
+    }));
+  };
 
   const setPaymentMethod = (method: "Cash" | "Bankë") => {
     setForm((prev) => ({
@@ -391,10 +427,17 @@ export default function EmployeesSection() {
                       {emp.llogariaBankes}
                     </span>
                   )}
-                <span className="flex items-center gap-1 text-xs font-semibold text-gray-600 bg-gray-100 px-2.5 py-0.5 rounded-full">
-                  <Euro className="w-3 h-3" />
-                  {emp.cmimiOre.toFixed(2)}/orë
-                </span>
+                {emp.salaryType === "fixed" ? (
+                  <span className="flex items-center gap-1 text-xs font-bold text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-full">
+                    <Wallet className="w-3 h-3" />
+                    €{Number(emp.fixedSalary || 0).toFixed(2)}/muaj ({t.employees.fixedBadge})
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 text-xs font-semibold text-gray-600 bg-gray-100 px-2.5 py-0.5 rounded-full">
+                    <Euro className="w-3 h-3" />
+                    {emp.cmimiOre.toFixed(2)}/orë
+                  </span>
+                )}
               </>
             )}
           </div>
@@ -603,22 +646,74 @@ export default function EmployeesSection() {
               )}
 
               {canViewFinancials && (
-                <FormField label={t.employees.cmimiOre} error={errors.cmimiOre} required>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-lg">
-                      €
-                    </span>
-                    <Input
-                      type="text"
-                      inputMode="decimal"
-                      value={form.cmimiOre}
-                      onChange={handleChange("cmimiOre")}
-                      placeholder={t.employees.cmimiOrePlaceholder}
-                      error={!!errors.cmimiOre}
-                      className="pl-8"
-                    />
-                  </div>
-                </FormField>
+                <>
+                  <FormField label={t.employees.salaryType} required>
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setSalaryType("hourly")}
+                        className={`flex-1 h-14 rounded-xl border-2 font-bold text-base sm:text-lg flex items-center justify-center gap-2 transition-colors
+                          ${
+                            form.salaryType === "hourly"
+                              ? "border-blue-600 bg-blue-600 text-white shadow-sm"
+                              : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                          }`}
+                      >
+                        <Clock className="w-5 h-5" />
+                        {t.employees.hourly}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSalaryType("fixed")}
+                        className={`flex-1 h-14 rounded-xl border-2 font-bold text-base sm:text-lg flex items-center justify-center gap-2 transition-colors
+                          ${
+                            form.salaryType === "fixed"
+                              ? "border-purple-600 bg-purple-600 text-white shadow-sm"
+                              : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                          }`}
+                      >
+                        <Wallet className="w-5 h-5" />
+                        {t.employees.fixed}
+                      </button>
+                    </div>
+                  </FormField>
+
+                  {form.salaryType === "hourly" ? (
+                    <FormField label={t.employees.cmimiOre} error={errors.cmimiOre} required>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-lg">
+                          €
+                        </span>
+                        <Input
+                          type="text"
+                          inputMode="decimal"
+                          value={form.cmimiOre}
+                          onChange={handleChange("cmimiOre")}
+                          placeholder={t.employees.cmimiOrePlaceholder}
+                          error={!!errors.cmimiOre}
+                          className="pl-8"
+                        />
+                      </div>
+                    </FormField>
+                  ) : (
+                    <FormField label={t.employees.fixedSalary} error={errors.fixedSalary} required>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-lg">
+                          €
+                        </span>
+                        <Input
+                          type="text"
+                          inputMode="decimal"
+                          value={form.fixedSalary}
+                          onChange={handleChange("fixedSalary")}
+                          placeholder={t.employees.fixedSalaryPlaceholder}
+                          error={!!errors.fixedSalary}
+                          className="pl-8"
+                        />
+                      </div>
+                    </FormField>
+                  )}
+                </>
               )}
 
               <div className="flex gap-3 mt-2">

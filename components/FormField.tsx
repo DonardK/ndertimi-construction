@@ -1,7 +1,5 @@
 "use client";
 
-import { t } from "@/lib/translations";
-
 interface FormFieldProps {
   label: string;
   error?: string;
@@ -69,13 +67,5 @@ export function Select({ error, className = "", children, ...props }: SelectProp
     >
       {children}
     </select>
-  );
-}
-
-export function RequiredBadge() {
-  return (
-    <span className="text-xs text-gray-500 font-normal">
-      ({t.common.required})
-    </span>
   );
 }

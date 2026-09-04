@@ -6,6 +6,7 @@ import { useRole } from "@/components/RoleProvider";
 import {
   db,
   type DailyReport,
+  type Employee,
   type Company,
   COMPANIES,
   DEFAULT_COMPANY,
@@ -15,6 +16,7 @@ import {
 import { t } from "@/lib/translations";
 import toast from "react-hot-toast";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import AiDailyReportModal from "@/components/AiDailyReportModal";
 import {
   Fuel,
   Users as UsersIcon,
@@ -30,6 +32,7 @@ import {
   Plus,
   Pencil,
   Trash2,
+  Sparkles,
 } from "lucide-react";
 import {
   startOfMonth,
@@ -49,7 +52,9 @@ interface WorkerRow {
   id: number;
   name: string;
   hours: number;
+  salaryType: "hourly" | "fixed";
   rate: number;
+  fixedSalary: number;
   total: number;
   paid: number;
   net: number;
@@ -165,6 +170,8 @@ export default function DashboardPage() {
   const [reportFormError, setReportFormError] = useState<string | null>(null);
   const [reportFormSaving, setReportFormSaving] = useState(false);
   const [deleteReportId, setDeleteReportId] = useState<number | null>(null);
+  const [employeesList, setEmployeesList] = useState<Employee[]>([]);
+  const [showAiModal, setShowAiModal] = useState(false);
 
   useBodyScrollLock(showReports);
 
@@ -196,6 +203,7 @@ export default function DashboardPage() {
         db.employees.getAll(),
         db.workerPayments.getAll(),
       ]);
+      setEmployeesList(emps);
 
       const filteredDiesel = dieselRecs.filter((r) => isInRange(r.date));
       const filteredAtt = attRecs.filter(
@@ -206,7 +214,9 @@ export default function DashboardPage() {
       const rateMap: Record<
         number,
         {
+          salaryType: "hourly" | "fixed";
           rate: number;
+          fixedSalary: number;
           method: "Cash" | "Bankë";
           name: string;
           emriBankes: string;
@@ -216,7 +226,9 @@ export default function DashboardPage() {
       emps.forEach((e) => {
         if (e.id !== undefined)
           rateMap[e.id] = {
+            salaryType: e.salaryType ?? "hourly",
             rate: e.cmimiOre,
+            fixedSalary: e.fixedSalary ?? 0,
             method: e.paymentMethod,
             name: `${e.emri} ${e.mbiemri}`,
             emriBankes: e.emriBankes ?? "",
@@ -238,17 +250,34 @@ export default function DashboardPage() {
         if (!wMap[r.employeeId]) wMap[r.employeeId] = { hours: 0 };
         wMap[r.employeeId].hours += r.hoursWorked;
       });
+
+      // Include active fixed workers or workers with payments in this period
+      emps.forEach((e) => {
+        if (e.id !== undefined && !e.archivedAt && e.salaryType === "fixed") {
+          if (selectedCompanyFilter === "all" || wMap[e.id]) {
+            if (!wMap[e.id]) wMap[e.id] = { hours: 0 };
+          }
+        }
+      });
+      Object.keys(paidMap).forEach((idStr) => {
+        const id = parseInt(idStr, 10);
+        if (!wMap[id]) wMap[id] = { hours: 0 };
+      });
+
       const wRows: WorkerRow[] = Object.entries(wMap)
         .map(([idStr, { hours }]) => {
           const id = parseInt(idStr);
           const info = rateMap[id];
-          const total = hours * (info?.rate ?? 0);
+          const isFixed = info?.salaryType === "fixed";
+          const total = isFixed ? (info?.fixedSalary ?? 0) : hours * (info?.rate ?? 0);
           const paid = paidMap[id] ?? 0;
           return {
             id,
             name: info?.name ?? `ID ${id}`,
             hours,
+            salaryType: info?.salaryType ?? "hourly",
             rate: info?.rate ?? 0,
+            fixedSalary: info?.fixedSalary ?? 0,
             total,
             paid,
             net: total - paid,
@@ -331,7 +360,7 @@ export default function DashboardPage() {
       rows.map((r) => [
         r.name,
         r.hours.toString(),
-        `€${r.rate.toFixed(2)}`,
+        r.salaryType === "fixed" ? `€${r.fixedSalary.toFixed(2)} (Fiks)` : `€${r.rate.toFixed(2)}`,
         `€${r.total.toFixed(2)}`,
         r.paid > 0 ? `€${r.paid.toFixed(2)}` : "—",
         `€${r.net.toFixed(2)}`,
@@ -370,7 +399,7 @@ export default function DashboardPage() {
         r.emriBankes || "—",
         r.llogariaBankes || "—",
         r.hours.toString(),
-        `€${r.rate.toFixed(2)}`,
+        r.salaryType === "fixed" ? `€${r.fixedSalary.toFixed(2)} (Fiks)` : `€${r.rate.toFixed(2)}`,
         `€${r.total.toFixed(2)}`,
         r.paid > 0 ? `€${r.paid.toFixed(2)}` : "—",
         `€${r.net.toFixed(2)}`,
@@ -763,13 +792,22 @@ export default function DashboardPage() {
                 <FileText className="w-4 h-4 text-amber-600" />
                 {t.dashboard.reportsTitle}
               </h2>
-              <button
-                onClick={openCreateReport}
-                className="flex items-center gap-1.5 text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 px-3 py-1.5 rounded-lg transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                {t.dashboard.addReport}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowAiModal(true)}
+                  className="flex items-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 px-3 py-1.5 rounded-lg transition-all shadow-sm"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                  <span>Regjistro me AI</span>
+                </button>
+                <button
+                  onClick={openCreateReport}
+                  className="flex items-center gap-1.5 text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  {t.dashboard.addReport}
+                </button>
+              </div>
             </div>
             {reportsLoading ? (
               <div className="flex justify-center py-12">
@@ -913,7 +951,15 @@ export default function DashboardPage() {
                             <tr key={r.id} className="border-t border-gray-50 hover:bg-gray-50">
                               <td className="px-4 py-3 font-semibold text-gray-900">{r.name}</td>
                               <td className="px-3 py-3 text-right text-gray-700">{r.hours}</td>
-                              <td className="px-3 py-3 text-right text-gray-500">€{r.rate.toFixed(2)}</td>
+                              <td className="px-3 py-3 text-right text-gray-500">
+                                {r.salaryType === "fixed" ? (
+                                  <span className="inline-block text-xs font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">
+                                    Fiks €{r.fixedSalary.toFixed(2)}
+                                  </span>
+                                ) : (
+                                  `€${r.rate.toFixed(2)}`
+                                )}
+                              </td>
                               <td className="px-3 py-3 text-right font-bold text-gray-900">{eur(r.total)}</td>
                               <td className="px-3 py-3 text-right font-bold text-emerald-700">{r.paid > 0 ? eur(r.paid) : <span className="text-gray-300">—</span>}</td>
                               <td className="px-4 py-3 text-right font-bold text-orange-700">{eur(r.net)}</td>
@@ -982,7 +1028,15 @@ export default function DashboardPage() {
                                 {r.llogariaBankes || "—"}
                               </td>
                               <td className="px-3 py-3 text-right text-gray-700">{r.hours}</td>
-                              <td className="px-3 py-3 text-right text-gray-500">€{r.rate.toFixed(2)}</td>
+                              <td className="px-3 py-3 text-right text-gray-500">
+                                {r.salaryType === "fixed" ? (
+                                  <span className="inline-block text-xs font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">
+                                    Fiks €{r.fixedSalary.toFixed(2)}
+                                  </span>
+                                ) : (
+                                  `€${r.rate.toFixed(2)}`
+                                )}
+                              </td>
                               <td className="px-3 py-3 text-right font-bold text-gray-900">{eur(r.total)}</td>
                               <td className="px-3 py-3 text-right font-bold text-emerald-700">{r.paid > 0 ? eur(r.paid) : <span className="text-gray-300">—</span>}</td>
                               <td className="px-4 py-3 text-right font-bold text-orange-700">{eur(r.net)}</td>
@@ -1126,13 +1180,22 @@ export default function DashboardPage() {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 {!reportFormMode && !selectedReport && (
-                  <button
-                    onClick={openCreateReport}
-                    className="flex items-center gap-1.5 text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 px-3 py-1.5 rounded-lg transition-colors"
-                  >
-                    <Plus className="w-4 h-4" />
-                    {t.common.add}
-                  </button>
+                  <>
+                    <button
+                      onClick={() => setShowAiModal(true)}
+                      className="flex items-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 px-3 py-1.5 rounded-lg transition-all shadow-sm"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                      <span>Regjistro me AI</span>
+                    </button>
+                    <button
+                      onClick={openCreateReport}
+                      className="flex items-center gap-1.5 text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      {t.common.add}
+                    </button>
+                  </>
                 )}
                 <button
                   onClick={closeReports}
@@ -1392,6 +1455,18 @@ export default function DashboardPage() {
         message={t.dashboard.deleteReportConfirm}
         onConfirm={handleDeleteReport}
         onCancel={() => setDeleteReportId(null)}
+      />
+
+      <AiDailyReportModal
+        open={showAiModal}
+        initialDate={format(new Date(), "yyyy-MM-dd")}
+        initialCompany={selectedCompanyFilter === "all" ? DEFAULT_COMPANY : selectedCompanyFilter}
+        employees={employeesList}
+        onClose={() => setShowAiModal(false)}
+        onSuccess={() => {
+          loadStats();
+          loadReports(selectedMonth, selectedCompanyFilter);
+        }}
       />
     </div>
   );

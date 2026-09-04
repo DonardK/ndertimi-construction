@@ -1,16 +1,16 @@
-# Graph Report - ndertimi-construction  (2026-08-15)
+# Graph Report - ndertimi-construction  (2026-09-04)
 
 ## Corpus Check
-- 97 files · ~52,928 words
+- 100 files · ~57,423 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 254 nodes · 403 edges · 45 communities (36 shown, 9 thin omitted)
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 11 edges (avg confidence: 0.8)
+- 260 nodes · 425 edges · 43 communities (35 shown, 8 thin omitted)
+- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 18 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `fd7716fa`
+- Built from commit: `47dd0aca`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -36,54 +36,52 @@
 - [[_COMMUNITY_Community 18|Community 18]]
 - [[_COMMUNITY_Community 19|Community 19]]
 - [[_COMMUNITY_Community 20|Community 20]]
-- [[_COMMUNITY_Community 21|Community 21]]
-- [[_COMMUNITY_Community 22|Community 22]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `useAppRefreshVersion()` - 10 edges
-2. `useBodyScrollLock()` - 10 edges
-3. `createClient()` - 9 edges
-4. `Select()` - 8 edges
-5. `compressImage()` - 8 edges
-6. `useRole()` - 6 edges
-7. `loadEmployees()` - 6 edges
-8. `parseNum()` - 6 edges
-9. `loadVehicles()` - 6 edges
-10. `POST()` - 5 edges
+1. `useBodyScrollLock()` - 12 edges
+2. `getSupabaseUrl()` - 11 edges
+3. `getSupabaseAnonKey()` - 11 edges
+4. `createClient()` - 11 edges
+5. `useAppRefreshVersion()` - 10 edges
+6. `compressImage()` - 9 edges
+7. `Select()` - 8 edges
+8. `useRole()` - 6 edges
+9. `loadEmployees()` - 6 edges
+10. `parseNum()` - 6 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `handleExportAttendance()` --calls--> `exportAttendanceMatrixPdf()`  [INFERRED]
   app/profili/page.tsx → lib/attendanceExport.ts
-- `middleware()` --calls--> `getRoleFromEmail()`  [INFERRED]
-  middleware.ts → lib/roles.ts
-- `middleware()` --calls--> `isStaffBlockedPath()`  [INFERRED]
-  middleware.ts → lib/roles.ts
-- `updateCount()` --calls--> `countExpiredRegistrations()`  [INFERRED]
-  components/BottomNav.tsx → lib/vehicleRegistration.ts
-- `ConfirmDialog()` --calls--> `useBodyScrollLock()`  [INFERRED]
-  vercel-recovery/2K6b37HEZ/src/components/ConfirmDialog.tsx → lib/useBodyScrollLock.ts
+- `AiDailyReportModal()` --calls--> `useBodyScrollLock()`  [INFERRED]
+  components/AiDailyReportModal.tsx → lib/useBodyScrollLock.ts
+- `createClient()` --calls--> `getSupabaseUrl()`  [INFERRED]
+  vercel-recovery/2K6b37HEZ/src/utils/supabase/client.ts → lib/supabase-env.ts
+- `createClient()` --calls--> `getSupabaseAnonKey()`  [INFERRED]
+  vercel-recovery/2K6b37HEZ/src/utils/supabase/client.ts → lib/supabase-env.ts
+- `middleware()` --calls--> `getSupabaseUrl()`  [INFERRED]
+  middleware.ts → lib/supabase-env.ts
 
-## Communities (45 total, 9 thin omitted)
+## Communities (43 total, 8 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.13
-Nodes (12): toAuthEmail(), mapAttendance(), mapDiesel(), mapEmployee(), mapOfficeExpense(), mapPayment(), mapStockItem(), mapVehicle() (+4 more)
+Nodes (16): BottomNav(), updateCount(), useRole(), canViewFinancials(), getRoleFromEmail(), isStaffBlockedPath(), navHrefAllowedForRole(), normalizeEmail() (+8 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.13
-Nodes (12): applyCustom(), applyPreset(), defaultReportDate(), escapeHtml(), eur(), exportVehiclesPdf(), exportWorkersPdf(), getPresetRange() (+4 more)
+Nodes (17): AiDailyReportModal(), ConfirmDialog(), defaultLocationForCompany(), workLocationLabel(), useBodyScrollLock(), applyToAll(), buildBulkRows(), existingEmployeeIdsForDate() (+9 more)
 
 ### Community 2 - "Community 2"
-Cohesion: 0.18
-Nodes (14): defaultLocationForCompany(), workLocationLabel(), applyToAll(), buildBulkRows(), existingEmployeeIdsForDate(), handleBulkSave(), handleCompanyChange(), handleDelete() (+6 more)
+Cohesion: 0.13
+Nodes (12): applyCustom(), applyPreset(), defaultReportDate(), escapeHtml(), eur(), exportVehiclesPdf(), exportWorkersPdf(), getPresetRange() (+4 more)
 
 ### Community 3 - "Community 3"
-Cohesion: 0.25
-Nodes (16): handleAddPayment(), handleArchive(), handleChange(), handleDelete(), handleDeletePayment(), handleEdit(), handleOpenAdd(), handlePaymentFieldChange() (+8 more)
+Cohesion: 0.14
+Nodes (12): toAuthEmail(), mapAttendance(), mapDiesel(), mapEmployee(), mapOfficeExpense(), mapPayment(), mapStockItem(), mapVehicle() (+4 more)
 
 ### Community 4 - "Community 4"
-Cohesion: 0.18
-Nodes (10): BottomNav(), updateCount(), useRole(), canViewFinancials(), getRoleFromEmail(), isStaffBlockedPath(), navHrefAllowedForRole(), normalizeEmail() (+2 more)
+Cohesion: 0.23
+Nodes (16): handleAddPayment(), handleArchive(), handleChange(), handleDelete(), handleDeletePayment(), handleEdit(), handleOpenAdd(), handlePaymentFieldChange() (+8 more)
 
 ### Community 5 - "Community 5"
 Cohesion: 0.24
@@ -110,30 +108,30 @@ Cohesion: 0.5
 Nodes (8): getPageScrollTop(), isAtTop(), isInsideScrollableNotAtTop(), isPageAtTop(), onEnd(), onMove(), onStart(), resetPull()
 
 ### Community 11 - "Community 11"
-Cohesion: 0.62
-Nodes (5): getSupabaseAnonKey(), getSupabaseUrl(), isSupabaseConfigured(), requireSupabaseConfig(), createClient()
-
-### Community 12 - "Community 12"
 Cohesion: 0.73
 Nodes (4): maxTokensForMode(), POST(), promptForMode(), technicalDetail()
 
-### Community 13 - "Community 13"
+### Community 12 - "Community 12"
 Cohesion: 0.7
 Nodes (4): getFileContents(), getJSON(), vfetch(), walk()
 
 ## Knowledge Gaps
-- **9 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **8 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `useAppRefreshVersion()` connect `Community 8` to `Community 1`, `Community 2`, `Community 3`, `Community 4`, `Community 5`, `Community 6`, `Community 7`, `Community 9`, `Community 10`?**
-  _High betweenness centrality (0.248) - this node is a cross-community bridge._
-- **Why does `useBodyScrollLock()` connect `Community 14` to `Community 1`, `Community 2`, `Community 3`, `Community 5`, `Community 6`, `Community 7`, `Community 9`?**
-  _High betweenness centrality (0.121) - this node is a cross-community bridge._
-- **Why does `useRole()` connect `Community 4` to `Community 8`, `Community 1`, `Community 2`, `Community 3`?**
-  _High betweenness centrality (0.084) - this node is a cross-community bridge._
-- **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.13 - nodes in this community are weakly interconnected._
-- **Should `Community 1` be split into smaller, more focused modules?**
-  _Cohesion score 0.13 - nodes in this community are weakly interconnected._
+- **Why does `useAppRefreshVersion()` connect `Community 8` to `Community 0`, `Community 1`, `Community 2`, `Community 4`, `Community 5`, `Community 6`, `Community 7`, `Community 9`, `Community 10`?**
+  _High betweenness centrality (0.261) - this node is a cross-community bridge._
+- **Why does `useBodyScrollLock()` connect `Community 1` to `Community 2`, `Community 4`, `Community 5`, `Community 6`, `Community 7`, `Community 9`?**
+  _High betweenness centrality (0.124) - this node is a cross-community bridge._
+- **Why does `createClient()` connect `Community 3` to `Community 8`, `Community 0`?**
+  _High betweenness centrality (0.123) - this node is a cross-community bridge._
+- **Are the 2 inferred relationships involving `useBodyScrollLock()` (e.g. with `AiDailyReportModal()` and `ConfirmDialog()`) actually correct?**
+  _`useBodyScrollLock()` has 2 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 4 inferred relationships involving `getSupabaseUrl()` (e.g. with `middleware()` and `createClient()`) actually correct?**
+  _`getSupabaseUrl()` has 4 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 4 inferred relationships involving `getSupabaseAnonKey()` (e.g. with `middleware()` and `createClient()`) actually correct?**
+  _`getSupabaseAnonKey()` has 4 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 2 inferred relationships involving `createClient()` (e.g. with `getSupabaseUrl()` and `getSupabaseAnonKey()`) actually correct?**
+  _`createClient()` has 2 INFERRED edges - model-reasoned connections that need verification._
